@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --saffron: #FF6B00;
+  --saffron-light: #FF8C33;
+  --navy: #1B2A4A;
+  --navy-light: #2D3E5C;
+  --surface: #F7F8FA;
+  --card: #FFFFFF;
+  --text-primary: #1B2A4A;
+  --text-secondary: #5A6B80;
+  --text-muted: #8899AA;
+  --border: #E2E8F0;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
+}
+
+body {
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
