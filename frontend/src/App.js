@@ -1,12 +1,44 @@
 import { useState, useEffect } from 'react';
-import { getUsers, getBooths, seedData, healthCheck } from './api';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { getUsers, getBooths, seedData } from './api';
+import { Navbar } from './components/landing/Navbar';
+import { Hero } from './components/landing/Hero';
+import { ProblemStatement } from './components/landing/ProblemStatement';
+import { PlatformCapabilities } from './components/landing/PlatformCapabilities';
+import { HowItWorks } from './components/landing/HowItWorks';
+import { Roles } from './components/landing/Roles';
+import { SecurityEthics } from './components/landing/SecurityEthics';
+import { MultilingualSupport } from './components/landing/MultilingualSupport';
+import { CTA_Section } from './components/landing/CTA_Section';
+import { Footer } from './components/landing/Footer';
 import PannaDashboard from './components/roles/PannaDashboard';
 import AdminDashboard from './components/roles/AdminDashboard';
 import WorkerDashboard from './components/roles/WorkerDashboard';
 import CitizenDashboard from './components/roles/CitizenDashboard';
 import AnalystDashboard from './components/roles/AnalystDashboard';
-import { Users, Shield, Wrench, UserCircle, BarChart3, ChevronDown, MapPin, Database, CheckCircle } from 'lucide-react';
+import { Users, Shield, Wrench, UserCircle, BarChart3, MapPin, Database, RefreshCw } from 'lucide-react';
 
+/* ─── Landing Page (PURE UI — no API calls) ─── */
+function LandingPage() {
+  return (
+    <div className="font-serif antialiased selection:bg-[var(--primary)] selection:text-white bg-[var(--background-dark)]">
+      <Navbar />
+      <main className="relative">
+        <Hero />
+        <ProblemStatement />
+        <PlatformCapabilities />
+        <HowItWorks />
+        <Roles />
+        <SecurityEthics />
+        <MultilingualSupport />
+        <CTA_Section />
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+/* ─── Dashboard (Workflow System) ─── */
 const ROLE_CONFIG = {
   panna: { label: 'Panna Pramukh', icon: Users, color: '#FF6B00', desc: 'Voter management & outreach' },
   admin: { label: 'Booth Adhyaksh', icon: Shield, color: '#1B2A4A', desc: 'Grievance management' },
@@ -23,7 +55,7 @@ const DASHBOARD_MAP = {
   analyst: AnalystDashboard,
 };
 
-function App() {
+function DashboardPage() {
   const [users, setUsers] = useState([]);
   const [booths, setBooths] = useState([]);
   const [selectedRole, setSelectedRole] = useState('');
@@ -32,7 +64,6 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [seedDone, setSeedDone] = useState(false);
-  const [roleDropdown, setRoleDropdown] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -41,7 +72,6 @@ function App() {
         setUsers(u);
         setBooths(b.filter(bo => [17, 18].includes(bo.id)));
         if (u.length === 0) {
-          // Auto-seed if no users
           await seedData();
           const [u2, b2] = await Promise.all([getUsers(), getBooths()]);
           setUsers(u2);
@@ -73,7 +103,6 @@ function App() {
       setCurrentUser(roleUsers[0]);
       setSelectedBooth(roleUsers[0].booth_id);
     }
-    setRoleDropdown(false);
   };
 
   const handleUserChange = (userId) => {
@@ -114,17 +143,13 @@ function App() {
               <p className="text-[10px] text-[#8899AA] leading-tight">Booth Management System</p>
             </div>
           </div>
-
           <div className="flex items-center gap-3">
-            {/* Booth Selector */}
             {selectedBooth && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F0F9FF] text-[#0284C7]" data-testid="booth-indicator">
                 <MapPin size={14} />
                 <span className="text-xs font-medium">{currentBooth?.name || `Booth ${selectedBooth}`}</span>
               </div>
             )}
-
-            {/* Seed Button */}
             <button data-testid="seed-btn" onClick={handleSeed} disabled={seeding}
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#F7F8FA] text-[#5A6B80] hover:bg-gray-200 flex items-center gap-1.5 transition-all">
               <Database size={13} /> {seeding ? 'Seeding...' : seedDone ? 'Re-seed' : 'Seed Data'}
@@ -135,13 +160,11 @@ function App() {
 
       <main className="max-w-6xl mx-auto px-4 py-6">
         {!selectedRole ? (
-          /* Role Selection Screen */
           <div data-testid="role-selection">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-[#1B2A4A] mb-2">Select Your Role</h2>
               <p className="text-sm text-[#5A6B80]">Choose your role to access the appropriate dashboard</p>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-3xl mx-auto">
               {Object.entries(ROLE_CONFIG).map(([role, config]) => {
                 const Icon = config.icon;
@@ -163,22 +186,17 @@ function App() {
             </div>
           </div>
         ) : (
-          /* Dashboard View */
           <div data-testid="dashboard-view">
-            {/* Dashboard Header */}
             <div className="flex flex-wrap items-center gap-3 mb-6">
               <button data-testid="back-to-roles" onClick={() => { setSelectedRole(''); setCurrentUser(null); }}
                 className="px-4 py-2 rounded-xl bg-white text-[#5A6B80] text-sm font-medium hover:bg-gray-100 border border-[#E2E8F0]">
                 &larr; Roles
               </button>
-
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white"
                 style={{ background: roleConfig.color }}>
                 {roleConfig.icon && <roleConfig.icon size={16} />}
                 {roleConfig.label}
               </div>
-
-              {/* User Switcher */}
               {roleUsers.length > 1 && (
                 <select data-testid="user-switcher" value={currentUser?.id || ''} onChange={e => handleUserChange(e.target.value)}
                   className="px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white text-sm text-[#1B2A4A] focus:ring-2 focus:ring-[#FF6B00]/30 outline-none">
@@ -187,8 +205,6 @@ function App() {
                   ))}
                 </select>
               )}
-
-              {/* Booth Switcher */}
               {selectedRole !== 'worker' && (
                 <select data-testid="booth-switcher" value={selectedBooth || ''} onChange={e => setSelectedBooth(Number(e.target.value))}
                   className="px-3 py-2 rounded-xl border border-[#E2E8F0] bg-white text-sm text-[#1B2A4A] focus:ring-2 focus:ring-[#FF6B00]/30 outline-none">
@@ -198,8 +214,6 @@ function App() {
                 </select>
               )}
             </div>
-
-            {/* Dashboard Content */}
             {DashboardComponent && currentUser && selectedBooth && (
               <DashboardComponent currentUser={currentUser} boothId={selectedBooth} />
             )}
@@ -207,6 +221,18 @@ function App() {
         )}
       </main>
     </div>
+  );
+}
+
+/* ─── App Router ─── */
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

@@ -1,39 +1,150 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&family=Public+Sans:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --saffron: #FF6B00;
-  --saffron-light: #FF8C33;
-  --navy: #1B2A4A;
-  --navy-light: #2D3E5C;
-  --surface: #F7F8FA;
-  --card: #FFFFFF;
-  --text-primary: #1B2A4A;
-  --text-secondary: #5A6B80;
-  --text-muted: #8899AA;
-  --border: #E2E8F0;
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  --info: #3B82F6;
+  --navy: #080d1a;
+  --navy2: #0d1528;
+  --navy3: #111e35;
+  --gold: #c9a84c;
+  --gold2: #e8c56a;
+  --gold-dim: rgba(201, 168, 76, 0.15);
+  --white: #f0ece3;
+  --white2: rgba(240, 236, 227, 0.7);
+  --white3: rgba(240, 236, 227, 0.25);
+  --white4: rgba(240, 236, 227, 0.08);
+  --red: #d64045;
+  --green: #2a9d62;
+  --blue: #2563c4;
+  --amber: #d97706;
+  --border: rgba(201, 168, 76, 0.18);
+  --saffron: #e8761a;
+  --background-dark: #0a0a0f;
+  --cream: #f0ece3;
+  --primary: #c9a74a;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(25, 25, 30, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(201, 167, 74, 0.2);
+}
+
+/* Grid pattern background */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(201, 167, 74, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(201, 167, 74, 0.05) 1px, transparent 1px);
+}
+
+/* Text shimmer for saffron CTA */
+.text-shimmer {
+  background: linear-gradient(to right, #e8761a 20%, #ffbf85 40%, #ffbf85 60%, #e8761a 80%);
+  background-size: 200% auto;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Ticker wrapper */
+.ticker-wrap {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.ticker-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 3rem;
+  animation: ticker 40s linear infinite;
+  white-space: nowrap;
+}
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes shimmer {
+  to { background-position: 200% center; }
+}
+
+/* Selection color */
+::selection {
+  background-color: rgba(201, 167, 74, 0.3);
+  color: white;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  font-family: 'Outfit', sans-serif;
+  font-family: "Public Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: var(--surface);
-  color: var(--text-primary);
+  -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
+/* Slide-in animation for panels */
+@keyframes slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.animate-slide-in { animation: slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* Fade up animation */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fade-up 0.4s ease-out both; }
+
+/* Staggered entrance for cards */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+
+/* Progress bar fill animation */
+@keyframes fill-bar { from { width: 0%; } }
+.animate-fill-bar { animation: fill-bar 1s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: 0.3s; }
+
+/* Count-up pulse for numbers */
+@keyframes pop {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-pop { animation: pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Material Symbols Outlined filled variant */
+.icon-filled { font-variation-settings: 'FILL' 1; }
+
+/* Line clamp for truncating text */
+.line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
+.line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+
+/* Size utility for Tailwind v3 (not built-in) */
+.size-2 { width: 0.5rem; height: 0.5rem; }
+.size-8 { width: 2rem; height: 2rem; }
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
-/* Scrollbar */
+/* Scrollbar for dashboard pages */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
