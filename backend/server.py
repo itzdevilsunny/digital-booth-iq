@@ -163,13 +163,13 @@ class GrievanceCreate(BaseModel):
     booth_id: int
 
 class GrievanceUpdate(BaseModel):
-    id: int
+    id: str
     status: Optional[str] = None
     assigned_worker: Optional[str] = None
     resolution_note: Optional[str] = None
 
 class VoterUpdate(BaseModel):
-    id: int
+    id: str
     sentiment: Optional[str] = None
 
 class CallCreate(BaseModel):
@@ -351,8 +351,9 @@ async def get_grievances(booth_id: Optional[int] = None, assigned_to: Optional[s
     
     # Merge assignment data with grievances
     result = []
-    for g in (data or []):
-        assignment = assignments.get(g["id"], {})
+    for item in (data or []):
+        g = dict(item)  # Ensure it is a fresh mutable dict
+        assignment = assignments.get(g.get("id"), {})
         g["assigned_worker"] = assignment.get("worker_name", None)
         g["assigned_worker_id"] = assignment.get("worker_id", None)
         result.append(g)

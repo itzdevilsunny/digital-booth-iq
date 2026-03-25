@@ -3,60 +3,67 @@ import { Icon, Reveal, StaggerContainer, staggerChild } from "./shared";
 
 export function ProblemStatement() {
   return (
-    <section id="problem" className="py-28 bg-[var(--background-dark)] relative">
-      <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
-      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center relative z-10">
+    <section id="problem" className="py-32 bg-[#f8f5f0] relative overflow-hidden">
+      <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] pointer-events-none" />
+      <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-20 items-center relative z-10">
         <Reveal>
-          <h2 className="text-4xl md:text-5xl font-serif font-bold leading-tight mb-6 text-white">
-            <span className="text-[var(--primary)]">&ldquo;</span>Politics is a game of
-            inches.<span className="text-[var(--primary)]">&rdquo;</span>
-          </h2>
-          <p className="text-xl text-[var(--cream)]/80 font-body leading-relaxed mb-8 border-l-4 border-[var(--primary)]/30 pl-6">
-            Don&apos;t let data silos, manual errors, or delayed intelligence
-            cost you the election. Traditional campaign methods leave 40% of
-            potential swing voters untouched.
-          </p>
-          <div className="flex items-center gap-4 text-sm font-mono text-[var(--primary)]/80">
-            <motion.span
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Icon name="warning" />
-            </motion.span>
-            <span>CAMPAIGN RISK ASSESSMENT: CRITICAL</span>
+          <div className="flex flex-col gap-6">
+            <h2 className="text-5xl md:text-7xl font-serif font-black leading-tight text-navy tracking-tighter">
+              <span className="text-primary italic">&ldquo;</span>Politics is a <br />Game of <span className="text-primary">Inches.</span><span className="text-primary italic">&rdquo;</span>
+            </h2>
+            <p className="text-xl md:text-2xl text-navy/40 font-serif italic leading-relaxed border-l-4 border-primary/20 pl-8">
+              Data silos, operational friction, and delayed intelligence are the primary causes of electoral attrition. 
+              Traditional models fail to engage 40% of the critical swing electorate.
+            </p>
+            <div className="inline-flex items-center gap-4 py-3 px-6 rounded-2xl bg-red-500/5 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.05)]">
+              <motion.div
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="size-2 rounded-full bg-red-500"
+              />
+              <span className="text-[10px] font-mono font-black text-red-500 uppercase tracking-[0.4em]">Intelligence Risk: Critical</span>
+            </div>
           </div>
         </Reveal>
 
-        <StaggerContainer className="grid gap-4">
-          <motion.div variants={staggerChild} whileHover={{ scale: 1.02, y: -4 }} className="glass-panel p-6 rounded-lg flex items-start gap-4 transition-colors group cursor-default">
-            <div className="p-3 bg-red-900/20 text-red-500 rounded border border-red-500/20 group-hover:border-red-500/50 group-hover:shadow-[0_0_12px_rgba(239,68,68,0.2)] transition-all duration-300">
-              <Icon name="database" />
-            </div>
-            <div>
-              <h3 className="text-white text-lg font-bold mb-1">Fragmented Data</h3>
-              <p className="text-[var(--cream)]/70 text-sm">Voter lists scattered across Excel sheets, PDFs, and notebooks lead to duplicate efforts.</p>
-            </div>
-          </motion.div>
-
-          <motion.div variants={staggerChild} whileHover={{ scale: 1.02, y: -4 }} className="glass-panel p-6 rounded-lg flex items-start gap-4 transition-colors group cursor-default">
-            <div className="p-3 bg-orange-900/20 text-orange-500 rounded border border-orange-500/20 group-hover:border-orange-500/50 group-hover:shadow-[0_0_12px_rgba(249,115,22,0.2)] transition-all duration-300">
-              <Icon name="schedule" />
-            </div>
-            <div>
-              <h3 className="text-white text-lg font-bold mb-1">Slow Decisions</h3>
-              <p className="text-[var(--cream)]/70 text-sm">Critical insights arriving 48 hours too late to act upon effectively.</p>
-            </div>
-          </motion.div>
-
-          <motion.div variants={staggerChild} whileHover={{ scale: 1.02, y: -4 }} className="glass-panel p-6 rounded-lg flex items-start gap-4 transition-colors group cursor-default">
-            <div className="p-3 bg-yellow-900/20 text-yellow-500 rounded border border-yellow-500/20 group-hover:border-yellow-500/50 group-hover:shadow-[0_0_12px_rgba(234,179,8,0.2)] transition-all duration-300">
-              <Icon name="monetization_on" />
-            </div>
-            <div>
-              <h3 className="text-white text-lg font-bold mb-1">Wasted Resources</h3>
-              <p className="text-[var(--cream)]/70 text-sm">Campaign funds spent on safe seats instead of battling for swing booths.</p>
-            </div>
-          </motion.div>
+        <StaggerContainer className="grid grid-cols-1 gap-6">
+          {[
+            { 
+              title: "Information Fragmentation", 
+              desc: "Voter intelligence sequestered in disparate physical logs and isolated digital nodes.", 
+              icon: "data_exploration", 
+              color: "border-red-500/20 bg-red-500/5 shadow-red-500/5" 
+            },
+            { 
+              title: "Operational Latency", 
+              desc: "Strategic ground insights arriving 48-72 hours post-event, rendering them non-actionable.", 
+              icon: "timer_10_alt_1", 
+              color: "border-saffron/20 bg-saffron/5 shadow-saffron/5" 
+            },
+            { 
+              title: "Strategic Depletion", 
+              desc: "Campaign resources misallocated to stable zones instead of contested swing matrices.", 
+              icon: "account_balance_wallet", 
+              color: "border-primary/20 bg-primary/5 shadow-primary/5" 
+            },
+          ].map((item) => (
+            <motion.div 
+              key={item.title} 
+              variants={staggerChild} 
+              whileHover={{ x: 10 }} 
+              className={`glass-panel p-8 rounded-3xl border ${item.color} flex items-start gap-6 transition-all duration-500 group shadow-lg cursor-default`}
+            >
+              <div className="size-14 rounded-2xl bg-gold/5 flex items-center justify-center text-primary border border-gold/10 group-hover:bg-primary/10 group-hover:text-white group-hover:border-primary/20 transition-all duration-500 group-hover:rotate-6">
+                <Icon name={item.icon} size={28} />
+              </div>
+              <div>
+                <h3 className="text-xl font-serif font-bold text-navy mb-2 group-hover:text-primary transition-colors">{item.title}</h3>
+                <p className="text-[11px] text-navy/30 font-serif leading-relaxed italic group-hover:text-navy/60 transition-colors uppercase tracking-wide">
+                  {item.desc}
+                </p>
+              </div>
+            </motion.div>
+          ))}
         </StaggerContainer>
       </div>
     </section>

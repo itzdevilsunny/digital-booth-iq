@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { getAnalytics } from '../../api';
-import { BarChart3, Users, AlertTriangle, CheckCircle2, PhoneCall, Lightbulb, RefreshCw } from 'lucide-react';
+import { 
+  BarChart3, Users, AlertTriangle, CheckCircle2, 
+  PhoneCall, Lightbulb, RefreshCw, TrendingUp, 
+  TrendingDown, Zap, ShieldCheck, Activity,
+  Target, BrainCircuit
+} from 'lucide-react';
 
 export default function AnalystDashboard({ currentUser, boothId }) {
   const [stats, setStats] = useState(null);
@@ -18,11 +24,21 @@ export default function AnalystDashboard({ currentUser, boothId }) {
   useEffect(() => { loadData(); }, [loadData]);
 
   if (loading) {
-    return <div className="text-center py-20 text-[#8899AA]" data-testid="analyst-loading">Loading analytics...</div>;
+    return (
+      <div className="py-40 text-center animate-pulse" data-testid="analyst-loading">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-6" />
+        <p className="text-primary font-mono text-[10px] uppercase tracking-[0.4em] font-black">Decrypting Analytics Pipeline...</p>
+      </div>
+    );
   }
 
   if (!stats) {
-    return <div className="text-center py-20 text-[#8899AA]">Failed to load analytics</div>;
+    return (
+      <div className="py-40 text-center bg-white border border-dashed border-gold/20 rounded-3xl shadow-sm">
+        <AlertTriangle size={48} className="mx-auto mb-4 text-saffron opacity-50" />
+        <p className="text-navy/40 font-mono text-[10px] uppercase tracking-[0.3em]">Data Link Severed / Connection Error</p>
+      </div>
+    );
   }
 
   const sentTotal = Object.values(stats.sentiment_distribution).reduce((a, b) => a + b, 0);
@@ -30,83 +46,112 @@ export default function AnalystDashboard({ currentUser, boothId }) {
     key: k, value: v, pct: sentTotal > 0 ? ((v / sentTotal) * 100).toFixed(1) : 0
   }));
 
-  const SENTIMENT_COLORS = { positive: '#10B981', neutral: '#3B82F6', negative: '#EF4444' };
+  const SENTIMENT_CONFIG = { 
+    positive: { color: 'text-emerald-500', bg: 'bg-emerald-500', label: 'Positive Bias' },
+    neutral: { color: 'text-blue-400', bg: 'bg-blue-400', label: 'Neutral Baseline' },
+    negative: { color: 'text-rose-500', bg: 'bg-rose-500', label: 'Negative Variance' }
+  };
+
+  const CATEGORY_COLORS = {
+    water: 'bg-blue-400', road: 'bg-purple-400', electricity: 'bg-amber-400',
+    sanitation: 'bg-emerald-400', healthcare: 'bg-rose-400', education: 'bg-indigo-400', other: 'bg-slate-400'
+  };
 
   return (
-    <div data-testid="analyst-dashboard">
-      {/* Refresh */}
-      <div className="flex justify-end mb-4">
-        <button onClick={loadData} data-testid="analyst-refresh" className="p-2.5 rounded-full bg-white hover:bg-gray-100">
-          <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+    <div data-testid="analyst-dashboard" className="animate-fade-up">
+      {/* Intelligence Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-8 border-b border-gold/10">
+        <div className="flex items-center gap-4">
+          <div className="size-14 rounded-2xl bg-gold/10 border border-gold/10 flex items-center justify-center text-primary shadow-[0_4px_15px_rgba(212,175,55,0.05)]">
+            <Activity size={28} />
+          </div>
+          <div>
+            <h3 className="text-3xl font-serif font-black text-navy tracking-tight">Intelligence Dashboard</h3>
+            <p className="text-[10px] font-mono font-black text-primary uppercase tracking-[0.3em] opacity-80">Real-time Sector Analysis / BOOTH-{boothId}</p>
+          </div>
+        </div>
+        <button onClick={loadData} data-testid="analyst-refresh" 
+          className="self-end md:self-auto p-4 rounded-2xl bg-white border border-gold/10 text-primary hover:bg-gold/5 transition-all active:scale-95 shadow-md group">
+          <RefreshCw size={20} className={loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
         </button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      {/* Primary Metrics Group */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         {[
-          { label: 'Total Voters', value: stats.total_voters, icon: Users, color: '#3B82F6' },
-          { label: 'Total Issues', value: stats.total_issues, icon: AlertTriangle, color: '#F59E0B' },
-          { label: 'Resolved', value: stats.resolved_issues, icon: CheckCircle2, color: '#10B981' },
-          { label: 'Total Calls', value: stats.total_calls, icon: PhoneCall, color: '#8B5CF6' },
-        ].map(kpi => (
-          <div key={kpi.label} data-testid={`kpi-${kpi.label.toLowerCase().replace(' ', '-')}`}
-            className="bg-white rounded-xl p-4 border border-[#E2E8F0]">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${kpi.color}15` }}>
-                <kpi.icon size={16} style={{ color: kpi.color }} />
+          { label: 'Total Electorate', value: stats.total_voters, icon: Users, color: 'text-blue-500', trend: '+1.2%' },
+          { label: 'Dispatch Total', value: stats.total_issues, icon: AlertTriangle, color: 'text-saffron', trend: '-4.8%' },
+          { label: 'Neutralized', value: stats.resolved_issues, icon: ShieldCheck, color: 'text-emerald-600', trend: '92%' },
+          { label: 'Engagement', value: stats.total_calls, icon: PhoneCall, color: 'text-primary', trend: '+14%' },
+        ].map((kpi, idx) => (
+          <div key={kpi.label} className="bg-white p-6 rounded-3xl border border-gold/10 relative overflow-hidden group shadow-sm">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex items-center justify-between mb-4">
+              <div className={`p-3 rounded-xl bg-gold/5 border border-gold/10 ${kpi.color}`}>
+                <kpi.icon size={20} />
               </div>
+              <span className={`text-[9px] font-mono font-black ${idx % 2 === 0 ? 'text-emerald-600' : 'text-rose-500'}`}>{kpi.trend}</span>
             </div>
-            <p className="text-2xl font-bold text-[#1B2A4A]">{kpi.value}</p>
-            <p className="text-xs text-[#8899AA]">{kpi.label}</p>
+            <p className="text-3xl font-serif font-black text-navy mb-1">{kpi.value.toLocaleString()}</p>
+            <p className="text-[10px] font-mono font-black text-navy/30 uppercase tracking-widest">{kpi.label}</p>
           </div>
         ))}
       </div>
 
-      {/* Sentiment & Categories Row */}
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
-        {/* Sentiment Distribution */}
-        <div className="bg-white rounded-xl p-5 border border-[#E2E8F0]" data-testid="sentiment-chart">
-          <h4 className="font-semibold text-sm text-[#1B2A4A] mb-4">Voter Sentiment</h4>
-          <div className="space-y-3">
-            {sentPcts.map(s => (
-              <div key={s.key}>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="capitalize font-medium" style={{ color: SENTIMENT_COLORS[s.key] }}>{s.key}</span>
-                  <span className="text-[#8899AA]">{s.value} ({s.pct}%)</span>
+      {/* Data Visualization Grid */}
+      <div className="grid lg:grid-cols-2 gap-8 mb-10">
+        {/* Sentiment Matrix */}
+        <div className="bg-white p-8 rounded-3xl border border-gold/10 shadow-sm" data-testid="sentiment-chart">
+          <div className="flex items-center gap-3 mb-8">
+            <Target size={18} className="text-primary" />
+            <h4 className="text-lg font-serif font-bold text-navy uppercase tracking-tight">Sentiment Trajectory</h4>
+          </div>
+          <div className="space-y-6">
+            {sentPcts.map(s => {
+              const config = SENTIMENT_CONFIG[s.key] || SENTIMENT_CONFIG.neutral;
+              return (
+                <div key={s.key}>
+                  <div className="flex justify-between items-end mb-2">
+                    <span className={`text-[10px] font-mono font-black uppercase tracking-widest ${config.color}`}>{config.label}</span>
+                    <span className="text-navy font-serif font-bold opacity-40">{s.value} <span className="text-[10px] font-mono ml-1">[{s.pct}%]</span></span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-gold/10 overflow-hidden border border-gold/5">
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${s.pct}%` }} transition={{ duration: 1, ease: "easeOut" }}
+                      className={`h-full rounded-full ${config.bg} shadow-[0_0_10px_rgba(0,0,0,0.05)]`} />
+                  </div>
                 </div>
-                <div className="w-full h-3 rounded-full bg-[#F1F5F9] overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${s.pct}%`, background: SENTIMENT_COLORS[s.key] }} />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Category Breakdown */}
-        <div className="bg-white rounded-xl p-5 border border-[#E2E8F0]" data-testid="category-chart">
-          <h4 className="font-semibold text-sm text-[#1B2A4A] mb-4">Issue Categories</h4>
+        {/* Operational Variance (Categories) */}
+        <div className="bg-white p-8 rounded-3xl border border-gold/10 shadow-sm" data-testid="category-chart">
+          <div className="flex items-center gap-3 mb-8">
+            <Activity size={18} className="text-primary" />
+            <h4 className="text-lg font-serif font-bold text-navy uppercase tracking-tight">Thematic Distribution</h4>
+          </div>
           {Object.keys(stats.category_breakdown).length === 0 ? (
-            <p className="text-sm text-[#8899AA] text-center py-6">No issues reported yet</p>
+            <div className="py-12 text-center border border-dashed border-gold/10 rounded-2xl">
+              <p className="text-[10px] font-mono font-black text-navy/20 uppercase tracking-[0.2em]">Operational silence / No issues reported</p>
+            </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-6">
               {Object.entries(stats.category_breakdown)
                 .sort(([, a], [, b]) => b - a)
+                .slice(0, 5)
                 .map(([cat, count]) => {
-                  const catColors = {
-                    water: '#0EA5E9', road: '#8B5CF6', electricity: '#F59E0B',
-                    sanitation: '#10B981', healthcare: '#EF4444', education: '#6366F1', other: '#6B7280'
-                  };
                   const pct = stats.total_issues > 0 ? ((count / stats.total_issues) * 100).toFixed(0) : 0;
+                  const color = CATEGORY_COLORS[cat] || 'bg-slate-400';
                   return (
                     <div key={cat}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="capitalize font-medium">{cat}</span>
-                        <span className="text-[#8899AA]">{count} ({pct}%)</span>
+                      <div className="flex justify-between items-end mb-2">
+                        <span className="text-[10px] font-mono font-black uppercase tracking-widest text-navy/60">{cat}</span>
+                        <span className="text-navy font-serif font-bold opacity-40">{count} <span className="text-[10px] font-mono ml-1">[{pct}%]</span></span>
                       </div>
-                      <div className="w-full h-3 rounded-full bg-[#F1F5F9] overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-500"
-                          style={{ width: `${pct}%`, background: catColors[cat] || '#6B7280' }} />
+                      <div className="w-full h-1.5 rounded-full bg-gold/10 overflow-hidden">
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+                          className={`h-full rounded-full ${color}`} />
                       </div>
                     </div>
                   );
@@ -116,39 +161,58 @@ export default function AnalystDashboard({ currentUser, boothId }) {
         </div>
       </div>
 
-      {/* Resolution Rate */}
-      <div className="bg-white rounded-xl p-5 border border-[#E2E8F0] mb-6" data-testid="resolution-rate">
-        <h4 className="font-semibold text-sm text-[#1B2A4A] mb-3">Resolution Rate</h4>
-        <div className="flex items-center gap-4">
-          <div className="w-24 h-24 rounded-full border-8 flex items-center justify-center"
-            style={{
-              borderColor: stats.total_issues > 0
-                ? `${((stats.resolved_issues / stats.total_issues) * 100) > 60 ? '#10B981' : '#F59E0B'}`
-                : '#E2E8F0'
-            }}>
-            <span className="text-xl font-bold text-[#1B2A4A]">
-              {stats.total_issues > 0 ? Math.round((stats.resolved_issues / stats.total_issues) * 100) : 0}%
-            </span>
-          </div>
-          <div>
-            <p className="text-sm text-[#1B2A4A]">{stats.resolved_issues} of {stats.total_issues} issues resolved</p>
-            <p className="text-xs text-[#8899AA]">{stats.pending_issues} pending</p>
+      <div className="grid lg:grid-cols-3 gap-8 mb-10">
+        {/* Performance Coefficient */}
+        <div className="bg-white p-8 rounded-3xl border border-gold/10 lg:col-span-1 shadow-sm" data-testid="resolution-rate">
+          <h4 className="text-lg font-serif font-bold text-navy mb-8 uppercase tracking-tight">Neutralization Coeff.</h4>
+          <div className="flex flex-col items-center">
+            <div className="relative size-40 mb-6 font-black italic">
+              <svg className="size-full -rotate-90">
+                <circle cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" strokeWidth="8" className="text-gold/10" />
+                <motion.circle cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" strokeWidth="8"
+                  strokeDasharray="440" strokeDashoffset={440 - (440 * (stats.total_issues > 0 ? (stats.resolved_issues / stats.total_issues) : 0))}
+                  initial={{ strokeDashoffset: 440 }} animate={{ strokeDashoffset: 440 - (440 * (stats.total_issues > 0 ? (stats.resolved_issues / stats.total_issues) : 0)) }}
+                  transition={{ duration: 1.5, ease: "easeInOut" }}
+                  className={stats.total_issues > 0 && (stats.resolved_issues / stats.total_issues) > 0.6 ? 'text-emerald-600' : 'text-saffron'} />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-4xl font-serif font-black text-navy">
+                  {stats.total_issues > 0 ? Math.round((stats.resolved_issues / stats.total_issues) * 100) : 0}%
+                </span>
+                <span className="text-[8px] font-mono font-black uppercase tracking-widest text-primary">SLA Factor</span>
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-navy/40 font-mono font-bold uppercase mb-1">{stats.resolved_issues} Resolved / {stats.total_issues} Total</p>
+              <p className="text-[10px] text-saffron font-mono font-black uppercase tracking-widest">{stats.pending_issues} Issues in Queue</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* AI Insights */}
-      <div className="bg-white rounded-xl p-5 border border-[#E2E8F0]" data-testid="ai-insights">
-        <h4 className="font-semibold text-sm text-[#1B2A4A] mb-3 flex items-center gap-2">
-          <Lightbulb size={16} className="text-[#FF6B00]" /> AI Insights
-        </h4>
-        <div className="space-y-2">
-          {stats.insights.map((insight, i) => (
-            <div key={i} className="flex items-start gap-2 text-sm text-[#5A6B80] bg-[#FFF7ED] p-3 rounded-lg border border-orange-100">
-              <span className="text-[#FF6B00] font-bold shrink-0">*</span>
-              {insight}
+        {/* Intelligence Briefing (AI Insights) */}
+        <div className="bg-white p-8 rounded-3xl border border-gold/10 lg:col-span-2 shadow-sm" data-testid="ai-insights">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <BrainCircuit size={22} className="text-primary" />
+              <h4 className="text-lg font-serif font-bold text-navy uppercase tracking-tight">Tactical Intelligence</h4>
             </div>
-          ))}
+            <div className="px-3 py-1 rounded-full bg-gold/10 border border-gold/10 text-[9px] font-mono font-black text-primary uppercase tracking-widest">
+              Live Feed
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {stats.insights.map((insight, i) => (
+              <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }}
+                className="flex items-start gap-4 bg-gold/5 border border-gold/10 p-4 rounded-2xl hover:bg-gold/10 transition-colors group">
+                <div className="size-8 rounded-lg bg-gold/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-110 transition-transform">
+                  <Lightbulb size={16} />
+                </div>
+                <p className="text-xs text-navy font-serif leading-relaxed italic opacity-70 group-hover:opacity-100 transition-opacity">
+                  {insight}
+                </p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

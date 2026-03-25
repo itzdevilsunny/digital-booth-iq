@@ -2,44 +2,54 @@ import { motion } from "framer-motion";
 import { Icon, Reveal, StaggerContainer, staggerChild } from "./shared";
 
 export function HowItWorks() {
+  const steps = [
+    { icon: "upload_file", step: "01. Intake", title: "Data Ingestion", desc: "Securely upload raw voter lists, legacy PDFs, and historic election datasets into the intelligence matrix." },
+    { icon: "diversity_3", step: "02. Analysis", title: "Neural Cleansing", desc: "Proprietary AI protocols eliminate redundancy and segment the electorate via multi-dimensional parameters." },
+    { icon: "campaign", step: "03. Strategy", title: "Tactical Planning", desc: "Generate high-precision campaign vectors and optimized route mapping for specialized ground units." },
+    { icon: "how_to_reg", step: "04. Victory", title: "Live Conversion", desc: "Execute real-time conversion tracking on Polling Day. Secure the booth through absolute data dominance." },
+  ];
+
   return (
-    <section id="how-it-works" className="py-28 bg-[var(--background-dark)]">
-      <div className="max-w-7xl mx-auto px-6">
+    <section id="how-it-works" className="py-32 bg-[#f8f5f0] relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-8 relative z-10">
         <Reveal>
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
-              From Chaos to Clarity
+          <div className="text-center mb-24">
+            <h2 className="text-4xl md:text-6xl font-serif font-black text-navy mb-6">
+              Precision Pipeline
             </h2>
-            <p className="text-[var(--cream)]/70">
-              Deploying BoothIQ takes days, not months.
+            <p className="text-navy/40 font-serif italic text-lg max-w-2xl mx-auto">
+              Deployment of the BoothIQ intelligence architecture is optimized for rapid battlefield operationalization.
             </p>
           </div>
         </Reveal>
 
-        <StaggerContainer className="grid md:grid-cols-4 gap-8 relative">
+        <StaggerContainer className="grid md:grid-cols-4 gap-12 relative">
+          {/* Connecting Line */}
           <motion.div
-            className="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-[var(--primary)]/40 to-transparent"
+            className="hidden md:block absolute top-[60px] left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent"
             initial={{ scaleX: 0 }}
             whileInView={{ scaleX: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 1.2, delay: 0.3 }}
+            transition={{ duration: 1.5, ease: "easeInOut" }}
           />
 
-          {[
-            { icon: "upload_file", step: "1. Import", desc: "Upload your raw voter lists, PDFs, and previous election data securely." },
-            { icon: "diversity_3", step: "2. Segment", desc: "AI automatically cleans duplicates and segments voters by caste, age, and loyalty." },
-            { icon: "campaign", step: "3. Create", desc: "Generate targeted campaigns and route maps for your ground workers." },
-            { icon: "how_to_reg", step: "4. Deliver", desc: "Track conversion in real-time on polling day. Win the booth." },
-          ].map((item) => (
+          {steps.map((item, i) => (
             <motion.div key={item.step} variants={staggerChild} className="flex flex-col items-center text-center group">
               <motion.div
-                whileHover={{ scale: 1.12, borderColor: "rgba(201,167,74,0.9)", boxShadow: "0 0 25px rgba(201,167,74,0.3)" }}
-                className="w-24 h-24 rounded-full bg-[#1a1a22] border-2 border-[var(--primary)]/30 flex items-center justify-center mb-6 transition-all duration-300 relative z-10"
+                whileHover={{ scale: 1.1, borderColor: "rgba(201,168,76,1)", boxShadow: "0 0 30px rgba(201,168,76,0.2)" }}
+                className="size-28 rounded-full bg-gold/5 backdrop-blur-xl border border-gold/20 flex items-center justify-center mb-8 transition-all duration-500 relative z-10"
               >
-                <Icon name={item.icon} className="text-4xl text-[var(--primary)]" />
+                <Icon name={item.icon} className="text-4xl text-primary opacity-60 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute -bottom-2 -right-2 size-8 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                   <span className="text-[10px] font-mono font-black text-white">{i+1}</span>
+                </div>
               </motion.div>
-              <h4 className="text-white font-bold mb-2 text-lg">{item.step}</h4>
-              <p className="text-sm text-[var(--cream)]/60">{item.desc}</p>
+              
+              <div className="text-[10px] font-mono font-black text-primary uppercase tracking-[0.3em] mb-3 opacity-60">
+                {item.step}
+              </div>
+              <h4 className="text-navy font-serif font-bold mb-3 text-xl group-hover:text-primary transition-colors">{item.title}</h4>
+              <p className="text-[11px] text-navy/30 font-serif leading-relaxed italic">{item.desc}</p>
             </motion.div>
           ))}
         </StaggerContainer>

@@ -1,12 +1,41 @@
 import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getGrievances, updateGrievance } from '../../api';
-import { Wrench, CheckCircle2, Clock, AlertCircle, RefreshCw } from 'lucide-react';
+import { 
+  Wrench, CheckCircle2, Clock, AlertCircle, RefreshCw, 
+  ChevronRight, Calendar, UserCircle, X, ShieldAlert,
+  Zap, BadgeCheck, ClipboardList, Send
+} from 'lucide-react';
 
-const STATUS_MAP = {
-  submitted: { label: 'New', bg: '#FEF3C7', text: '#D97706' },
-  assigned: { label: 'Assigned', bg: '#DBEAFE', text: '#2563EB' },
-  in_progress: { label: 'In Progress', bg: '#E0E7FF', text: '#4F46E5' },
-  resolved: { label: 'Resolved', bg: '#D1FAE5', text: '#059669' },
+const STATUS_CONFIG = {
+  submitted: { 
+    label: 'Awaiting Orders', 
+    bg: 'bg-saffron/10', 
+    text: 'text-saffron', 
+    border: 'border-saffron/20',
+    icon: ShieldAlert 
+  },
+  assigned: { 
+    label: 'Deployment Ready', 
+    bg: 'bg-blue-500/10', 
+    text: 'text-blue-500', 
+    border: 'border-blue-500/20',
+    icon: ClipboardList 
+  },
+  in_progress: { 
+    label: 'Active Mission', 
+    bg: 'bg-primary/10', 
+    text: 'text-primary', 
+    border: 'border-primary/20',
+    icon: Zap 
+  },
+  resolved: { 
+    label: 'Mission Accomplished', 
+    bg: 'bg-emerald-500/10', 
+    text: 'text-emerald-500', 
+    border: 'border-emerald-500/20',
+    icon: BadgeCheck 
+  },
 };
 
 export default function WorkerDashboard({ currentUser }) {
@@ -41,7 +70,7 @@ export default function WorkerDashboard({ currentUser }) {
       await updateGrievance({
         id: resolveModal.id,
         status: 'resolved',
-        resolution_note: resolutionNote || 'Issue resolved by field worker'
+        resolution_note: resolutionNote || 'Mission completed by field operator'
       });
       setResolveModal(null);
       setResolutionNote('');
@@ -54,101 +83,161 @@ export default function WorkerDashboard({ currentUser }) {
   const resolved = tasks.filter(t => t.status === 'resolved');
 
   return (
-    <div data-testid="worker-dashboard">
-      {/* Summary */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-white rounded-xl p-4 border border-[#E2E8F0]">
-          <p className="text-xs text-[#8899AA] mb-1">Active Tasks</p>
-          <p className="text-2xl font-bold text-[#1B2A4A]" data-testid="worker-active-count">{pending.length}</p>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-[#E2E8F0]">
-          <p className="text-xs text-[#8899AA] mb-1">Resolved</p>
-          <p className="text-2xl font-bold text-green-600" data-testid="worker-resolved-count">{resolved.length}</p>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-[#E2E8F0]">
-          <p className="text-xs text-[#8899AA] mb-1">Total</p>
-          <p className="text-2xl font-bold text-[#5A6B80]">{tasks.length}</p>
-        </div>
+    <div data-testid="worker-dashboard" className="p-0">
+      {/* Dynamic Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {[
+          { label: 'Active Missions', value: pending.length, icon: Zap, color: 'text-primary' },
+          { label: 'Neutralized', value: resolved.length, icon: BadgeCheck, color: 'text-emerald-600' },
+          { label: 'Total Operations', value: tasks.length, icon: Wrench, color: 'text-navy/40' },
+          { label: 'Efficiency Index', value: '98%', icon: Send, color: 'text-saffron' },
+        ].map((s, idx) => (
+          <div key={idx} className="bg-white p-5 rounded-2xl border border-gold/10 relative overflow-hidden group shadow-sm">
+            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-gold/5 to-transparent" />
+            <div className="flex items-center gap-3 mb-2">
+              <s.icon size={16} className={s.color} />
+              <span className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-navy/40">{s.label}</span>
+            </div>
+            <p className="text-2xl font-serif font-black text-navy">{s.value}</p>
+          </div>
+        ))}
       </div>
 
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-[#1B2A4A]">My Tasks</h3>
-        <button onClick={loadData} data-testid="worker-refresh" className="p-2.5 rounded-full bg-white hover:bg-gray-100">
-          <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+      {/* Control Bar */}
+      <div className="flex items-center justify-between mb-8 pb-6 border-b border-gold/10">
+        <div className="flex items-center gap-3">
+          <div className="size-10 rounded-xl bg-gold/10 border border-gold/10 flex items-center justify-center text-primary">
+            <ClipboardList size={18} />
+          </div>
+          <h3 className="text-xl font-serif font-black text-navy uppercase tracking-tighter">Mission Briefing</h3>
+        </div>
+        <button onClick={loadData} data-testid="worker-refresh" 
+          className="p-3 rounded-xl bg-white border border-gold/10 text-primary hover:bg-gold/5 transition-all active:scale-95 shadow-md">
+          <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
         </button>
       </div>
 
-      {/* Task List */}
-      <div className="space-y-3">
+      {/* Operation List */}
+      <div className="space-y-4">
         {loading ? (
-          <div className="text-center py-12 text-[#8899AA]">Loading tasks...</div>
-        ) : tasks.length === 0 ? (
-          <div className="text-center py-12 text-[#8899AA]">
-            <Wrench size={36} className="mx-auto mb-3 text-[#CBD5E1]" />
-            No tasks assigned to you yet
+          <div className="py-20 text-center">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-navy/40 font-mono text-[10px] uppercase tracking-[0.3em]">Synchronizing Registry...</p>
           </div>
-        ) : tasks.map(task => {
-          const s = STATUS_MAP[task.status] || STATUS_MAP.assigned;
+        ) : tasks.length === 0 ? (
+          <div className="py-20 bg-white border border-dashed border-gold/20 rounded-2xl text-center shadow-sm">
+            <Wrench size={40} className="mx-auto mb-4 text-navy/10" />
+            <p className="text-navy/20 font-mono text-[10px] uppercase tracking-[0.3em]">No active mission parameters found</p>
+          </div>
+        ) : tasks.map((task, idx) => {
+          const s = STATUS_CONFIG[task.status] || STATUS_CONFIG.assigned;
+          const SIcon = s.icon;
+          
           return (
-            <div key={task.id} data-testid={`worker-task-${task.id}`}
-              className="bg-white rounded-xl p-4 border border-[#E2E8F0] hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-600">
-                  {task.category}
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium" style={{ background: s.bg, color: s.text }}>
-                  {s.label}
-                </span>
-              </div>
-              <p className="text-sm text-[#1B2A4A] mb-2">{task.description}</p>
-              <p className="text-xs text-[#8899AA] mb-3">
-                #{task.id} | {new Date(task.created_at).toLocaleDateString()}
-                {task.resolution_note && ` | Note: ${task.resolution_note}`}
-              </p>
-              {task.status !== 'resolved' && (
-                <div className="flex gap-2 pt-3 border-t border-[#F1F5F9]">
-                  {task.status === 'assigned' && (
-                    <button data-testid={`start-work-${task.id}`} onClick={() => handleStartWork(task.id)}
-                      className="px-4 py-2 rounded-lg text-xs font-medium bg-blue-500 text-white hover:bg-blue-600 transition-all flex items-center gap-1">
-                      <Clock size={13} /> Start Work
-                    </button>
-                  )}
-                  <button data-testid={`resolve-btn-${task.id}`} onClick={() => setResolveModal(task)}
-                    className="px-4 py-2 rounded-lg text-xs font-medium bg-green-500 text-white hover:bg-green-600 transition-all flex items-center gap-1">
-                    <CheckCircle2 size={13} /> Mark Resolved
-                  </button>
+            <motion.div key={task.id} data-testid={`worker-task-${task.id}`}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
+              className="bg-white p-6 rounded-2xl border border-gold/10 hover:border-primary/20 transition-all group shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-gold/5 to-transparent pointer-events-none" />
+              
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-3 mb-4">
+                    <div className="px-3 py-1 rounded-lg bg-gold/5 border border-gold/10 text-[9px] font-mono font-black uppercase tracking-widest text-navy/60">
+                      {task.category || 'GENERAL'}
+                    </div>
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-lg border ${s.bg} ${s.border} ${s.text}`}>
+                      <SIcon size={12} />
+                      <span className="text-[9px] font-mono font-black uppercase tracking-widest">{s.label}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-navy font-serif text-lg leading-relaxed mb-4 group-hover:text-primary transition-colors">
+                    {task.description}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-4 text-[10px] font-mono font-bold uppercase tracking-[0.1em] text-navy/30">
+                    <span className="flex items-center gap-1.5"><RefreshCw size={10} /> OP_ID: #{task.id}</span>
+                    <span className="flex items-center gap-1.5"><Calendar size={10} /> {new Date(task.created_at).toLocaleDateString()}</span>
+                    {task.resolution_note && (
+                      <>
+                        <div className="h-3 w-px bg-gold/20 hidden md:block" />
+                        <span className="flex items-center gap-1.5 text-emerald-600/60">
+                          <CheckCircle2 size={10} /> REPORT: {task.resolution_note}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
+
+                <div className="shrink-0 flex items-end md:items-center gap-3">
+                  {task.status !== 'resolved' && (
+                    <div className="flex gap-2">
+                      {task.status === 'assigned' && (
+                        <button data-testid={`start-work-${task.id}`} onClick={() => handleStartWork(task.id)}
+                          className="px-6 py-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[10px] font-mono font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all flex items-center gap-3 shadow-lg shadow-blue-500/5">
+                          <Zap size={14} /> Begin Tech
+                        </button>
+                      )}
+                      <button data-testid={`resolve-btn-${task.id}`} onClick={() => setResolveModal(task)}
+                        className="px-6 py-3 rounded-xl bg-primary text-white text-[10px] font-mono font-black uppercase tracking-widest hover:brightness-110 shadow-lg shadow-primary/10 transition-all flex items-center gap-3">
+                        <CheckCircle2 size={14} /> Neutralize
+                      </button>
+                    </div>
+                  )}
+                  {task.status === 'resolved' && (
+                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
+                      <BadgeCheck size={20} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
           );
         })}
       </div>
 
       {/* Resolve Modal */}
-      {resolveModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" data-testid="resolve-modal">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-            <h3 className="font-semibold text-lg mb-1">Resolve Issue</h3>
-            <p className="text-sm text-[#8899AA] mb-4">#{resolveModal.id}: {resolveModal.description?.slice(0, 80)}...</p>
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-medium text-[#5A6B80] mb-1.5 block">Resolution Note</label>
-                <textarea data-testid="resolution-note-input" value={resolutionNote} onChange={e => setResolutionNote(e.target.value)}
-                  rows={3} placeholder="What was done to resolve the issue..."
-                  className="w-full p-3 rounded-xl border border-[#E2E8F0] text-sm focus:ring-2 focus:ring-green-300 outline-none resize-none" />
-              </div>
-              <div className="flex gap-3">
-                <button onClick={() => setResolveModal(null)}
-                  className="flex-1 py-2.5 rounded-xl bg-[#F7F8FA] text-[#5A6B80] text-sm font-medium hover:bg-gray-200">Cancel</button>
-                <button data-testid="resolve-confirm-btn" onClick={handleResolve} disabled={submitting}
-                  className="flex-1 py-2.5 rounded-xl bg-green-500 text-white text-sm font-medium hover:bg-green-600 disabled:opacity-50">
-                  {submitting ? 'Resolving...' : 'Confirm Resolve'}
+      <AnimatePresence>
+        {resolveModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-[100] px-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setResolveModal(null)} className="absolute inset-0 bg-navy/20 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white p-8 rounded-3xl w-full max-w-lg border border-gold/20 relative z-10 shadow-2xl">
+              
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h3 className="text-2xl font-serif font-black text-navy uppercase tracking-tight">Neutralization Log</h3>
+                  <p className="text-[10px] font-mono font-bold text-primary uppercase tracking-[0.2em]">MISSION #{resolveModal.id.substr(-8).toUpperCase()}</p>
+                </div>
+                <button onClick={() => setResolveModal(null)} className="p-2 rounded-xl bg-gold/10 text-navy/40 hover:text-navy transition-colors">
+                  <X size={20} />
                 </button>
               </div>
-            </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-mono font-black text-navy/40 uppercase tracking-widest mb-3 block">Field Report Details</label>
+                  <textarea data-testid="resolution-note-input" value={resolutionNote} onChange={e => setResolutionNote(e.target.value)}
+                    rows={4} placeholder="Document operational actions taken..."
+                    className="w-full p-4 rounded-xl bg-gold/5 border border-gold/10 text-xs text-navy font-mono font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary/20 outline-none resize-none placeholder:text-navy/20" />
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button onClick={() => setResolveModal(null)}
+                    className="flex-1 py-4 rounded-xl border border-gold/10 text-[10px] font-mono font-black uppercase tracking-widest text-navy/40 hover:bg-gold/5 transition-all">
+                    Cancel Log
+                  </button>
+                  <button data-testid="resolve-confirm-btn" onClick={handleResolve} disabled={submitting}
+                    className="flex-[2] py-4 rounded-xl bg-primary text-white text-[10px] font-mono font-black uppercase tracking-widest hover:brightness-110 shadow-lg shadow-primary/20 transition-all disabled:opacity-50">
+                    {submitting ? 'Transmitting...' : 'Commit Neutralized'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

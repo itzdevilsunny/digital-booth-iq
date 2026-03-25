@@ -19,86 +19,87 @@ export function Navbar() {
 
   return (
     <motion.nav
-      className={`sticky top-0 z-50 w-full border-b transition-all duration-500 ${
+      className={`fixed top-0 z-[100] w-full transition-all duration-700 ${
         scrolled
-          ? "border-[var(--primary)]/30 bg-[var(--background-dark)]/95 backdrop-blur-xl shadow-[0_4px_30px_rgba(201,167,74,0.08)]"
-          : "border-[var(--primary)]/10 bg-[var(--background-dark)]/70 backdrop-blur-md"
+          ? "py-3 bg-[#f8f5f0]/80 backdrop-blur-2xl border-b border-gold/10 shadow-lg"
+          : "py-6 bg-transparent border-b border-transparent"
       }`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: [0.25, 0.4, 0.25, 1] }}
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        {/* Logo */}
+      <div className="max-w-7xl mx-auto px-8 flex items-center justify-between">
+        {/* Logo / Identity */}
         <motion.div
-          className="flex items-center gap-3 cursor-pointer"
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
+          className="flex items-center gap-4 cursor-pointer group"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >
-          <div className="size-8 text-[var(--primary)]">
-            <Icon name="how_to_vote" size={32} />
+          <div className="size-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-[0_0_15px_rgba(212,175,55,0.2)] group-hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all">
+            <Icon name="how_to_vote" size={24} />
           </div>
           <div className="flex flex-col">
-            <h2 className="text-white text-xl font-serif font-bold leading-none tracking-tight">
+            <h2 className="text-navy text-2xl font-serif font-black leading-none tracking-tight group-hover:text-primary transition-colors">
               BoothIQ
             </h2>
-            <span className="text-[10px] text-[var(--primary)] uppercase tracking-widest font-mono">
+            <span className="text-[8px] text-primary font-mono font-black uppercase tracking-[0.4em] opacity-60">
               Intelligence Unit
             </span>
           </div>
         </motion.div>
 
-        {/* Nav Links */}
-        <div className="hidden md:flex items-center gap-8">
+        {/* Tactical Navigation */}
+        <div className="hidden lg:flex items-center gap-10">
           {[
-            { label: "Solutions", target: "capabilities" },
-            { label: "Platform", target: "how-it-works" },
-            { label: "Resources", target: "security" },
-            { label: "Pricing", target: "cta" },
+            { label: "Capabilities", target: "capabilities" },
+            { label: "Operations", target: "how-it-works" },
+            { label: "Intelligence", target: "security" },
+            { label: "Deployment", target: "cta" },
           ].map((item) => (
             <button
               key={item.label}
               onClick={() => scrollTo(item.target)}
-              className="relative text-[var(--cream)]/90 hover:text-white text-sm font-medium transition-colors duration-300 group"
+              className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-navy/60 hover:text-primary transition-all duration-300 relative group"
             >
               {item.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[var(--primary)] transition-all duration-300 group-hover:w-full" />
+              <span className="absolute -bottom-1 left-0 w-0 h-px bg-primary transition-all duration-300 group-hover:w-full" />
             </button>
           ))}
+          <div className="w-px h-4 bg-gold/20 mx-2" />
           <button
             onClick={() => navigate("/dashboard")}
-            className="text-[var(--saffron)] hover:text-white text-sm font-bold transition-colors"
+            className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-saffron hover:text-navy transition-colors"
           >
-            Citizen Portal
+            Citizen Access
           </button>
         </div>
 
-        {/* CTAs */}
-        <div className="flex items-center gap-4">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="hidden md:flex items-center justify-center text-[var(--primary)] hover:text-white text-sm font-bold tracking-wide transition-colors duration-300 cursor-pointer"
+        {/* Global Controls */}
+        <div className="flex items-center gap-6">
+          <motion.button
+            whileHover={{ x: -2 }}
             onClick={() => navigate("/dashboard")}
+            className="hidden md:block text-[10px] font-mono font-black uppercase tracking-[0.2em] text-navy/60 hover:text-navy transition-colors"
           >
-            Log in
-          </motion.div>
-          <motion.div
-            whileHover={{
+            Log In
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ 
               scale: 1.05,
-              boxShadow: "0 0 25px rgba(232,118,26,0.5)",
+              boxShadow: "0 0 25px rgba(232,118,26,0.5)"
             }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/dashboard")}
-            className="inline-flex items-center justify-center h-10 px-5 rounded bg-[var(--saffron)] hover:bg-[var(--saffron)]/90 text-white text-sm font-bold tracking-wide shadow-[0_0_15px_rgba(232,118,26,0.3)] transition-all duration-300 cursor-pointer"
+            className="px-6 py-3 rounded-xl bg-saffron text-white text-[10px] font-mono font-black uppercase tracking-[0.2em] shadow-lg shadow-saffron/20 transition-all cursor-pointer"
           >
-            Request Demo
-          </motion.div>
-        </div>
-        <div className="md:hidden flex items-center pr-4">
-          <button onClick={() => navigate("/dashboard")} className="text-[var(--primary)] font-bold text-sm">
-            Citizen App
+            Executive Briefing
+          </motion.button>
+
+          {/* Mobile Access */}
+          <button onClick={() => navigate("/dashboard")} className="lg:hidden p-2 text-primary hover:text-white transition-colors">
+            <Icon name="menu" size={24} />
           </button>
         </div>
       </div>
