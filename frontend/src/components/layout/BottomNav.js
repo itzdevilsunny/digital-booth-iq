@@ -1,27 +1,25 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, ClipboardList, Map, AlertCircle, User } from 'lucide-react';
+import { Home, ClipboardList, Map, AlertCircle, User, Zap, LayoutDashboard, Target, LogOut } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const BottomNav = () => {
     const navigate = useNavigate();
     const location = useLocation();
     
-    // Determine the role-based base path
     const pathSegments = location.pathname.split('/');
     const role = pathSegments[1] || 'citizen';
     
     const isActive = (path) => location.pathname === path;
 
     const navItems = [
-        { id: 'home', label: 'Home', icon: Home, path: `/${role}` },
-        { id: 'services', label: 'Services', icon: ClipboardList, path: `/${role}/services` },
-        { id: 'area', label: 'My Area', icon: Map, path: `/${role}/area`, center: true },
-        { id: 'issues', label: 'Issues', icon: AlertCircle, path: `/${role}/grievances` },
-        { id: 'profile', label: 'Profile', icon: User, path: `/${role}/profile` },
+        { id: 'home', label: 'Home', icon: LayoutDashboard, path: `/${role}` },
+        { id: 'switch', label: 'Roles', icon: Zap, path: '/select-role', center: true },
+        { id: 'logout', label: 'Exit', icon: LogOut, path: '/' },
     ];
 
     return (
-        <nav className="md:hidden fixed bottom-6 left-4 right-4 h-16 glass-panel rounded-2xl flex items-center justify-around px-2 z-50 bottom-nav-shadow border border-stone-200/50">
+        <nav className="md:hidden fixed bottom-8 left-6 right-6 h-22 bg-[#0c0c0c]/80 backdrop-blur-3xl rounded-[2.5rem] flex items-center justify-around px-6 z-[100] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] border border-white/10">
             {navItems.map((item) => {
                 const ActiveIcon = item.icon;
                 const active = isActive(item.path);
@@ -30,26 +28,38 @@ const BottomNav = () => {
                     <button
                         key={item.id}
                         onClick={() => navigate(item.path)}
-                        className={`flex flex-col items-center justify-center transition-all duration-300 relative ${
-                            item.center ? '-top-6' : ''
-                        } ${active ? 'text-emerald-600' : 'text-stone-400'}`}
+                        className={`flex flex-col items-center justify-center transition-all duration-500 relative ${
+                            item.center ? '-top-8' : ''
+                        }`}
                     >
                         {item.center ? (
-                            <div className={`p-4 rounded-full shadow-lg transition-all transform hover:scale-110 active:scale-95 ${
-                                active 
-                                ? 'bg-emerald-600 text-white shadow-emerald-200' 
-                                : 'bg-stone-100 text-stone-600 shadow-stone-200'
-                            }`}>
-                                <ActiveIcon size={24} strokeWidth={active ? 2.5 : 2} />
-                            </div>
+                            <motion.div 
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                className={`p-5 rounded-3xl shadow-2xl transition-all border-4 border-white ${
+                                    active 
+                                    ? 'bg-emerald-600 text-white shadow-emerald-500/40 ring-4 ring-emerald-500/10' 
+                                    : 'bg-stone-900 text-emerald-500 shadow-stone-900/40'
+                                }`}
+                            >
+                                <ActiveIcon size={28} strokeWidth={2.5} />
+                            </motion.div>
                         ) : (
-                            <div className="flex flex-col items-center gap-1 nav-item-transition">
-                                <ActiveIcon size={20} strokeWidth={active ? 2.5 : 2} />
-                                <span className={`text-[10px] uppercase tracking-tighter ${active ? 'font-bold' : 'font-medium'}`}>
+                            <div className="flex flex-col items-center gap-1.5 pt-1 relative">
+                                <motion.div
+                                    animate={active ? { y: -2, scale: 1.1 } : { y: 0, scale: 1 }}
+                                    className={active ? 'text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]' : 'text-stone-600'}
+                                >
+                                    <ActiveIcon size={22} strokeWidth={active ? 2.5 : 2} />
+                                </motion.div>
+                                <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${active ? 'text-white' : 'text-stone-600'}`}>
                                     {item.label}
                                 </span>
                                 {active && (
-                                    <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-emerald-600" />
+                                    <motion.div 
+                                        layoutId="bottom-nav-indicator"
+                                        className="absolute -bottom-4 w-1 h-1 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,1)]" 
+                                    />
                                 )}
                             </div>
                         )}

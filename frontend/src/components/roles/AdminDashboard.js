@@ -5,265 +5,331 @@ import { getGrievances, updateGrievance, getUsersByRole } from '../../api';
 import { 
   Shield, Users, AlertCircle, CheckCircle, Clock, 
   MapPin, User, Search, Filter, RefreshCw, X,
-  ChevronRight, Activity, TrendingUp, Info
+  ChevronRight, Activity, TrendingUp, Info,
+  ArrowUpRight, LayoutDashboard, Database, 
+  Zap, MoreHorizontal
 } from 'lucide-react';
-import NotificationBell from '../ui/NotificationBell';
 
 const STATUS_CONFIG = {
-  submitted: { label: 'Awaiting Deployment', bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20', icon: AlertCircle },
-  assigned: { label: 'Assigned', bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/20', icon: Clock },
-  in_progress: { label: 'Active Mission', bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20', icon: Activity },
-  resolved: { label: 'Completed', bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20', icon: CheckCircle },
+    submitted: { label: 'Open', icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+    assigned: { label: 'Assigned', icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+    in_progress: { label: 'Working', icon: Activity, color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20' },
+    resolved: { label: 'Resolved', icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
 };
 
-const CATEGORY_STYLES = {
-  Water: 'bg-blue-50 border-blue-200 text-blue-700',
-  Electricity: 'bg-amber-50 border-amber-200 text-amber-700',
-  Infrastructure: 'bg-slate-50 border-slate-200 text-slate-700',
-  Medical: 'bg-rose-50 border-rose-200 text-rose-700',
-  other: 'bg-gray-50 border-gray-200 text-gray-700'
-};
+const MetricCard = ({ label, value, icon: Icon, color, trend, delay }) => (
+    <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay }}
+        className="glass-panel p-6 rounded-[2rem] border border-stone-200/60 shadow-sm relative overflow-hidden group"
+    >
+        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Icon size={64} />
+        </div>
+        <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-4">
+                <div className={`size-8 rounded-full flex items-center justify-center bg-stone-100 text-stone-400 group-hover:text-stone-900 transition-colors`}>
+                    <Icon size={16} />
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-[2px] text-stone-400">{label}</p>
+            </div>
+            <div className="flex items-end justify-between">
+                <h3 className={`text-4xl font-display font-bold text-stone-900 tracking-tight`}>{value}</h3>
+                {trend && (
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                        <TrendingUp size={10} /> {trend}
+                    </div>
+                )}
+            </div>
+        </div>
+    </motion.div>
+);
 
 export default function AdminDashboard({ boothId }) {
-  const [grievances, setGrievances] = useState([]);
-  const [workers, setWorkers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [assignModal, setAssignModal] = useState(null);
-  const [selectedWorker, setSelectedWorker] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [filter, setFilter] = useState('all');
+    const [grievances, setGrievances] = useState([]);
+    const [workers, setWorkers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [assignModal, setAssignModal] = useState(null);
+    const [selectedWorker, setSelectedWorker] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [filter, setFilter] = useState('all');
 
-  const safeBoothId = boothId || 17;
+    const safeBoothId = boothId || 17;
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [gData, wData] = await Promise.all([
-        getGrievances({ booth_id: safeBoothId }),
-        getUsersByRole('worker')
-      ]);
-      setGrievances(gData || []);
-      setWorkers(wData || []);
-    } catch (e) {
-      console.error('Core sync failed:', e);
-    }
-    setLoading(false);
-  }, [safeBoothId]);
+    const loadData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [gData, wData] = await Promise.all([
+                getGrievances({ booth_id: safeBoothId }),
+                getUsersByRole('worker')
+            ]);
+            setGrievances(gData || []);
+            setWorkers(wData || []);
+        } catch (e) { console.error(e); }
+        setLoading(false);
+    }, [safeBoothId]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+    useEffect(() => { loadData(); }, [loadData]);
 
-  const handleAssign = async () => {
-    if (!assignModal || !selectedWorker) return;
-    setSubmitting(true);
-    try {
-      const worker = workers.find(w => w.id.toString() === selectedWorker.toString());
-      // CRITICAL: Explicitly cast ID to string to prevent 422 errors
-      await updateGrievance({
-        id: String(assignModal.id),
-        status: 'assigned',
-        assigned_to: String(selectedWorker),
-        assigned_worker: worker?.name || 'Assigned Personnel'
-      });
-      setAssignModal(null);
-      setSelectedWorker('');
-      loadData();
-    } catch (e) {
-      console.error('Deployment failed:', e);
-    }
-    setSubmitting(false);
-  };
+    const handleAssign = async () => {
+        if (!assignModal || !selectedWorker) return;
+        setSubmitting(true);
+        try {
+            const worker = workers.find(w => w.id.toString() === selectedWorker.toString());
+            await updateGrievance({
+                id: String(assignModal.id),
+                status: 'assigned',
+                assigned_to: String(selectedWorker),
+                assigned_worker: worker?.name || 'Assigned Personnel'
+            });
+            setAssignModal(null);
+            setSelectedWorker('');
+            loadData();
+        } catch (e) { console.error(e); }
+        setSubmitting(false);
+    };
 
-  const filtered = grievances.filter(g => {
-    if (filter === 'all') return true;
-    if (filter === 'open') return g.status === 'submitted';
-    return g.status === filter;
-  });
+    const filtered = grievances.filter(g => {
+        if (filter === 'all') return true;
+        if (filter === 'open') return g.status === 'submitted';
+        return g.status === filter;
+    });
 
-  return (
-    <div className="min-h-screen bg-[#f0ece3] bg-grid-pattern pb-24">
-      {/* Universal Header */}
-      <header className="glass-panel sticky top-0 z-[50] border-b border-[#c9a84c]/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-navy rounded-xl shadow-lg shadow-navy/20">
-                <Shield size={20} className="text-white" />
-              </div>
-              <div className="hidden sm:block">
-                <h1 className="text-lg font-bold text-navy tracking-tight">Intelligence Unit</h1>
-                <p className="text-[9px] uppercase tracking-[0.2em] text-[#c9a84c] font-bold">Sector {safeBoothId} Command Center</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-               <NotificationBell />
-               <button onClick={loadData} className="p-2 hover:bg-black/5 rounded-full transition-colors relative">
-                 <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
-               </button>
-               <div className="h-8 w-px bg-gold/20" />
-               <div className="flex items-center gap-2">
-                 <div className="text-right hidden sm:block">
-                   <p className="text-xs font-bold text-navy">Booth Adhyaksh</p>
-                   <p className="text-[9px] text-[#c9a84c] font-black uppercase">Active Duty</p>
-                 </div>
-                 <div className="size-10 rounded-full bg-white border border-gold/20 flex items-center justify-center font-serif font-black text-navy shadow-sm">
-                   BA
-                 </div>
-               </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="page-container mt-8 px-4">
-        {/* Metric Overview */}
-        <div className="dashboard-grid mb-10">
-          {[
-            { label: 'Deployment Pending', value: grievances.filter(g => g.status === 'submitted').length, icon: AlertCircle, color: 'text-amber-500' },
-            { label: 'Active Missions', value: grievances.filter(g => g.status === 'assigned' || g.status === 'in_progress').length, icon: Activity, color: 'text-primary' },
-            { label: 'Neutralized', value: grievances.filter(g => g.status === 'resolved').length, icon: CheckCircle, color: 'text-emerald-500' },
-            { label: 'Personnel Ready', value: workers.length, icon: Users, color: 'text-blue-500' }
-          ].map((m, i) => (
-            <div key={i} className="glass-panel p-6 rounded-3xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <m.icon size={48} />
-              </div>
-              <p className="text-[10px] font-mono font-black uppercase tracking-widest text-navy/40 mb-2">{m.label}</p>
-              <p className={`text-4xl font-serif font-black ${m.color}`}>{m.value}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Tactical Filter Bar */}
-        <div className="flex items-center justify-between mb-8 overflow-x-auto pb-2 scrollbar-hide">
-           <div className="flex items-center gap-2 min-w-max">
-             {['all', 'open', 'assigned', 'resolved'].map(f => (
-               <button key={f} onClick={() => setFilter(f)}
-                 className={`px-5 py-2.5 rounded-xl text-[10px] font-mono font-black uppercase tracking-widest transition-all border ${
-                   filter === f ? 'bg-navy border-navy text-white shadow-xl' : 'bg-white/50 border-gold/10 text-navy/40 hover:border-[#c9a84c]'
-                 }`}>
-                 {f === 'open' ? 'Awaiting deployment' : f}
-               </button>
-             ))}
-           </div>
-        </div>
-
-        {/* Mission Registry List */}
-        <div className="space-y-4">
-          {loading ? (
-            <div className="py-20 text-center glass-panel rounded-3xl">
-              <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
-              <p className="text-[10px] font-mono font-black uppercase tracking-widest text-[#c9a84c]">Syncing Field Data...</p>
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="py-20 text-center glass-panel rounded-3xl border-dashed">
-              <p className="text-[10px] font-mono font-black uppercase tracking-widest text-navy/20">Sector registry is currently clear</p>
-            </div>
-          ) : filtered.map((grievance, idx) => {
-            const config = STATUS_CONFIG[grievance.status] || STATUS_CONFIG.submitted;
-            const isSubmitted = grievance.status === 'submitted';
-            
-            return (
-              <motion.div key={grievance.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
-                className="glass-panel p-5 md:p-6 rounded-2xl flex flex-col md:flex-row items-start md:items-center gap-6 group hover:border-primary/40 transition-all">
-                <div className={`p-4 rounded-2xl ${config.bg} ${config.text} shrink-0`}>
-                  <config.icon size={24} />
+    return (
+        <div className="space-y-10 animate-fade-in relative z-10">
+            {/* Header / Sub-nav */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-stone-200/60">
+                <div>
+                    <div className="flex items-center gap-3 mb-1">
+                        <div className="px-2.5 py-0.5 rounded-full bg-stone-900 text-white text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-stone-900/10">
+                            <Shield size={10} /> Dashboard
+                        </div>
+                        <p className="text-stone-400 text-xs font-bold uppercase tracking-widest">Booth {safeBoothId} Status</p>
+                    </div>
+                    <h1 className="text-4xl font-display font-bold text-stone-900 tracking-tight">Booth Overview</h1>
                 </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className={`px-2 py-0.5 rounded-lg border text-[8px] font-mono font-black uppercase tracking-widest ${CATEGORY_STYLES[grievance.category] || CATEGORY_STYLES.other}`}>
-                      {grievance.category}
-                    </span>
-                    <span className={`px-2 py-0.5 rounded-lg border text-[8px] font-mono font-black uppercase tracking-widest ${config.bg} ${config.text} ${config.border}`}>
-                      {config.label}
-                    </span>
-                  </div>
-                  <h4 className="text-lg font-serif font-bold text-navy mb-1 truncate group-hover:text-primary transition-colors">
-                    {grievance.description}
-                  </h4>
-                  <div className="flex flex-wrap items-center gap-4 text-[9px] font-mono font-bold text-navy/40 uppercase tracking-wider">
-                    <span className="flex items-center gap-1"><User size={10} /> {grievance.voter_name}</span>
-                    <span className="flex items-center gap-1"><MapPin size={10} /> Booth #{grievance.booth_id}</span>
-                    {grievance.assigned_worker && (
-                      <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle size={10} /> Staff: {grievance.assigned_worker}</span>
+                <div className="flex items-center gap-3">
+                    <button onClick={loadData} className="px-5 py-2.5 rounded-full bg-white text-stone-600 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex items-center gap-2 border border-stone-200/50 shadow-sm">
+                        <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">Refresh List</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Metric Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <MetricCard 
+                    label="Open Problems" 
+                    value={grievances.filter(g => g.status === 'submitted').length} 
+                    icon={AlertCircle} 
+                    color="#f59e0b"
+                    trend="+2 new"
+                    delay={0.1}
+                />
+                <MetricCard 
+                    label="Assigned" 
+                    value={grievances.filter(g => g.status === 'assigned' || g.status === 'in_progress').length} 
+                    icon={Activity} 
+                    color="#c9a84c"
+                    delay={0.2}
+                />
+                <MetricCard 
+                    label="Resolved" 
+                    value={grievances.filter(g => g.status === 'resolved').length} 
+                    icon={CheckCircle} 
+                    color="#10b981"
+                    delay={0.3}
+                />
+                <MetricCard 
+                    label="Staff Available" 
+                    value={workers.length} 
+                    icon={Users} 
+                    color="#3b82f6"
+                    delay={0.4}
+                />
+            </div>
+
+            {/* Tactical Control Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <div className="flex items-center gap-2 p-1.5 bg-stone-100 rounded-2xl w-fit">
+                    {['all', 'open', 'assigned', 'resolved'].map(f => (
+                        <button 
+                            key={f} 
+                            onClick={() => setFilter(f)}
+                            className={`px-6 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-[2px] transition-all ${
+                                filter === f 
+                                    ? 'bg-white text-stone-900 shadow-xl shadow-stone-200 border border-stone-200' 
+                                    : 'text-stone-400 hover:text-stone-600'
+                            }`}
+                        >
+                            {f === 'open' ? 'New Problems' : f}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <div className="px-4 py-2.5 rounded-full bg-stone-50 border border-stone-100 text-stone-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                        <Database size={12} /> Live Data
+                    </div>
+                </div>
+            </div>
+
+            {/* Data Feed */}
+            <div className="space-y-4">
+                {loading ? (
+                    <div className="p-32 text-center glass-panel rounded-[3rem] bg-stone-50/50 border-dashed">
+                        <RefreshCw className="w-12 h-12 text-stone-300 animate-spin mx-auto mb-6" />
+                        <p className="text-[11px] font-bold uppercase tracking-[4px] text-stone-400">Loading Information...</p>
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="p-20 text-center glass-panel rounded-[3rem] bg-stone-50/20 border-stone-100">
+                        <div className="size-20 rounded-full bg-white flex items-center justify-center mx-auto mb-8 shadow-sm">
+                            <LayoutDashboard className="text-stone-200" size={40} />
+                        </div>
+                        <h4 className="text-2xl font-display font-bold text-stone-900 mb-2">Everything is Good</h4>
+                        <p className="text-stone-400 text-sm max-w-sm mx-auto">No problems reported in this area. Status is normal.</p>
+                    </div>
+                ) : (
+                    filtered.map((g, idx) => {
+                        const config = STATUS_CONFIG[g.status] || STATUS_CONFIG.submitted;
+                        const isAwaiting = g.status === 'submitted';
+
+                        return (
+                            <motion.div 
+                                key={g.id} 
+                                initial={{ opacity: 0, x: -10 }} 
+                                animate={{ opacity: 1, x: 0 }} 
+                                transition={{ delay: idx * 0.05 }}
+                                className="glass-panel p-6 sm:p-8 rounded-[2.5rem] border border-stone-200/50 group hover:border-emerald-500/30 transition-all flex flex-col md:flex-row md:items-center gap-8 shadow-sm"
+                            >
+                                <div className={`size-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${config.bg} ${config.color} shadow-${config.color.split('-')[1]}-200/20`}>
+                                    <config.icon size={28} />
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex flex-wrap items-center gap-3 mb-3">
+                                        <span className="px-3 py-1 rounded-full bg-stone-100 text-stone-500 text-[9px] font-bold uppercase tracking-[2px] border border-stone-200">
+                                            ID: #{g.id}
+                                        </span>
+                                        <span className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-[2px] border ${config.bg} ${config.color} ${config.border}`}>
+                                            {config.label}
+                                        </span>
+                                    </div>
+                                    <h4 className="text-2xl font-display font-bold text-stone-900 mb-3 truncate group-hover:text-stone-700">
+                                        {g.description}
+                                    </h4>
+                                    <div className="flex flex-wrap items-center gap-6 text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                                        <span className="flex items-center gap-2"><User size={12} className="text-stone-300" /> {g.voter_name}</span>
+                                        <span className="flex items-center gap-2"><MapPin size={12} className="text-stone-300" /> Area {g.booth_id}</span>
+                                        {g.assigned_worker && (
+                                            <span className="flex items-center gap-2 text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                                                <Zap size={10} /> Person: {g.assigned_worker}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="w-full md:w-auto md:pl-8 border-t md:border-t-0 md:border-l border-stone-100 pt-6 md:pt-0">
+                                    {isAwaiting ? (
+                                        <button 
+                                            onClick={() => setAssignModal(g)}
+                                            className="w-full md:w-56 py-4 bg-stone-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-emerald-600 transition-all shadow-xl shadow-stone-900/10 active:scale-95 flex items-center justify-center gap-3"
+                                        >
+                                            <Shield size={16} /> Assign to Staff
+                                        </button>
+                                    ) : (
+                                        <div className="w-full md:w-56 py-4 bg-stone-50 border border-stone-200 text-stone-400 rounded-2xl font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-3">
+                                            <CheckCircle size={16} /> Assigned
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        );
+                    })
+                )}
+            </div>
+
+            {/* Deployment Modal */}
+            {createPortal(
+                <AnimatePresence>
+                    {assignModal && (
+                        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6">
+                            <motion.div 
+                                initial={{ opacity: 0 }} 
+                                animate={{ opacity: 1 }} 
+                                exit={{ opacity: 0 }}
+                                onClick={() => setAssignModal(null)}
+                                className="absolute inset-0 bg-stone-950/70 backdrop-blur-xl" 
+                            />
+                            
+                            <motion.div 
+                                initial={{ y: '100%', opacity: 0 }} 
+                                animate={{ y: 0, opacity: 1 }} 
+                                exit={{ y: '100%', opacity: 0 }}
+                                className="relative w-full max-w-lg bg-white rounded-t-[2.5rem] sm:rounded-[3rem] shadow-2xl overflow-hidden"
+                            >
+                                <div className="p-10">
+                                    <div className="flex justify-between items-start mb-10">
+                                        <div>
+                                            <div className="px-3 py-1 bg-stone-100 text-stone-500 rounded-full text-[9px] font-bold uppercase tracking-widest border border-stone-200 mb-4 inline-block">
+                                                Tactical Authorization
+                                            </div>
+                                            <h4 className="text-3xl font-display font-bold text-stone-900 tracking-tight">Personnel Deployment</h4>
+                                            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 mt-1">INCIDENT_REF: #{assignModal.id}</p>
+                                        </div>
+                                        <button onClick={() => setAssignModal(null)} className="size-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-900 transition-colors">
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-8">
+                                        <div className="p-6 bg-stone-50 rounded-3xl border border-stone-100 relative">
+                                            <div className="absolute top-4 right-4 text-emerald-600/10">
+                                                <Info size={48} />
+                                            </div>
+                                            <p className="text-[10px] font-bold uppercase text-stone-400 tracking-widest mb-3">Field Report</p>
+                                            <p className="text-base font-medium text-stone-700 leading-relaxed pr-8">{assignModal.description}</p>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-bold uppercase tracking-[4px] text-stone-400 pl-1">Target Personnel</label>
+                                            <div className="relative">
+                                                <select 
+                                                    value={selectedWorker} 
+                                                    onChange={(e) => setSelectedWorker(e.target.value)}
+                                                    className="w-full p-5 bg-stone-50 rounded-[1.5rem] border border-stone-200 focus:border-stone-900 outline-none text-sm font-bold transition-all appearance-none cursor-pointer pr-12"
+                                                >
+                                                    <option value="">Choose Deployment Unit...</option>
+                                                    {workers.map(w => (
+                                                        <option key={w.id} value={w.id}>{w.name} (ID: {w.id})</option>
+                                                    ))}
+                                                </select>
+                                                <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400">
+                                                    <ChevronRight size={20} className="rotate-90" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <button 
+                                            onClick={handleAssign} 
+                                            disabled={!selectedWorker || submitting}
+                                            className="w-full py-5 bg-stone-900 text-white rounded-2xl font-bold uppercase tracking-widest shadow-2xl hover:bg-emerald-600 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                                        >
+                                            {submitting ? (
+                                                <RefreshCw className="size-5 animate-spin" />
+                                            ) : (
+                                                <><Shield size={20} /> Authorize Order</>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
                     )}
-                  </div>
-                </div>
-
-                <div className="w-full md:w-auto flex justify-end">
-                  {isSubmitted ? (
-                    <button onClick={() => setAssignModal(grievance)}
-                      className="w-full md:w-auto px-6 py-3 bg-navy text-white rounded-xl text-[10px] font-mono font-black uppercase tracking-widest hover:bg-primary transition-all shadow-lg active:scale-95 flex items-center gap-2">
-                      <Shield size={14} /> Deploy Staff
-                    </button>
-                  ) : (
-                    <div className="px-4 py-2 bg-emerald-500/10 text-emerald-600 rounded-xl flex items-center gap-2 text-[10px] font-mono font-black uppercase font-bold border border-emerald-500/20">
-                      <CheckCircle size={14} /> Operational
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
-      </main>
-
-      {/* Deployment Portal */}
-      {createPortal(
-        <AnimatePresence>
-          {assignModal && (
-            <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4">
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                onClick={() => setAssignModal(null)}
-                className="absolute inset-0 bg-navy/40 backdrop-blur-sm" />
-              
-              <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                className="relative w-full max-w-lg bg-[#f0ece3] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border-t sm:border border-[#c9a84c]/20">
-                <div className="p-6 md:p-8">
-                  <div className="flex justify-between items-start mb-6">
-                    <div>
-                      <h4 className="text-2xl font-serif font-black text-navy mb-1 uppercase tracking-tight">Deploy Personnel</h4>
-                      <p className="text-[10px] font-mono font-black uppercase tracking-widest text-[#c9a84c]">Mission ID: #{assignModal.id}</p>
-                    </div>
-                    <button onClick={() => setAssignModal(null)} className="p-2 hover:bg-black/5 rounded-full transition-colors">
-                      <X size={20} className="text-navy/40" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div className="p-4 bg-white/50 rounded-2xl border border-gold/10">
-                      <p className="text-[9px] font-mono font-black uppercase text-navy/40 mb-2">Selected Incident</p>
-                      <p className="text-sm font-serif font-bold text-navy leading-relaxed">{assignModal.description}</p>
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] font-mono font-black uppercase text-[#c9a84c] mb-3 block">Deployment Target</label>
-                      <select value={selectedWorker} onChange={(e) => setSelectedWorker(e.target.value)}
-                        className="w-full p-4 bg-white rounded-2xl border-2 border-gold/10 focus:border-primary outline-none text-sm font-bold transition-all appearance-none cursor-pointer">
-                        <option value="">Select Field Staff...</option>
-                        {workers.map(w => (
-                          <option key={w.id} value={w.id}>{w.name} (Unit ID: {w.id})</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <button onClick={handleAssign} disabled={!selectedWorker || submitting}
-                      className="w-full py-4 bg-primary text-white rounded-2xl font-mono font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3">
-                      {submitting ? (
-                        <RefreshCw className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <><Shield size={18} /> Transmit Deployment Order</>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
-    </div>
-  );
+    );
 }

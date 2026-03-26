@@ -66,17 +66,36 @@ export const NotificationProvider = ({ children, userId }) => {
   const markAsRead = async (id) => {
     try {
       await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/notifications/${id}/read`, { method: 'PATCH' });
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+      setNotifications(prev => {
+        if (!Array.isArray(prev)) return [];
+        return prev.map(n => n.id === id ? { ...n, read: true } : n);
+      });
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (e) {
       console.error('Error marking notification as read:', e);
     }
   };
 
-  const markAllAsRead = () => {
-    notifications.forEach(n => {
-      if (!n.read) markAsRead(n.id);
-    });
+  const markAllAsRead = async () => {
+    if (!Array.isArray(notifications) || notifications.length === 0) return;
+    
+    // Filter out already read notifications
+    const unreadNotifications = notifications.filter(n => !n.read);
+    if (unreadNotifications.length === 0) return;
+
+    try {
+      // Optimistic update
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+
+      // Backend calls - sequential for now to avoid overloading, or could be a bulk endpoint
+      for (const n of unreadNotifications) {
+        await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/notifications/${n.id}/read`, { method: 'PATCH' });
+      }
+    } catch (e) {
+      console.error('Error marking all as read:', e);
+      fetchHistory(); // Sync back with server on error
+    }
   };
 
   return (

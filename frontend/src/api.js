@@ -44,6 +44,8 @@ export const filterVoters = (params) => {
 export const getBoothsSummary = () => api.get('/manager/booths-summary').then(r => r.data);
 export const analyzeBooth = (boothId) => api.post('/manager/analyze', { booth_id: boothId }).then(r => r.data);
 export const sendTargetedUpdate = (data) => api.post('/manager/send-update', data).then(r => r.data);
+export const getManagerAlerts = () => api.get('/manager/automation-alerts').then(r => r.data);
+export const managerAutoResolve = () => api.post('/manager/auto-resolve').then(r => r.data);
 
 // Schemes
 export const getSchemes = () => api.get('/schemes').then(r => r.data);

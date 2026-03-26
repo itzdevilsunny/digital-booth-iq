@@ -72,10 +72,8 @@ export default function AIChatbot({ currentUser, boothId }) {
         setLoading(true);
         try {
           const result = await speechToText(formData);
-          if (result.transcript && result.transcript !== '[Limit Reached]') {
+          if (result.transcript) {
             handleSend(result.transcript);
-          } else if (result.transcript === '[Limit Reached]') {
-            alert("Protocol Limit Reached. Please wait a minute.");
           }
         } catch (e) { console.error(e); }
         setLoading(false);

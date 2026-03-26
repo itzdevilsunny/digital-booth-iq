@@ -14,35 +14,37 @@ import { Footer } from './Footer';
 
 const LandingPage = () => {
     return (
-        <div className="font-body antialiased bg-stone-50 text-stone-900 selection:bg-emerald-100 selection:text-emerald-900">
+        <div className="font-serif antialiased bg-[#0c0c0c] text-white selection:bg-emerald-500/30 selection:text-emerald-200">
             <Navbar />
             <main className="relative overflow-hidden">
-                {/* Decorative Background Glows */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-100/30 blur-[120px] rounded-full -mr-64 -mt-64" />
-                <div className="absolute top-[20%] left-0 w-[400px] h-[400px] bg-yellow-100/20 blur-[100px] rounded-full -ml-32" />
+                {/* Stunning Ambient Background Architecture */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full pointer-events-none overflow-hidden">
+                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full animate-pulse" />
+                    <div className="absolute bottom-[20%] right-[-10%] w-[50%] h-[50%] bg-stone-900/40 blur-[100px] rounded-full" />
+                </div>
                 
                 <Hero />
                 
-                <section className="relative z-10 py-24 bg-white/40 backdrop-blur-sm border-y border-stone-200/50">
+                <section className="relative z-10 py-32 bg-white/5 backdrop-blur-3xl border-y border-white/5">
                     <ProblemStatement />
                 </section>
 
                 <PlatformCapabilities />
                 
-                <section className="py-24 bg-stone-900 text-white relative overflow-hidden">
-                    <div className="absolute inset-0 opacity-10 bg-grid-pattern" />
+                <section className="py-32 bg-stone-950 text-white relative overflow-hidden border-y border-white/5">
+                    <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
                     <HowItWorks />
                 </section>
 
                 <Roles />
                 
-                <section className="py-24 border-y border-stone-200/50 bg-white/30">
+                <section className="py-32 border-y border-white/5 bg-white/5 backdrop-blur-xl">
                     <SecurityEthics />
                 </section>
 
                 <MultilingualSupport />
                 
-                <div className="relative isolate px-6 py-24 sm:py-32 lg:px-8">
+                <div className="relative isolate px-6 py-32 sm:py-40 lg:px-8 bg-gradient-to-b from-transparent to-black">
                     <CTA_Section />
                 </div>
             </main>

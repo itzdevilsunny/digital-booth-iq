@@ -1,637 +1,581 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { createGrievance, getGrievances, getAnalytics, getUsersByRole, getSchemes, applyForScheme, getApplications, getVoterServices } from '../../api';
 import { 
-  Send, RefreshCw, User, MapPin, ChevronRight, 
+  Send, RefreshCw, User, MapPin, ChevronRight, ArrowRight,
   Calendar, CheckCircle2, Clock, Activity, AlertCircle,
-  FileText, Search, PlusCircle, ExternalLink, Info, BadgeCheck
+  FileText, Search, PlusCircle, ExternalLink, Info, BadgeCheck,
+  Briefcase, Phone, MessageSquare, Shield
 } from 'lucide-react';
-import NotificationBell from '../ui/NotificationBell';
 import { motion, AnimatePresence } from 'framer-motion';
 import AIChatbot from './AIChatbot';
 
-// --- Sub-components (Ported from Booth IQ) ---
+// --- Simple Sub-components ---
 
-const QuickStats = ({ stats, loading, boothId }) => {
-  const statItems = [
-    { value: boothId || "—", label: "BOOTH ID", icon: "hub", color: "var(--gold)" },
-    { value: loading ? "…" : String(stats?.pending_issues || 0), label: "OPEN GRIEVANCES", icon: "emergency_home", color: "#d64045" },
-    { value: loading ? "…" : String(stats?.total_calls || 0), label: "TOTAL CALLS", icon: "call", color: "var(--gold)" },
-    { value: loading ? "…" : String(stats?.resolved_issues || 0), label: "RESOLVED", icon: "verified_user", color: "#10b981" },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4 mb-10">
-      {statItems.map((s, i) => (
-        <motion.div 
-          key={s.label} 
-          initial={{ opacity: 0, y: 10 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ delay: i * 0.1 }}
-          className="bg-white shadow-sm border border-slate-200 rounded p-4 relative overflow-hidden group"
-        >
-          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: `linear-gradient(90deg, ${s.color}, transparent)` }} />
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="font-mono text-[10px] tracking-[2px] uppercase text-slate-700/60 mb-2">{s.label}</p>
-              <p className="font-serif text-2xl font-bold text-slate-700 leading-none">{s.value}</p>
-            </div>
-            <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: s.color + "18", border: `1px solid ${s.color}30` }}>
-              <span className="material-symbols-outlined text-sm text-[#1e293b]">{s.icon}</span>
-            </div>
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  );
-};
-
-const AIGovernanceFeed = ({ insights, loading }) => {
-  return (
-    <div className="bg-white shadow-sm border border-slate-200 rounded p-8 relative overflow-hidden group mb-10">
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary to-transparent" />
-      <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
-        <span className="material-symbols-outlined text-9xl text-navy">account_balance</span>
-      </div>
-      
-      <div className="relative z-10">
-        <div className="flex items-center gap-3 mb-6">
-          <span className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-700/60">Official Governance Report</span>
-          <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
+const StatCard = ({ label, value, icon: Icon, color, delay }) => (
+    <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay }}
+        className="bg-white/5 backdrop-blur-3xl p-6 rounded-3xl border border-white/5 hover:border-emerald-500/30 transition-all group relative overflow-hidden"
+    >
+        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Icon size={48} />
         </div>
-        
-        <h3 className="font-serif text-2xl font-bold text-slate-700 mb-4 tracking-tight uppercase">Institutional Operations Analysis</h3>
-        
-        {loading ? (
-          <div className="space-y-3 py-2">
-            <div className="h-3 bg-slate-50 rounded-sm w-full animate-pulse" />
-            <div className="h-3 bg-slate-50 rounded-sm w-3/4 animate-pulse" />
-          </div>
-        ) : (
-          <p className="text-sm text-slate-600 leading-relaxed font-medium">
-            {insights?.[0] || "Institutional analysis confirms that targeted infrastructure interventions have achieved measurable improvements in localized service delivery."}
-          </p>
-        )}
-        
-        <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <p className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-700/60">VERIFIED SOURCE</p>
-            <span className="material-symbols-outlined text-emerald-500 text-sm">verified_user</span>
-          </div>
-          <p className="font-mono text-[10px] tracking-[1px] text-slate-500">BOOTH_ENCRYPTED_PROTOCOL_V1</p>
+        <div className="flex flex-col gap-1">
+            <p className="text-[10px] font-bold uppercase tracking-[2px] text-stone-500">{label}</p>
+            <h3 className="text-3xl font-black text-white tracking-tighter">{value}</h3>
         </div>
-      </div>
-    </div>
-  );
-};
+        <div className="mt-4 flex items-center gap-2">
+            <div className={`size-1.5 rounded-full animate-pulse`} style={{ backgroundColor: color }} />
+            <span className="text-[9px] font-bold text-stone-600 uppercase tracking-tighter">Status: Matrix Active</span>
+        </div>
+    </motion.div>
+);
 
-const YourBoothTeam = ({ workers, admin }) => {
-  const team = admin ? [admin, ...workers] : workers;
-  
-  return (
-    <div className="mb-10">
-      <div className="flex items-center justify-between mb-4 px-1">
-        <h3 className="font-serif text-lg font-bold text-slate-700 uppercase tracking-tight">Support Personnel</h3>
-        <p className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-700/60">Verification Officers</p>
-      </div>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {team.length === 0 ? (
-          <div className="col-span-full bg-slate-50 rounded border border-dashed border-slate-200 p-8 text-center text-slate-400">
-             <p className="font-mono text-[10px] uppercase tracking-widest">Awaiting Officer Assignment</p>
-          </div>
-        ) : team.slice(0, 4).map((w, i) => (
-          <div key={w.id || i} className="bg-white rounded border border-slate-200 p-4 shadow-sm flex items-center gap-4 transition-all hover:border-[#c9a84c]/30 group">
-            <div className="size-10 rounded bg-[#1e293b] flex items-center justify-center text-[#c9a84c] text-sm font-serif font-black shadow-sm shrink-0">
-              {w.name?.[0] || 'U'}
+const InsightsBanner = ({ insights, loading }) => (
+    <div className="relative overflow-hidden rounded-[2.5rem] bg-emerald-600 p-8 md:p-12 text-white shadow-2xl shadow-emerald-600/20 group">
+        <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 blur-[100px] rounded-full -mr-32 -mt-32" />
+        
+        <div className="relative z-10 flex flex-col md:flex-row gap-10 items-center">
+            <div className="flex-1">
+                <div className="flex items-center gap-3 mb-6">
+                    <span className="px-4 py-1 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-[2px] text-white border border-white/20">
+                        AI Matrix Synthesis
+                    </span>
+                    <div className="size-1.5 rounded-full bg-white animate-pulse" />
+                </div>
+                <h2 className="text-4xl md:text-5xl font-black mb-4 leading-[0.9] tracking-tighter">
+                    Booth Efficiency <br />Optimization
+                </h2>
+                {loading ? (
+                    <div className="space-y-3 opacity-20">
+                        <div className="h-2 bg-white rounded w-full animate-pulse" />
+                        <div className="h-2 bg-white rounded w-3/4 animate-pulse" />
+                    </div>
+                ) : (
+                    <p className="text-emerald-50 text-sm md:text-lg leading-relaxed max-w-xl font-medium">
+                        {insights?.[0] || "Synthesizing local intelligence... Matrix performance is within nominal parameters."}
+                    </p>
+                )}
             </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="font-bold text-slate-700 text-sm tracking-tight truncate uppercase">{w.name || 'Booth Officer'}</h4>
-              <div className="flex items-center gap-2 mt-1">
-                <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest leading-none">{w.role?.replace(/_/g, ' ') || 'Personnel'}</p>
-                <div className="size-1 rounded-full bg-emerald-500" />
-              </div>
+            
+            <div className="shrink-0 flex items-center gap-5 bg-black/10 p-8 rounded-[2rem] border border-white/10 backdrop-blur-xl">
+                <div className="text-right">
+                    <p className="text-[10px] uppercase tracking-[3px] text-emerald-200 font-bold mb-1">Source</p>
+                    <p className="text-sm font-mono font-black">BIQ_CORE_v2</p>
+                </div>
+                <div className="size-14 rounded-2xl bg-white text-emerald-600 flex items-center justify-center border border-white/20 shadow-xl">
+                    <Shield size={28} />
+                </div>
             </div>
-            <div className="size-8 rounded bg-slate-50 text-slate-600 flex items-center justify-center border border-slate-100 group-hover:bg-[#1e293b] group-hover:text-[#c9a84c] transition-all">
-              <span className="material-symbols-outlined text-sm font-bold">call</span>
-            </div>
-          </div>
+        </div>
+    </div>
+);
+
+const ServiceGrid = ({ items, onSelect, activeTab }) => (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {items.map((item) => (
+            <button
+                key={item.id}
+                onClick={() => onSelect(item.id)}
+                className={`flex flex-col items-center justify-center p-8 rounded-[2rem] border transition-all gap-5 group hover:scale-[1.02] active:scale-95 ${
+                    activeTab === item.id 
+                    ? 'bg-emerald-600 border-emerald-500 text-white shadow-2xl shadow-emerald-500/20' 
+                    : 'bg-white/5 border-white/5 text-stone-400 hover:border-emerald-500/30 shadow-sm'
+                }`}
+            >
+                <div className={`size-14 rounded-2xl flex items-center justify-center transition-all ${
+                    activeTab === item.id ? 'bg-white/10' : 'bg-white/5 group-hover:bg-emerald-500/10'
+                }`}>
+                    <item.icon size={28} strokeWidth={2.5} className={activeTab === item.id ? 'text-white' : 'text-stone-500 group-hover:text-emerald-400'} />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-[2px] text-center">{item.label}</span>
+            </button>
         ))}
-      </div>
     </div>
-  );
-};
+);
 
-const BoothHealthScore = ({ stats, boothId }) => {
-  const resolutionRate = stats?.total_issues > 0 ? Math.round((stats.resolved_issues / stats.total_issues) * 100) : 0;
-  
-  const bars = [
-    { label: "SERVICE DELIVERY INDEX", value: resolutionRate, color: "var(--gold)" },
-    { label: "INSTITUTIONAL PRECISION", value: resolutionRate > 0 ? 92 : 0, color: "var(--navy)" },
-    { label: "SCHEME SATURATION RATE", value: resolutionRate > 0 ? 72 : 0, color: "#10b981" },
-  ];
-
-  return (
-    <div className="bg-white shadow-sm border border-slate-200 rounded p-8 relative overflow-hidden h-full">
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#c9a84c] to-transparent" />
-      <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
-        <span className="material-symbols-outlined text-9xl text-[#1e293b]">analytics</span>
-      </div>
-      
-      <div className="flex items-center justify-between mb-8 relative z-10">
-        <div>
-          <h3 className="font-serif text-xl font-bold text-slate-700 uppercase tracking-tight">Performance Metrics</h3>
-          <p className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-700/60 mt-1">Operational Sector #{boothId}</p>
-        </div>
-        <div className="size-10 rounded flex items-center justify-center bg-slate-50 text-navy border border-slate-100">
-          <span className="material-symbols-outlined text-sm">monitoring</span>
-        </div>
-      </div>
-      
-      <div className="space-y-6 relative z-10">
-        {bars.map(b => (
-          <div key={b.label}>
-            <div className="flex justify-between font-mono text-[9px] tracking-[1.5px] uppercase mb-2">
-              <span className="text-slate-600 underline decoration-slate-200 decoration-dotted underline-offset-4">{b.label}</span>
-              <span className="text-slate-700 font-bold">{b.value}%</span>
-            </div>
-            <div className="h-[4px] bg-slate-50 rounded-sm overflow-hidden border border-slate-100">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${b.value}%` }}
-                transition={{ duration: 1.5, ease: [0.23, 1, 0.32, 1] }}
-                className="h-full rounded-sm"
-                style={{ backgroundColor: b.color }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// --- Main Dashboard Component ---
+// --- Main Component ---
 
 export default function CitizenDashboard({ currentUser, boothId }) {
-  const [tab, setTab] = useState('dashboard');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [grievances, setGrievances] = useState([]);
-  const [analytics, setAnalytics] = useState(null);
-  const [workers, setWorkers] = useState([]);
-  const [admin, setAdmin] = useState(null);
-  const [schemes, setSchemes] = useState([]);
-  const [voterServices, setVoterServices] = useState([]);
-  const [applications, setApplications] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(null);
-  const [applying, setApplying] = useState(null);
+    const location = useLocation();
+    const navigate = useNavigate();
+    
+    // Map URL paths to tab states
+    const getTabFromPath = (path) => {
+        if (path.includes('/report')) return 'report';
+        if (path.includes('/voter-services')) return 'voter-services';
+        if (path.includes('/schemes')) return 'schemes';
+        return 'dashboard';
+    };
 
-  const safeBoothId = parseInt(boothId) || 17;
+    const [tab, setTab] = useState(getTabFromPath(location.pathname));
 
-  const fetchData = useCallback(async () => {
-    if (!safeBoothId) return;
-    setLoading(true);
-    try {
-      const [gData, aData, wData, admData, sData, appData, vsData] = await Promise.all([
-        getGrievances({ booth_id: safeBoothId }),
-        getAnalytics(safeBoothId),
-        getUsersByRole('worker'),
-        getUsersByRole('admin'),
-        getSchemes(),
-        currentUser?.id ? getApplications(currentUser.id) : Promise.resolve([]),
-        getVoterServices()
-      ]);
-      
-      setGrievances(gData || []);
-      setAnalytics(aData);
-      setWorkers(wData?.filter(w => w.booth_id === safeBoothId) || []);
-      setAdmin(admData?.find(a => a.booth_id === safeBoothId) || null);
-      setSchemes(sData || []);
-      setApplications(appData || []);
-      setVoterServices(vsData || []);
-    } catch (e) { 
-      console.error("Sync error:", e); 
-    }
-    setLoading(false);
-  }, [safeBoothId, currentUser?.id]);
+    // Update tab when location changes (from sidebar)
+    useEffect(() => {
+        setTab(getTabFromPath(location.pathname));
+    }, [location.pathname]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    // Update URL when tab changes (from internal grid)
+    const handleTabChange = (newTab) => {
+        setTab(newTab);
+        if (newTab === 'dashboard') navigate('/citizen');
+        else navigate(`/citizen/${newTab}`);
+    };
 
-  const handleSubmit = async () => {
-    if (!description.trim()) return;
-    setSubmitting(true);
-    try {
-      const result = await createGrievance({
-        description,
-        category: category || 'General',
-        voter_name: currentUser?.name || `Citizen-${safeBoothId}`,
-        booth_id: safeBoothId
-      });
-      setSubmitted(result);
-      setDescription('');
-      setCategory('');
-      fetchData();
-    } catch (e) { console.error(e); }
-    setSubmitting(false);
+    const [description, setDescription] = useState('');
+    const [category, setCategory] = useState('');
+    const [grievances, setGrievances] = useState([]);
+    const [analytics, setAnalytics] = useState(null);
+    const [workers, setWorkers] = useState([]);
+    const [admin, setAdmin] = useState(null);
+    const [schemes, setSchemes] = useState([]);
+    const [voterServices, setVoterServices] = useState([]);
+    const [applications, setApplications] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(null);
+    const [applying, setApplying] = useState(null);
+
+    const safeBoothId = parseInt(boothId) || 17;
+
+    const fetchData = useCallback(async () => {
+        if (!safeBoothId) return;
+        setLoading(true);
+        try {
+            const [gData, aData, wData, admData, sData, appData, vsData] = await Promise.all([
+                getGrievances({ booth_id: safeBoothId }),
+                getAnalytics(safeBoothId),
+                getUsersByRole('worker'),
+                getUsersByRole('admin'),
+                getSchemes(),
+                currentUser?.id ? getApplications(currentUser.id) : Promise.resolve([]),
+                getVoterServices()
+            ]);
+            
+            setGrievances(gData || []);
+            setAnalytics(aData);
+            setWorkers(wData?.filter(w => w.booth_id === safeBoothId) || []);
+            setAdmin(admData?.find(a => a.booth_id === safeBoothId) || null);
+            setSchemes(sData || []);
+            setApplications(appData || []);
+            setVoterServices(vsData || []);
+        } catch (e) { 
+            console.error("Sync error:", e); 
+        }
+        setLoading(false);
+    }, [safeBoothId, currentUser?.id]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    const handleSubmit = async () => {
+        if (!description.trim()) return;
+        setSubmitting(true);
+        try {
+            const result = await createGrievance({
+                description,
+                category: category || 'General',
+                voter_name: currentUser?.name || `Citizen-${safeBoothId}`,
+                booth_id: safeBoothId
+            });
+            setSubmitted(result);
+            setDescription('');
+            setCategory('');
+            fetchData();
+        } catch (e) { console.error(e); }
+        setSubmitting(false);
     };
 
     const handleApplyScheme = async (schemeId) => {
-      if (!currentUser?.id) return;
-      const scheme = schemes.find(s => s.id === schemeId);
-      setApplying(schemeId);
-      try {
-        await applyForScheme({
-          voter_id: currentUser.id,
-          scheme_id: schemeId,
-          booth_id: safeBoothId
-        });
-        fetchData();
-        
-        // After successful application, provide choice to go to official portal
-        if (scheme?.official_link && scheme.official_link !== '#') {
-          if (window.confirm(`Application logged in BoothIQ. Would you like to complete the final steps on the official ${scheme.name} portal?`)) {
-            window.open(scheme.official_link, '_blank');
-          }
-        }
-      } catch (e) {
-        console.error("Application error:", e);
-      }
-      setApplying(null);
+        const scheme = schemes.find(s => s.id === schemeId);
+        setApplying(schemeId);
+        try {
+            await applyForScheme({
+                voter_id: currentUser.id || 'dummy-citizen',
+                scheme_id: schemeId,
+                booth_id: safeBoothId
+            });
+            fetchData();
+            if (scheme?.official_link && scheme.official_link !== '#') {
+                window.open(scheme.official_link, '_blank');
+            }
+        } catch (e) { console.error(e); }
+        setApplying(null);
     };
 
+    const tabs = [
+        { id: 'dashboard', label: 'Monitor', icon: Activity },
+        { id: 'report', label: 'Report', icon: AlertCircle },
+        { id: 'voter-services', label: 'Services', icon: Briefcase },
+        { id: 'schemes', label: 'Schemes', icon: FileText },
+    ];
+
     const STATUS_CONFIG = {
-    submitted: { label: 'Registered', icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-100 border-amber-200' },
-    assigned: { label: 'Personnel Deployed', icon: User, color: 'text-blue-600', bg: 'bg-blue-100 border-blue-200' },
-    in_progress: { label: 'Active Intervention', icon: Activity, color: 'text-[#c9a84c]', bg: 'bg-orange-50 border-orange-200' },
-    resolved: { label: 'Mission Accomplished', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100 border-emerald-200' },
-  };
+        submitted: { label: 'Received', icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-100', dot: 'bg-amber-500' },
+        assigned: { label: 'Assigned', icon: User, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-100', dot: 'bg-blue-500' },
+        in_progress: { label: 'Working on it', icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-100', dot: 'bg-emerald-500' },
+        resolved: { label: 'Fixed', icon: CheckCircle2, color: 'text-emerald-700', bg: 'bg-emerald-100 border-emerald-200', dot: 'bg-emerald-600' },
+    };
 
-  return (
-    <div className="min-h-screen bg-[#f8f9fa] bg-grid-slate-100/[0.1] relative">
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-serif font-black text-slate-900 tracking-tight leading-none mb-1">Citizen Portal</h1>
-            <p className="font-mono text-[10px] tracking-[3px] uppercase text-slate-500">Authorized Access: {currentUser?.name || "Citizen"}</p>
-          </div>
-          <div className="flex items-center gap-4">
-             <NotificationBell />
-             <button onClick={fetchData} className="size-10 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600 hover:text-primary transition-all">
-                <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-             </button>
-             <div className="bg-white px-4 py-2 rounded border border-slate-200 shadow-sm flex items-center gap-3">
-                <div className="size-2 bg-emerald-500 rounded-full animate-pulse" />
-                <span className="font-mono text-[10px] font-bold text-slate-700 tracking-tighter">BOOTH #{safeBoothId} ONLINE</span>
-             </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto p-6 md:p-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          
-          {/* Main Content Areas */}
-          <div className="lg:col-span-8 space-y-10">
-            {tab === 'dashboard' ? (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
-                <AIGovernanceFeed insights={analytics?.insights} loading={loading} />
-                
-                <YourBoothTeam workers={workers} admin={admin} />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <BoothHealthScore stats={analytics} boothId={safeBoothId} />
-                  
-                  {/* Milestone Tracker (Static for now) */}
-                  <div className="bg-white shadow-sm border border-slate-200 rounded p-8 relative overflow-hidden h-full">
-                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary to-transparent" />
-                    <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
-                      <span className="material-symbols-outlined text-9xl text-navy">architecture</span>
-                    </div>
-                    <div className="flex items-center justify-between mb-8 relative z-10">
-                      <div>
-                        <h3 className="font-serif text-lg font-bold text-slate-700 uppercase tracking-tight">Milestone Tracker</h3>
-                        <p className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-700/60 mt-1">Infrastructure Verification</p>
-                      </div>
-                      <div className="size-10 rounded flex items-center justify-center bg-slate-50 text-navy border border-slate-100">
-                        <span className="material-symbols-outlined text-sm">verified</span>
-                      </div>
-                    </div>
-                    <div className="space-y-5 relative z-10">
-                      {[
-                        { label: "Community Lighting", progress: 85, status: "Active" },
-                        { label: "Water Filtration Unit", progress: 100, status: "Completed" },
-                        { label: "Sector Road Renovation", progress: 40, status: "In Progress" },
-                      ].map((p, i) => (
-                        <div key={i}>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-mono text-[10px] font-bold text-slate-700 uppercase tracking-tight">{p.label}</span>
-                            <span className={`text-[8px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-widest border ${p.status === 'Completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
-                              {p.status}
-                            </span>
-                          </div>
-                          <div className="h-1 bg-slate-50 rounded-full overflow-hidden">
-                            <motion.div initial={{ width: 0 }} animate={{ width: `${p.progress}%` }} className={`h-full ${p.status === 'Completed' ? 'bg-emerald-500' : 'bg-primary'}`} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Registry Feed */}
-                <div className="mt-16">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-serif text-2xl font-bold text-slate-900 tracking-tight uppercase">Registry Feed</h3>
-                    <p className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-500">{grievances.length} INCIDENTS LOGGED</p>
-                  </div>
-                  <div className="space-y-4">
-                    {grievances.length === 0 ? (
-                      <div className="py-20 text-center border border-dashed border-slate-200 rounded-2xl">
-                        <p className="font-mono text-[10px] uppercase tracking-widest text-slate-400">No active incidents detected in this sector</p>
-                      </div>
-                    ) : grievances.map((g, idx) => {
-                      const config = STATUS_CONFIG[g.status] || STATUS_CONFIG.submitted;
-                      return (
-                        <motion.div key={g.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
-                          className="bg-white border border-slate-200 p-5 rounded-xl flex items-center gap-5 group hover:border-primary/40 transition-all shadow-sm">
-                          <div className={`size-12 rounded-xl flex items-center justify-center shrink-0 ${config.bg} ${config.color}`}>
-                            <config.icon size={22} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1.5">
-                               <span className="text-[10px] font-mono font-bold uppercase tracking-tight px-2 py-0.5 bg-slate-50 border border-slate-200 rounded text-slate-500">
-                                 REF: #{g.id}
-                               </span>
-                               <span className={`text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded ${config.bg} ${config.color}`}>
-                                 {config.label}
-                               </span>
-                            </div>
-                            <h4 className="text-base font-bold text-slate-900 truncate uppercase tracking-tight mb-1">{g.description}</h4>
-                            <div className="flex items-center gap-4">
-                               <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                                  <MapPin size={12} className="text-primary" /> SECTOR {g.booth_id}
-                               </p>
-                               <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                                  <Calendar size={12} className="text-primary" /> {new Date(g.created_at || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                               </p>
-                            </div>
-                          </div>
-                          <ChevronRight size={18} className="text-slate-200 group-hover:text-primary transition-colors" />
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </motion.div>
-            ) : tab === 'report' ? (
-              <div className="max-w-2xl">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                  className="bg-white border border-slate-200 p-10 rounded-2xl shadow-xl relative overflow-hidden">
-                  <div className="absolute top-0 left-0 right-0 h-[4px] bg-primary" />
-                  <div className="text-center mb-10">
-                    <div className="size-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center mx-auto mb-6 shadow-sm">
-                      <Send size={28} className="text-primary" />
-                    </div>
-                    <h2 className="text-3xl font-serif font-black text-slate-900 mb-2 uppercase tracking-tight">Report Incident</h2>
-                    <p className="text-sm text-slate-500 font-medium tracking-tight">Direct institutional uplink to Booth Command and Field Staff</p>
-                  </div>
-
-                  <div className="space-y-8">
-                    <div>
-                      <label className="text-[10px] font-mono font-black uppercase text-primary mb-4 block tracking-widest underline decoration-2 underline-offset-4">Sector Category</label>
-                      <div className="flex flex-wrap gap-2">
-                        {['Water', 'Road', 'Electricity', 'Sanitation', 'Healthcare', 'Other'].map(cat => (
-                          <button key={cat} onClick={() => setCategory(cat)}
-                            className={`px-5 py-2.5 rounded border text-[10px] font-mono font-bold uppercase tracking-widest transition-all ${
-                              category === cat ? 'bg-navy border-navy text-primary shadow-lg' : 'bg-white border-slate-200 text-slate-400 hover:border-primary/40'
-                            }`}>
-                            {cat}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] font-mono font-black uppercase text-primary mb-4 block tracking-widest underline decoration-2 underline-offset-4">Operational Detail</label>
-                      <textarea value={description} onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Provide precise location coordinates and incident parameters..."
-                        className="w-full p-5 bg-slate-50 rounded-xl border border-slate-200 focus:border-primary outline-none text-sm font-medium transition-all h-40 resize-none font-sans" />
-                    </div>
-
-                    <button onClick={handleSubmit} disabled={!description || submitting}
-                      className="w-full py-5 bg-navy text-primary rounded-xl font-mono font-black uppercase tracking-[0.2em] shadow-xl hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-4">
-                      {submitting ? (
-                        <RefreshCw className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <><Send size={18} /> TRANSMIT TO COMMAND</>
-                      )}
-                    </button>
-                  </div>
-                </motion.div>
-              </div>
-            ) : tab === 'voter-services' ? (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
+    return (
+        <div className="space-y-8 animate-fade-in relative z-10">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-stone-200">
                 <div>
-                  <h2 className="text-3xl font-serif font-black text-slate-900 uppercase tracking-tight">Voter Services</h2>
-                  <p className="text-sm text-slate-500 font-medium">Official documentation and certification portal</p>
+                    <h1 className="text-4xl font-display font-bold text-stone-900 tracking-tight">Public Portal</h1>
+                    <p className="text-stone-500 text-sm mt-1 uppercase tracking-widest font-bold">Booth #{safeBoothId}</p>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {voterServices.map((s) => (
-                    <div key={s.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:border-primary/40 transition-all group">
-                      <div className="size-12 rounded-xl bg-slate-50 flex items-center justify-center text-navy mb-6 group-hover:bg-navy group-hover:text-primary transition-all">
-                        <span className="material-symbols-outlined">{s.icon}</span>
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight mb-2">{s.name}</h3>
-                      <p className="text-xs text-slate-500 leading-relaxed mb-4 font-medium">{s.desc}</p>
-                      <p className="text-[10px] text-slate-400 italic mb-6">{s.more_info}</p>
-                      
-                      <button 
-                        onClick={() => s.official_link !== '#' && window.open(s.official_link, '_blank')}
-                        className={`text-[10px] font-mono font-black uppercase tracking-widest flex items-center gap-2 hover:underline ${s.official_link === '#' ? 'text-slate-300 cursor-not-allowed' : 'text-primary'}`}
-                      >
-                        {s.official_link === '#' ? 'Service Pending' : 'Initialize Protocol'} <ExternalLink size={14} />
-                      </button>
+                <div className="flex items-center gap-3">
+                    <button onClick={fetchData} className="px-5 py-2.5 rounded-full bg-stone-100 text-stone-600 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex items-center gap-2 border border-stone-200">
+                        <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">Refresh Feed</span>
+                    </button>
+                    <div className="hidden lg:flex items-center gap-3 bg-white px-5 py-2.5 rounded-full border border-stone-200 shadow-sm">
+                        <div className="size-2 bg-emerald-500 rounded-full animate-pulse" />
+                        <span className="text-[10px] font-bold text-stone-700 tracking-tighter uppercase whitespace-nowrap">Online</span>
                     </div>
-                  ))}
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
-                <div className="flex items-center justify-between mb-8">
-                  <div>
-                    <h2 className="text-3xl font-serif font-black text-slate-900 uppercase tracking-tight">Government Schemes</h2>
-                    <p className="text-sm text-slate-500 font-medium">Verified welfare programs and institutional support</p>
-                  </div>
-                  <div className="px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-3">
-                    <BadgeCheck className="text-emerald-600" size={18} />
-                    <span className="text-[10px] font-mono font-black text-emerald-700 uppercase tracking-widest">Citizen Eligibility Active</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {schemes.map((scheme) => {
-                    const isApplied = applications.some(a => a.scheme_id === scheme.id);
-                    return (
-                      <div key={scheme.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:border-primary/40 transition-all group relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-6 opacity-[0.03]">
-                          <FileText size={60} className="text-navy" />
-                        </div>
-                        <div className="flex items-start justify-between mb-6">
-                          <span className="px-3 py-1 bg-slate-50 border border-slate-100 rounded text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest">
-                            {scheme.category}
-                          </span>
-                          {isApplied && (
-                            <span className="px-3 py-1 bg-emerald-50 border border-emerald-100 rounded text-[9px] font-mono font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1">
-                              <CheckCircle2 size={10} /> Applied
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight mb-2 group-hover:text-primary transition-colors">{scheme.name}</h3>
-                        <p className="text-xs text-slate-500 leading-relaxed mb-6 font-medium">{scheme.desc}</p>
-                        
-                        <div className="flex items-center gap-4 pt-6 border-t border-slate-50">
-                          <button 
-                            onClick={() => handleApplyScheme(scheme.id)}
-                            disabled={isApplied || applying === scheme.id}
-                            className={`flex-1 py-3 rounded-xl text-[10px] font-mono font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
-                              isApplied ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-navy text-primary hover:bg-slate-800 active:scale-[0.98]'
-                            }`}
-                          >
-                            {applying === scheme.id ? <RefreshCw className="animate-spin" size={14} /> : isApplied ? 'Registered' : <PlusCircle size={14} />}
-                            {isApplied ? 'Application Logged' : 'Initialize Application'}
-                          </button>
-                          <button className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-primary transition-all border border-slate-100">
-                            <Info size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {applications.length > 0 && (
-                  <div className="mt-16">
-                    <h3 className="font-serif text-2xl font-bold text-slate-900 tracking-tight uppercase mb-6">Active Applications</h3>
-                    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-                      <table className="w-full text-left">
-                        <thead className="bg-slate-50 border-b border-slate-200 font-mono text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                          <tr>
-                            <th className="px-6 py-4">Reference</th>
-                            <th className="px-6 py-4">Scheme</th>
-                            <th className="px-6 py-4">Applied Date</th>
-                            <th className="px-6 py-4">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {applications.map((app) => (
-                            <tr key={app.id} className="text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors">
-                              <td className="px-6 py-4 font-mono text-[10px] text-slate-400">#{app.id.slice(0, 8)}</td>
-                              <td className="px-6 py-4 font-bold uppercase tracking-tight">{schemes.find(s => s.id === app.scheme_id)?.name}</td>
-                              <td className="px-6 py-4">{new Date(app.applied_at).toLocaleDateString()}</td>
-                              <td className="px-6 py-4">
-                                <span className="px-2 py-1 bg-amber-50 text-amber-600 border border-amber-100 rounded-md font-mono text-[9px] font-black uppercase tracking-widest">
-                                  {app.status}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </div>
-
-          {/* Sidebar / Quick Actions */}
-          <div className="lg:col-span-4 space-y-10">
-            <QuickStats stats={analytics} loading={loading} boothId={safeBoothId} />
-            
-            <div className="bg-white rounded border border-slate-200 p-8 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
-                    <span className="material-symbols-outlined text-8xl text-navy">terminal</span>
-                </div>
-                <h3 className="font-serif text-lg font-bold text-slate-700 uppercase tracking-tight mb-8">Service Terminals</h3>
-                <div className="grid grid-cols-1 gap-4 relative z-10">
-                    {[
-                        { label: "Executive Monitor", id: 'dashboard', icon: "monitoring" },
-                        { label: "Incident Reporter", id: 'report', icon: "report_problem" },
-                        { label: "Voter Services", id: 'voter-services', icon: "assignment" },
-                        { label: "Verified Schemes", id: 'schemes', icon: "description" },
-                    ].map((a) => (
-                        <button
-                            key={a.label}
-                            onClick={() => setTab(a.id)}
-                            className={`flex items-center gap-4 p-4 rounded border transition-all hover:bg-navy hover:text-primary group ${tab === a.id ? 'bg-navy border-navy text-primary' : 'bg-slate-50 border-slate-100 text-slate-700'}`}
-                        >
-                            <div className="size-10 rounded bg-white/10 flex items-center justify-center group-hover:bg-primary/20">
-                                <span className="material-symbols-outlined text-xl">{a.icon}</span>
-                            </div>
-                            <span className="font-mono text-[10px] font-bold uppercase tracking-widest">{a.label}</span>
-                        </button>
-                    ))}
                 </div>
             </div>
 
-            {/* Upcoming Events (Static Port) */}
-            <div className="animate-fade-up">
-                <div className="flex items-center justify-between mb-4 px-1">
-                    <h3 className="font-serif text-lg font-bold text-slate-700 uppercase tracking-tight">Outreach Schedule</h3>
-                    <p className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-700/60">Institutional Agenda</p>
-                </div>
-                <div className="space-y-4">
-                    {[
-                        { name: "Public Grievance Meet", date: "28 MAR", icon: "campaign", type: "High Priority" },
-                        { name: "Scheme Awareness Drive", date: "02 APR", icon: "event", type: "Community" }
-                    ].map((e, i) => (
-                        <div key={i} className="bg-white rounded border border-slate-200 p-4 shadow-sm flex items-center gap-4 transition-all cursor-pointer hover:border-primary/30 group">
-                            <div className="shrink-0 text-center bg-slate-50 rounded p-2 w-14 group-hover:bg-navy transition-colors border border-slate-100">
-                                <p className="text-[10px] font-mono font-bold text-slate-500 uppercase leading-none mb-1 group-hover:text-slate-300">{e.date.split(' ')[1]}</p>
-                                <p className="text-lg font-serif font-black text-navy leading-tight group-hover:text-primary">{e.date.split(' ')[0]}</p>
+            {/* Main Navigation */}
+            <ServiceGrid items={tabs} onSelect={handleTabChange} activeTab={tab} />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Main View Area */}
+                <div className="lg:col-span-8 space-y-8">
+                    {tab === 'dashboard' ? (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+                            <InsightsBanner insights={analytics?.insights} loading={loading} />
+                            
+                            {/* Stats */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <StatCard label="ID" value={`#${safeBoothId}`} icon={Shield} color="#10b981" delay={0.1} />
+                                <StatCard label="Pending" value={analytics?.pending_issues || 0} icon={AlertCircle} color="#ea580c" delay={0.2} />
+                                <StatCard label="Fixed" value={analytics?.resolved_issues || 0} icon={CheckCircle2} color="#059669" delay={0.3} />
+                                <StatCard label="Online" value="99.9%" icon={Activity} color="#6366f1" delay={0.4} />
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-bold text-sm text-slate-700 truncate group-hover:text-slate-900 transition-colors uppercase tracking-tight">{e.name}</p>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest leading-none">SECTOR #{safeBoothId}</p>
-                                    <div className="size-1 rounded-full bg-emerald-500" />
+
+                            {/* Activity Feed */}
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-display font-bold text-2xl text-stone-900 tracking-tight">Recent Problems</h3>
+                                    <span className="px-3 py-1 bg-stone-100 rounded-full text-[10px] font-bold text-stone-400">
+                                        LIVE LIST
+                                    </span>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    {grievances.length === 0 ? (
+                                        <div className="p-16 text-center border-2 border-dashed border-stone-200 rounded-[2rem] bg-stone-50/50">
+                                            <p className="text-stone-400 font-display text-lg italic">Everything looks good. No issues found.</p>
+                                        </div>
+                                    ) : (
+                                        grievances.map((g, idx) => {
+                                            const config = STATUS_CONFIG[g.status] || STATUS_CONFIG.submitted;
+                                            return (
+                                                <motion.div 
+                                                    key={g.id} 
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: idx * 0.05 }}
+                                                    className="glass-panel p-5 rounded-3xl border border-stone-200 flex items-center gap-6 group hover:border-emerald-500/30 transition-all shadow-sm"
+                                                >
+                                                    <div className={`size-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${config.bg} ${config.color} shadow-stone-100`}>
+                                                        <config.icon size={28} />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <div className={`size-1.5 rounded-full ${config.dot}`} />
+                                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${config.color}`}>
+                                                                {config.label}
+                                                            </span>
+                                                            <span className="text-[10px] font-mono text-stone-400 ml-2">ID: #{g.id}</span>
+                                                        </div>
+                                                        <h4 className="text-lg font-bold text-stone-900 truncate tracking-tight">{g.description}</h4>
+                                                        <div className="flex items-center gap-4 mt-2">
+                                                            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
+                                                                <Calendar size={12} className="text-emerald-600" /> {new Date(g.created_at || Date.now()).toLocaleDateString()}
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
+                                                                <MapPin size={12} className="text-emerald-600" /> Area {g.booth_id}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <ChevronRight size={20} className="text-stone-300 group-hover:text-emerald-600 transition-colors hidden sm:block" />
+                                                </motion.div>
+                                            )
+                                        })
+                                    )}
                                 </div>
                             </div>
-                            <span className="material-symbols-outlined text-slate-200 text-sm group-hover:text-primary">arrow_forward</span>
+                        </motion.div>
+                    ) : tab === 'report' ? (
+                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="max-w-xl">
+                            <div className="bg-white/5 backdrop-blur-3xl text-white rounded-[3rem] p-10 border border-white/5 shadow-2xl relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-6 mb-10">
+                                        <div className="size-20 rounded-[2rem] bg-emerald-600 flex items-center justify-center text-white shadow-2xl shadow-emerald-500/20 border border-white/10 group-hover:scale-110 transition-transform">
+                                            <Send size={36} />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-4xl font-black text-white tracking-tighter leading-none mb-2">REPORT<br/>ANOMALY</h2>
+                                            <p className="text-[10px] uppercase tracking-[3px] text-stone-500 font-bold">Matrix Intervention Pipeline</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-10">
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-bold uppercase tracking-[4px] text-emerald-500 pl-1">Anomaly Category</label>
+                                            <div className="flex flex-wrap gap-2.5">
+                                                {['Infrastructure', 'Health', 'Security', 'Sanitation', 'Utility'].map(cat => (
+                                                    <button 
+                                                        key={cat}
+                                                        onClick={() => setCategory(cat)}
+                                                        className={`px-6 py-2.5 rounded-2xl text-[10px] font-bold uppercase tracking-[2px] border transition-all ${
+                                                            category === cat 
+                                                            ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
+                                                            : 'bg-white/5 border-white/5 text-stone-500 hover:text-white hover:bg-white/10'
+                                                        }`}
+                                                    >
+                                                        {cat}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-bold uppercase tracking-[4px] text-emerald-500 pl-1">Detailed Description</label>
+                                            <textarea 
+                                                value={description}
+                                                onChange={(e) => setDescription(e.target.value)}
+                                                placeholder="Explain the local anomaly in detail..."
+                                                className="w-full bg-black/20 border border-white/5 rounded-[2rem] p-8 outline-none focus:border-emerald-500/50 transition-all text-sm font-medium h-56 resize-none placeholder:text-stone-800 text-white"
+                                            />
+                                        </div>
+
+                                        <button 
+                                            onClick={handleSubmit} 
+                                            disabled={!description || submitting}
+                                            className="w-full py-6 bg-emerald-600 text-white rounded-[1.5rem] font-black uppercase tracking-[4px] flex items-center justify-center gap-4 transition-all hover:bg-emerald-500 active:scale-[0.98] disabled:opacity-50 shadow-2xl shadow-emerald-500/20 border border-white/10"
+                                        >
+                                            {submitting ? <RefreshCw className="animate-spin" size={24} /> : <><span>INITIALIZE REPORT</span> <ArrowRight size={24} /></>}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ) : tab === 'voter-services' ? (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {voterServices.map((s, idx) => (
+                                    <motion.div 
+                                        key={s.id}
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: idx * 0.1 }}
+                                        className="bg-white/5 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/5 hover:border-emerald-500/30 transition-all group shadow-2xl"
+                                    >
+                                        <div className="size-20 rounded-[2rem] bg-emerald-600 flex items-center justify-center text-white mb-10 group-hover:scale-110 transition-transform shadow-2xl shadow-emerald-500/20 border border-white/10">
+                                            <span className="material-symbols-outlined text-4xl italic">{s.icon}</span>
+                                        </div>
+                                        <h3 className="text-3xl font-black text-white mb-4 tracking-tighter leading-tight uppercase">{s.name}</h3>
+                                        <p className="text-stone-500 text-sm leading-relaxed mb-10 font-medium">{s.desc}</p>
+                                        <button 
+                                            onClick={() => s.official_link !== '#' && window.open(s.official_link, '_blank')}
+                                            className={`px-8 py-4 rounded-2xl border text-[10px] font-black uppercase tracking-[3px] flex items-center gap-3 transition-all ${
+                                                s.official_link === '#' 
+                                                ? 'bg-white/5 border-white/5 text-stone-700 cursor-not-allowed' 
+                                                : 'bg-emerald-600 border-white/10 text-white hover:bg-emerald-500 shadow-xl shadow-emerald-500/20 active:scale-95'
+                                            }`}
+                                        >
+                                            {s.official_link === '#' ? 'MATRIX_OFFLINE' : 'INITIALIZE PORTAL'} <ExternalLink size={16} />
+                                        </button>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {schemes.map((scheme, idx) => {
+                                    const isApplied = applications.some(a => a.scheme_id === scheme.id);
+                                    return (
+                                        <motion.div 
+                                            key={scheme.id}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            className="bg-white/5 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/5 hover:border-emerald-500/30 transition-all group flex flex-col justify-between shadow-2xl"
+                                        >
+                                            <div>
+                                                <div className="flex items-center justify-between mb-10">
+                                                    <span className="px-5 py-2 bg-emerald-500/10 rounded-full text-[10px] font-black uppercase tracking-[2px] text-emerald-400 border border-emerald-500/20">
+                                                        {scheme.category}
+                                                    </span>
+                                                    {isApplied && (
+                                                        <span className="px-5 py-2 bg-white/10 text-white rounded-full text-[10px] font-black uppercase tracking-[2px] flex items-center gap-2 border border-white/20">
+                                                            <CheckCircle2 size={14} className="text-emerald-500" /> MATRIX_VERIFIED
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <h3 className="text-3xl font-black text-white group-hover:text-emerald-500 transition-colors mb-4 tracking-tighter leading-tight uppercase">{scheme.name}</h3>
+                                                <p className="text-stone-500 text-sm leading-relaxed mb-10 font-medium">{scheme.desc}</p>
+                                            </div>
+                                            
+                                            <div className="flex items-center gap-4 pt-10 border-t border-white/5">
+                                                <button 
+                                                    onClick={() => handleApplyScheme(scheme.id)}
+                                                    disabled={isApplied || applying === scheme.id}
+                                                    className={`flex-1 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[3px] flex items-center justify-center gap-3 transition-all ${
+                                                        isApplied 
+                                                        ? 'bg-black/20 text-stone-700 cursor-not-allowed border border-white/5' 
+                                                        : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-2xl shadow-emerald-500/20 border border-white/10'
+                                                    }`}
+                                                >
+                                                    {applying === scheme.id ? <RefreshCw className="animate-spin" size={18} /> : isApplied ? <BadgeCheck size={20} /> : <ArrowRight size={20} />}
+                                                    {isApplied ? 'SECURE_ACCESS_GRANTED' : 'INITIALIZE APPLICATION'}
+                                                </button>
+                                                <button className="size-14 rounded-2xl bg-white/5 text-stone-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all border border-white/5 flex items-center justify-center shadow-2xl">
+                                                    <Info size={24} />
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+                        </motion.div>
+                    )}
+                </div>
+
+                {/* Sidebar Info */}
+                <div className="lg:col-span-4 space-y-8">
+                    {/* Support Team */}
+                    <div className="bg-emerald-600 text-white rounded-[3rem] p-10 shadow-2xl shadow-emerald-600/20 relative overflow-hidden group border border-white/10">
+                        <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+                        <div className="relative z-10">
+                            <h3 className="text-xl font-black mb-10 flex items-center gap-4 tracking-tighter uppercase">
+                                <Shield size={24} strokeWidth={3} /> Support Matrix
+                            </h3>
+                            <div className="space-y-5">
+                                {admin && (
+                                    <div className="bg-white/10 p-5 rounded-2xl border border-white/10 flex items-center gap-5 group/item hover:bg-white/20 transition-all cursor-pointer">
+                                        <div className="size-14 rounded-2xl bg-white text-emerald-600 flex items-center justify-center font-black text-2xl shadow-2xl border border-white/20">
+                                            {admin.name?.[0]}
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-base tracking-tight leading-none mb-1 uppercase">{admin.name}</p>
+                                            <p className="text-[9px] uppercase font-bold text-emerald-200 tracking-[2px]">Matrix Administrator</p>
+                                        </div>
+                                        <div className="ml-auto size-11 rounded-full bg-white/10 flex items-center justify-center group-hover/item:bg-white group-hover/item:text-emerald-600 transition-all border border-white/10">
+                                            <Phone size={18} />
+                                        </div>
+                                    </div>
+                                )}
+                                {workers.slice(0, 3).map((w) => (
+                                    <div key={w.id} className="bg-black/10 p-5 rounded-2xl border border-white/5 flex items-center gap-5 group/item hover:bg-white/10 transition-all cursor-pointer">
+                                        <div className="size-12 rounded-2xl bg-white/10 text-white flex items-center justify-center font-black text-xl border border-white/10 shadow-lg">
+                                            {w.name?.[0]}
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-base tracking-tight leading-none mb-1 text-emerald-50 uppercase">{w.name}</p>
+                                            <p className="text-[9px] uppercase font-bold text-emerald-400/60 tracking-[2px]">Field Node</p>
+                                        </div>
+                                        <div className="ml-auto size-11 rounded-full bg-white/5 flex items-center justify-center text-white/40 group-hover/item:bg-white group-hover/item:text-emerald-600 transition-all border border-white/5">
+                                            <MessageSquare size={18} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    ))}
+                    </div>
+
+                    {/* Performance */}
+                    <div className="bg-white/5 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/5 group shadow-2xl">
+                        <div className="flex items-center justify-between mb-10">
+                            <div>
+                                <h3 className="text-xl font-black text-white tracking-tighter uppercase">Matrix Pulse</h3>
+                                <p className="text-[10px] uppercase font-bold text-stone-600 tracking-[2px] mt-1">Real-time Stability</p>
+                            </div>
+                            <div className="size-12 rounded-2xl bg-emerald-600/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                                <Activity size={24} />
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-10">
+                            {[
+                                { label: "Success Rate", value: 94, color: "#10b981" },
+                                { label: "Scheme Coverage", value: 78, color: "#10b981" },
+                                { label: "Voter Satisfaction", value: 88, color: "#10b981" }
+                            ].map((stat, i) => (
+                                <div key={i} className="space-y-3">
+                                    <div className="flex justify-between text-[10px] font-black uppercase tracking-[3px]">
+                                        <span className="text-stone-500">{stat.label}</span>
+                                        <span className="text-emerald-500">{stat.value}%</span>
+                                    </div>
+                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                        <motion.div 
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${stat.value}%` }}
+                                            transition={{ duration: 1.5, delay: i * 0.1, ease: "circOut" }}
+                                            className="h-full rounded-full shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                                            style={{ backgroundColor: stat.color }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="p-10 text-center bg-white/5 rounded-[3rem] border border-stone-900 border-dashed">
+                        <p className="text-stone-700 text-[10px] font-black uppercase tracking-[4px]">
+                            Last Matrix Sync: {new Date().toLocaleTimeString()}
+                        </p>
+                        <p className="text-[9px] text-stone-800 font-mono mt-3">ENCRYPTION: AES-256-GCM // SYSTEM: BIQ_CLOUD</p>
+                    </div>
                 </div>
             </div>
-          </div>
+
+            {/* Success Modal */}
+            <AnimatePresence>
+                {submitted && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-[#0c0c0c]/80 backdrop-blur-2xl"
+                            onClick={() => setSubmitted(null)}
+                        />
+                        <motion.div 
+                            initial={{ scale: 0.9, y: 40, opacity: 0 }} 
+                            animate={{ scale: 1, y: 0, opacity: 1 }}
+                            exit={{ scale: 0.9, y: 40, opacity: 0 }}
+                            className="bg-[#1a1a1a] rounded-[3rem] p-12 max-w-sm w-full text-center relative z-10 shadow-[0_0_100px_rgba(16,185,129,0.1)] border border-white/10"
+                        >
+                            <div className="size-28 rounded-3xl bg-emerald-600/10 flex items-center justify-center mx-auto mb-10 border border-emerald-500/20 shadow-2xl">
+                                <motion.div animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }} transition={{ repeat: Infinity, duration: 4 }}>
+                                    <BadgeCheck size={56} className="text-emerald-500" strokeWidth={2.5} />
+                                </motion.div>
+                            </div>
+                            <h3 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-none">MATRIX<br/>CONFIRMED</h3>
+                            <p className="text-stone-500 text-sm mb-12 leading-relaxed font-medium uppercase tracking-tighter">Your report is now indexed in the intelligence stream. A field node will intervene shortly.</p>
+                            <button 
+                                onClick={() => { setSubmitted(null); handleTabChange('dashboard'); }}
+                                className="w-full py-6 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-[4px] hover:bg-emerald-500 transition-all active:scale-95 shadow-2xl shadow-emerald-500/20 border border-white/10"
+                            >
+                                ACKNOWLEDGE
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            <AIChatbot currentUser={currentUser} boothId={safeBoothId} />
         </div>
-      </main>
-
-      <AnimatePresence>
-        {submitted && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white rounded-3xl p-10 max-w-sm w-full text-center border-t-8 border-[#10b981] shadow-2xl">
-              <div className="size-20 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 size={40} className="text-emerald-600" />
-              </div>
-              <h3 className="text-2xl font-serif font-black text-slate-900 mb-2 uppercase tracking-tight">Mission Logged</h3>
-              <p className="text-sm text-slate-500 font-medium mb-8 leading-relaxed">Report successfully recorded in Central Command. Personnel deployment sequence initiated.</p>
-              <button onClick={() => { setSubmitted(null); setTab('dashboard'); }}
-                className="w-full py-4 bg-navy text-primary rounded-xl font-mono font-black uppercase tracking-widest shadow-lg hover:brightness-110 transition-all">
-                DISMISS PROTOCOL
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AIChatbot currentUser={currentUser} boothId={safeBoothId} />
-    </div>
-  );
+    );
 }
