@@ -880,12 +880,15 @@ async def get_grievances(booth_id: Optional[Union[int, str]] = None, assigned_to
     grievance_ids = [str(g["id"]) for g in all_data]
     assignments = {}
     if grievance_ids:
-        cursor = db.grievance_assignments.find(
-            {"grievance_id": {"$in": grievance_ids}},
-            {"_id": 0}
-        )
-        async for doc in cursor:
-            assignments[str(doc["grievance_id"])] = doc
+        try:
+            cursor = db.grievance_assignments.find(
+                {"grievance_id": {"$in": grievance_ids}},
+                {"_id": 0}
+            )
+            async for doc in cursor:
+                assignments[str(doc["grievance_id"])] = doc
+        except Exception as e:
+            logger.error(f"Error fetching grievance assignments: {e}")
     
     # Merge assignment data with grievances
     result = []
@@ -1491,25 +1494,41 @@ async def ai_chat(data: ChatRequest):
     # Rate limit removed
     
     try:
-        # 1. Gather Context
-        user = await db.users.find_one({"id": data.user_id}, {"_id": 0})
-        
+        # 1. Gather Context (with per-resource fallback)
+        user = None
+        try:
+            user = await db.users.find_one({"id": data.user_id}, {"_id": 0})
+        except Exception as e:
+            logger.error(f"Error fetching user context: {e}")
+            
         # Try both formats for voter ID (Voter table uses V1001 while ECI uses 1001)
         voter_id = data.user_id
-        voter = await db.voters.find_one({"id": voter_id}, {"_id": 0})
-        if not voter and str(voter_id).isdigit():
-            voter = await db.voters.find_one({"id": f"V{voter_id}"}, {"_id": 0})
+        voter = None
+        try:
+            voter = await db.voters.find_one({"id": voter_id}, {"_id": 0})
+            if not voter and str(voter_id).isdigit():
+                voter = await db.voters.find_one({"id": f"V{voter_id}"}, {"_id": 0})
 
-        # Filter large fields from voter to save tokens
-        if voter and "connections" in voter:
-            del voter["connections"]
+            # Filter large fields from voter to save tokens
+            if voter and "connections" in voter:
+                del voter["connections"]
+        except Exception as e:
+            logger.error(f"Error fetching voter context: {e}")
         
         # Fetch actual grievances for this booth
-        grievances = await get_grievances(booth_id=data.booth_id)
+        grievances = []
+        try:
+            grievances = await get_grievances(booth_id=data.booth_id)
+        except Exception as e:
+            logger.error(f"Error fetching grievances context: {e}")
         system_grievances = grievances[:3] if grievances else []
         
         # Fetch available schemes
-        schemes = await get_schemes()
+        schemes = []
+        try:
+            schemes = await get_schemes()
+        except Exception as e:
+            logger.error(f"Error fetching schemes context: {e}")
         
         context_prompt = f"""
         You are ESarthi, an intelligent AI assistant for the BoothIQ Governance Platform.
@@ -1530,6 +1549,7 @@ async def ai_chat(data: ChatRequest):
         """
         
         # Try Sarvam AI LLM first as per user request to use Sarvam AI
+        ai_reply = None
         try:
             sarvam_key = os.environ.get('SARVAM_API_KEY')
             if not sarvam_key:
@@ -1578,11 +1598,12 @@ async def ai_chat(data: ChatRequest):
             except Exception as ai_err:
                 logger.error(f"AI Service Error: {ai_err}")
                 # Fallback response when API key is out of quota
-                ai_reply = f"I'm currently operating in offline mode as our intelligence uplink is saturated. However, I can see you are {user.get('name', 'a citizen')} from Booth {data.booth_id}. How else can I assist you manually?"
+                user_name = user.get('name', 'a citizen') if user else 'a citizen'
+                ai_reply = f"I'm currently operating in offline mode as our intelligence uplink is saturated. However, I can see you are {user_name} from Booth {data.booth_id}. How else can I assist you manually?"
                 if "insufficient_quota" in str(ai_err):
                     ai_reply = "Institutional AI Quota Exceeded. I am standing by for manual assistance. Please check back later for full intelligence services."
         
-        return {"response": ai_reply}
+        return {"response": ai_reply or "I am currently undergoing maintenance. Please try again in a moment."}
     except Exception as e:
         logger.error(f"Chat Error: {e}")
         return {"response": "I am currently undergoing maintenance. Please try again in a moment."}

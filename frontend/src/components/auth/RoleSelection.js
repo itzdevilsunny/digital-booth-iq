@@ -96,46 +96,46 @@ const RoleSelectionPage = () => {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {[
                         { 
-                            key: 'citizen', 
+                            id: 'citizen', 
                             title: 'Citizen', 
                             desc: 'Public portal for grievance submission and real-time development tracking.', 
                             icon: Users, 
                         },
                         { 
-                            key: 'worker', 
+                            id: 'worker', 
                             title: 'Field Officer', 
                             desc: 'Tactical reconnaissance and on-ground mission management for assigned sectors.', 
                             icon: Briefcase, 
                         },
                         { 
-                            key: 'panna', 
+                            id: 'panna', 
                             title: 'Voter Guide', 
                             desc: 'Registry intelligence and localized voter engagement orchestration hub.', 
                             icon: UserCheck, 
                         },
                         { 
-                            key: 'admin', 
+                            id: 'admin', 
                             title: 'Booth Manager', 
                             desc: 'Command center oversight for high-level resource deployment and operational audits.', 
                             icon: ShieldCheck, 
                         },
                         { 
-                            key: 'analyst', 
+                            id: 'analyst', 
                             title: 'Data Analyst', 
                             desc: 'Deep data synthesis and predictive intelligence for state-wide policy alignment.', 
                             icon: BarChart3, 
                         },
                         { 
-                            key: 'city_manager', 
+                            id: 'city_manager', 
                             title: 'City Admin', 
                             desc: 'Regional strategy command and multi-sector intervention synchronization.', 
                             icon: Globe, 
                         }
                     ].map((role, idx) => (
                         <RoleCard 
-                            key={role.key} 
+                            key={role.id} 
                             {...role} 
-                            onClick={() => navigate(`/login?role=${role.key}`)}
+                            onClick={() => navigate(`/login?role=${role.id}`)}
                             delay={0.2 + (idx * 0.05)}
                         />
                     ))}
