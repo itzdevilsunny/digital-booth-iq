@@ -6,7 +6,7 @@ import {
   Wrench, CheckCircle2, Clock, AlertCircle, RefreshCw, 
   ChevronRight, Calendar, UserCircle, X, ShieldAlert,
   Zap, BadgeCheck, ClipboardList, Send, MapPin, Users,
-  ArrowRight, Shield
+  ArrowRight, Shield, Activity
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -244,57 +244,57 @@ export default function WorkerDashboard({ currentUser: initialUser }) {
                                 animate={{ opacity: 1 }} 
                                 exit={{ opacity: 0 }}
                                 onClick={() => setResolveModal(null)}
-                                className="absolute inset-0 bg-stone-950/70 backdrop-blur-xl" 
+                                className="absolute inset-0 bg-[#0c0c0c]/80 backdrop-blur-2xl" 
                             />
                             
                             <motion.div 
                                 initial={{ y: '100%', opacity: 0 }} 
                                 animate={{ y: 0, opacity: 1 }} 
                                 exit={{ y: '100%', opacity: 0 }}
-                                className="relative w-full max-w-lg bg-white rounded-t-[2.5rem] sm:rounded-[3rem] shadow-2xl overflow-hidden"
+                                className="relative w-full max-w-2xl bg-[#1a1a1a] rounded-t-[4rem] sm:rounded-[4rem] shadow-2xl overflow-hidden border border-white/10"
                             >
-                                <div className="p-10">
-                                    <div className="flex justify-between items-start mb-10">
+                                <div className="p-12">
+                                    <div className="flex justify-between items-start mb-12">
                                         <div>
-                                            <div className="px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-[9px] font-bold uppercase tracking-widest border border-emerald-200 mb-4 inline-block">
-                                                Mission Debrief
+                                            <div className="px-5 py-2 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-[3px] border border-emerald-500/20 mb-6 inline-block">
+                                                MISSION_DEBRIEF
                                             </div>
-                                            <h4 className="text-3xl font-display font-bold text-stone-900 tracking-tight">Mission Outcome</h4>
-                                            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 mt-1">LOG_ID: #{resolveModal.id}</p>
+                                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">MISSION_OUTCOME</h4>
+                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-stone-600 mt-3">TARGET_LOG: #{resolveModal.id}</p>
                                         </div>
-                                        <button onClick={() => setResolveModal(null)} className="size-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-900 transition-colors">
-                                            <X size={20} />
+                                        <button onClick={() => setResolveModal(null)} className="size-14 rounded-2xl bg-white/5 flex items-center justify-center text-stone-500 hover:text-white transition-all border border-white/5">
+                                            <X size={28} />
                                         </button>
                                     </div>
 
-                                    <div className="space-y-8">
-                                        <div className="p-6 bg-stone-50 rounded-3xl border border-stone-100 relative">
-                                            <div className="absolute top-4 right-4 text-emerald-600/20">
-                                                <ClipboardList size={48} />
+                                    <div className="space-y-10">
+                                        <div className="p-8 bg-black/40 rounded-[2.5rem] border border-white/5 relative overflow-hidden">
+                                            <div className="absolute top-6 right-6 text-emerald-500/10">
+                                                <ClipboardList size={64} />
                                             </div>
-                                            <p className="text-[10px] font-bold uppercase text-stone-400 tracking-widest mb-3">Objective Context</p>
-                                            <p className="text-base font-medium text-stone-700 leading-relaxed pr-8">{resolveModal.description}</p>
+                                            <p className="text-[10px] font-black uppercase text-stone-600 tracking-[3px] mb-4">OBJECTIVE_PARAMETERS</p>
+                                            <p className="text-xl font-black text-stone-400 leading-tight uppercase tracking-tighter pr-12">{resolveModal.description}</p>
                                         </div>
 
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] font-bold uppercase tracking-[4px] text-emerald-600 pl-1">Resolution Registry</label>
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black uppercase tracking-[5px] text-emerald-500 pl-2">RESOLUTION_REGISTRY</label>
                                             <textarea 
                                                 value={resolutionNote} 
                                                 onChange={(e) => setResolutionNote(e.target.value)}
-                                                placeholder="Detail the technical outcome and field measures taken..."
-                                                className="w-full p-6 bg-stone-50 rounded-3xl border border-stone-200/50 focus:border-emerald-500 outline-none text-sm font-medium transition-all h-32 resize-none placeholder:text-stone-400" 
+                                                placeholder="Detail technical outcome and field measures..."
+                                                className="w-full p-8 bg-white/5 rounded-[2.5rem] border border-white/5 focus:border-emerald-500/50 outline-none text-white text-lg font-medium transition-all h-40 resize-none placeholder:text-stone-800 uppercase tracking-tighter" 
                                             />
                                         </div>
 
                                         <button 
                                             onClick={handleResolve} 
                                             disabled={submitting}
-                                            className="w-full py-5 bg-stone-900 text-white rounded-2xl font-bold uppercase tracking-widest shadow-2xl hover:bg-emerald-600 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                                            className="w-full py-6 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-[5px] shadow-2xl shadow-emerald-600/20 hover:bg-emerald-500 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-4 border border-white/10"
                                         >
                                             {submitting ? (
-                                                <RefreshCw className="size-5 animate-spin" />
+                                                <RefreshCw className="size-6 animate-spin" />
                                             ) : (
-                                                <><BadgeCheck size={20} /> Transmit Mission Success</>
+                                                <><BadgeCheck size={24} strokeWidth={3} /> TRANSMIT_MISSION_SUCCESS</>
                                             )}
                                         </button>
                                     </div>

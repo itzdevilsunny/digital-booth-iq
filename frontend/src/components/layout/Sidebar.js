@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { 
     Home, ClipboardList, Map, AlertCircle, 
     User, LogOut, LayoutDashboard, ChevronRight,
-    Zap, ShieldCheck, Target, Activity
+    Zap, ShieldCheck, Target, Activity, Users
 } from 'lucide-react';
 
 const Sidebar = () => {
