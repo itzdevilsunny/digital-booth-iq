@@ -21,7 +21,10 @@ export function Hero() {
   }, []);
 
   const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   return (
@@ -33,11 +36,11 @@ export function Hero() {
       {/* Stunning Ambient Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-emerald-500/10 blur-[150px] rounded-full mix-blend-screen animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-[700px] h-[700px] bg-stone-900/50 blur-[120px] rounded-full mix-blend-multiply" />
+        <div className="absolute bottom-0 right-1/4 w-[700px] h-[700px] bg-white/5 blur-[120px] rounded-full" />
       </div>
 
       <motion.div
-        className="absolute inset-0 z-0 opacity-20 bg-cover bg-center grayscale mix-blend-overlay scale-110"
+        className="absolute inset-0 z-0 opacity-10 bg-cover bg-center grayscale mix-blend-overlay scale-110"
         style={{
           backgroundImage: `url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop')`,
           y: heroY,
@@ -62,7 +65,7 @@ export function Hero() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
             <span className="relative inline-flex rounded-full size-2 bg-emerald-500 shadow-[0_0_10px_#10b981]" />
           </div>
-          <span className="text-[10px] font-bold text-white uppercase tracking-[0.4em] antialiased">
+          <span className="text-[10px] font-bold text-white uppercase tracking-[4px] antialiased">
             Intelligence Matrix Active
           </span>
         </motion.div>
@@ -75,8 +78,8 @@ export function Hero() {
             transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="text-7xl md:text-9xl font-black leading-[0.85] tracking-tighter"
           >
-            <span className="text-white block">ANALYZE.</span>
-            <span className="text-white/30 block">STRATEGIZE.</span>
+            <span className="text-white block uppercase">Analyze.</span>
+            <span className="text-white/20 block uppercase">Strategize.</span>
             <motion.span
               animate={glitch ? { skew: [0, -2, 2, 0], opacity: [1, 0.9, 1] } : {}}
               className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-emerald-600 to-emerald-400 italic inline-block drop-shadow-[0_0_30px_rgba(16,185,129,0.2)]"
@@ -90,7 +93,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="max-w-2xl text-lg md:text-xl text-stone-400 font-medium leading-relaxed"
+          className="max-w-2xl text-lg md:text-xl text-white/40 font-medium leading-relaxed uppercase tracking-tight"
         >
           BoothIQ is the high-fidelity governance operating system for the modern representative. 
           Real-time intelligence, automated grievance management, and sector control at your fingertips.
@@ -107,7 +110,7 @@ export function Hero() {
             whileHover={{ scale: 1.02, boxShadow: "0 0 60px rgba(16,185,129,0.15)" }}
             whileTap={{ scale: 0.98 }}
             onClick={() => scrollTo("cta")}
-            className="h-18 px-12 rounded-[2rem] bg-emerald-600 text-white text-xs font-bold uppercase tracking-[0.3em] shadow-2xl transition-all flex items-center justify-center gap-4 group cursor-pointer relative overflow-hidden"
+            className="h-18 px-12 rounded-[2rem] bg-emerald-600 text-white text-xs font-bold uppercase tracking-[0.4em] shadow-2xl transition-all flex items-center justify-center gap-4 group cursor-pointer relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             <span className="relative z-10">Initialize Portal</span>
@@ -115,12 +118,12 @@ export function Hero() {
           </motion.button>
 
           <motion.button
-            whileHover={{ backgroundColor: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.2)" }}
+            whileHover={{ backgroundColor: "rgba(255,255,255,0.1)", borderColor: "rgba(255,255,255,0.3)" }}
             whileTap={{ scale: 0.98 }}
             onClick={() => scrollTo("capabilities")}
-            className="h-18 px-12 rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-xl text-stone-300 text-xs font-bold uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 group"
+            className="h-18 px-12 rounded-[2rem] border border-white/5 bg-white/5 backdrop-blur-xl text-white text-xs font-bold uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 group"
           >
-            <div className="size-8 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
+            <div className="size-8 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
               <Icon name="play_arrow" className="text-lg" />
             </div>
             Tactical Briefing
@@ -135,7 +138,7 @@ export function Hero() {
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         onClick={() => scrollTo("problem")}
       >
-        <span className="text-[10px] font-bold uppercase tracking-[0.5em] text-stone-500">
+        <span className="text-[10px] font-bold uppercase tracking-[0.6em] text-white/20">
           Sync Stream
         </span>
         <div className="relative w-px h-16 bg-gradient-to-b from-emerald-500 to-transparent">
@@ -149,3 +152,4 @@ export function Hero() {
     </motion.header>
   );
 }
+

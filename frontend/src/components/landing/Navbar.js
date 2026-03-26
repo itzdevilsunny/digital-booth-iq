@@ -15,7 +15,10 @@ export function Navbar() {
   }, []);
 
   const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   return (
@@ -41,10 +44,10 @@ export function Navbar() {
             <Zap size={22} />
           </div>
           <div className="flex flex-col">
-            <h2 className="text-white text-2xl font-black leading-none tracking-tighter group-hover:text-emerald-400 transition-colors">
+            <h2 className="text-white text-2xl font-black leading-none tracking-tighter group-hover:text-emerald-400 transition-colors uppercase">
               BoothIQ
             </h2>
-            <span className="text-[9px] text-stone-500 font-bold uppercase tracking-[0.4em]">
+            <span className="text-[9px] text-white/40 font-bold uppercase tracking-[0.4em]">
               Intelligence Hub
             </span>
           </div>
@@ -60,16 +63,16 @@ export function Navbar() {
             <button
               key={item.label}
               onClick={() => scrollTo(item.target)}
-              className="text-[10px] font-bold uppercase tracking-[3px] text-stone-500 hover:text-white transition-all duration-300 relative group"
+              className="text-[10px] font-bold uppercase tracking-[3px] text-white/40 hover:text-white transition-all duration-300 relative group"
             >
               {item.label}
-              <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-emerald-600 transition-all duration-300 group-hover:w-full" />
+              <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-emerald-500 transition-all duration-300 group-hover:w-full" />
             </button>
           ))}
           <div className="w-px h-5 bg-white/10 mx-2" />
           <button
             onClick={() => navigate("/select-role")}
-            className="text-[10px] font-bold uppercase tracking-[3px] text-emerald-500 hover:text-white transition-colors antialiased"
+            className="text-[10px] font-bold uppercase tracking-[3px] text-emerald-500 hover:text-white transition-colors antialiased shadow-sm"
           >
             System Access
           </button>
@@ -80,7 +83,7 @@ export function Navbar() {
           <motion.button
             whileHover={{ x: -2 }}
             onClick={() => navigate("/select-role")}
-            className="hidden md:block text-[10px] font-bold uppercase tracking-[3px] text-stone-500 hover:text-white transition-colors"
+            className="hidden md:block text-[10px] font-bold uppercase tracking-[3px] text-white/40 hover:text-white transition-colors"
           >
             Portal Login
           </motion.button>
@@ -92,7 +95,7 @@ export function Navbar() {
             }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/select-role")}
-            className="px-8 py-4 rounded-[2rem] bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-[3px] shadow-2xl transition-all cursor-pointer relative overflow-hidden group"
+            className="px-8 py-4 rounded-[2rem] bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-[3px] shadow-2xl transition-all cursor-pointer relative overflow-hidden group border border-white/5"
           >
              <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
              <span className="relative z-10">Initialize Portal</span>
@@ -107,3 +110,4 @@ export function Navbar() {
     </motion.nav>
   );
 }
+

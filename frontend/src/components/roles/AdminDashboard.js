@@ -29,10 +29,10 @@ const MetricCard = ({ label, value, icon: Icon, color, trend, delay }) => (
         </div>
         <div className="relative z-10">
             <div className="flex items-center gap-3 mb-6">
-                <div className="size-10 rounded-2xl flex items-center justify-center bg-white/5 text-stone-500 group-hover:text-emerald-400 transition-colors border border-white/5">
+                <div className="size-10 rounded-2xl flex items-center justify-center bg-white/5 text-white/40 group-hover:text-emerald-400 transition-colors border border-white/5">
                     <Icon size={18} />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-[3px] text-stone-600">{label}</p>
+                <p className="text-[10px] font-black uppercase tracking-[3px] text-white/20">{label}</p>
             </div>
             <div className="flex items-end justify-between">
                 <h3 className="text-5xl font-black text-white tracking-tighter leading-none">{value}</h3>
@@ -54,6 +54,7 @@ export default function AdminDashboard({ boothId }) {
     const [selectedWorker, setSelectedWorker] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [filter, setFilter] = useState('all');
+    const [expandedId, setExpandedId] = useState(null);
 
     const safeBoothId = boothId || 17;
 
@@ -105,7 +106,7 @@ export default function AdminDashboard({ boothId }) {
                         <div className="px-4 py-1.5 rounded-full bg-emerald-500 text-black text-[10px] font-black uppercase tracking-[3px] flex items-center gap-2 shadow-2xl shadow-emerald-500/20">
                             <Shield size={12} strokeWidth={3} /> COMMAND_CENTER
                         </div>
-                        <div className="px-4 py-1.5 rounded-full bg-white/5 text-stone-500 text-[10px] font-black uppercase tracking-[3px] border border-white/5">
+                        <div className="px-4 py-1.5 rounded-full bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-[3px] border border-white/5">
                             BOOTH_ID: {safeBoothId}
                         </div>
                     </div>
@@ -179,11 +180,11 @@ export default function AdminDashboard({ boothId }) {
             </div>
 
             {/* Data Feed */}
-            <div className="space-y-6">
+            <div className="max-h-[700px] overflow-y-auto pr-2 custom-scrollbar space-y-6">
                 {loading ? (
                     <div className="p-32 text-center bg-[#1a1a1a] rounded-[4rem] border border-white/5 border-dashed">
                         <RefreshCw className="w-16 h-16 text-emerald-500/20 animate-spin mx-auto mb-8" />
-                        <p className="text-[11px] font-black uppercase tracking-[5px] text-stone-600">SYNCHRONIZING_DATA_STREAM...</p>
+                        <p className="text-[11px] font-black uppercase tracking-[5px] text-white/20">SYNCHRONIZING_DATA_STREAM...</p>
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="p-24 text-center bg-[#1a1a1a] rounded-[4rem] border border-white/5">
@@ -197,6 +198,7 @@ export default function AdminDashboard({ boothId }) {
                     filtered.map((g, idx) => {
                         const config = STATUS_CONFIG[g.status] || STATUS_CONFIG.submitted;
                         const isAwaiting = g.status === 'submitted';
+                        const isExpanded = expandedId === g.id;
 
                         return (
                             <motion.div 
@@ -204,49 +206,93 @@ export default function AdminDashboard({ boothId }) {
                                 initial={{ opacity: 0, y: 20 }} 
                                 animate={{ opacity: 1, y: 0 }} 
                                 transition={{ delay: idx * 0.05 }}
-                                className="bg-[#1a1a1a] p-10 rounded-[3.5rem] border border-white/5 group hover:border-emerald-500/30 transition-all flex flex-col xl:flex-row xl:items-center gap-10 relative overflow-hidden"
+                                className={`bg-[#1a1a1a] p-10 rounded-[3.5rem] border border-white/5 group hover:border-emerald-500/30 transition-all cursor-pointer ${isExpanded ? 'ring-2 ring-emerald-500/20' : ''}`}
+                                onClick={() => setExpandedId(isExpanded ? null : g.id)}
                             >
-                                <div className={`size-20 rounded-3xl flex items-center justify-center shrink-0 shadow-2xl ${config.bg} ${config.color} border border-white/5`}>
-                                    <config.icon size={36} strokeWidth={2.5} />
-                                </div>
-
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex flex-wrap items-center gap-4 mb-6">
-                                        <span className="px-5 py-1.5 rounded-full bg-white/5 text-stone-500 text-[10px] font-black uppercase tracking-[3px] border border-white/5">
-                                            LOG_ID: #{g.id}
-                                        </span>
-                                        <span className={`px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[3px] border ${config.bg} ${config.color} ${config.border}`}>
-                                            {config.label.toUpperCase()}
-                                        </span>
+                                <div className="flex flex-col xl:flex-row xl:items-center gap-10 relative overflow-hidden">
+                                    <div className={`size-20 rounded-3xl flex items-center justify-center shrink-0 shadow-2xl ${config.bg} ${config.color} border border-white/5`}>
+                                        <config.icon size={36} strokeWidth={2.5} />
                                     </div>
-                                    <h4 className="text-3xl font-black text-white mb-6 uppercase tracking-tighter leading-tight group-hover:text-emerald-400 transition-colors">
-                                        {g.description}
-                                    </h4>
-                                    <div className="flex flex-wrap items-center gap-8 text-[10px] font-black text-stone-600 uppercase tracking-[4px]">
-                                        <span className="flex items-center gap-3"><User size={14} className="text-stone-700" /> {g.voter_name}</span>
-                                        <span className="flex items-center gap-3"><MapPin size={14} className="text-stone-700" /> SECTOR_{g.booth_id}</span>
-                                        {g.assigned_worker && (
-                                            <span className="flex items-center gap-3 text-emerald-500 bg-emerald-500/10 px-4 py-1.5 rounded-2xl border border-emerald-500/20">
-                                                <Zap size={12} strokeWidth={3} /> UNIT: {g.assigned_worker}
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex flex-wrap items-center gap-4 mb-6">
+                                            <span className="px-5 py-1.5 rounded-full bg-white/5 text-stone-500 text-[10px] font-black uppercase tracking-[3px] border border-white/5">
+                                                LOG_ID: #{g.id}
                                             </span>
+                                            <span className={`px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[3px] border ${config.bg} ${config.color} ${config.border}`}>
+                                                {config.label.toUpperCase()}
+                                            </span>
+                                        </div>
+                                        <h4 className="text-3xl font-black text-white mb-6 uppercase tracking-tighter leading-tight group-hover:text-emerald-400 transition-colors">
+                                            {g.description}
+                                        </h4>
+                                        <div className="flex flex-wrap items-center gap-8 text-[10px] font-black text-stone-600 uppercase tracking-[4px]">
+                                            <span className="flex items-center gap-3"><User size={14} className="text-stone-700" /> {g.voter_name}</span>
+                                            <span className="flex items-center gap-3"><MapPin size={14} className="text-stone-700" /> SECTOR_{g.booth_id}</span>
+                                            {g.assigned_worker && (
+                                                <span className="flex items-center gap-3 text-emerald-500 bg-emerald-500/10 px-4 py-1.5 rounded-2xl border border-emerald-500/20">
+                                                    <Zap size={12} strokeWidth={3} /> UNIT: {g.assigned_worker}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="w-full xl:w-auto xl:pl-12 border-t xl:border-t-0 xl:border-l border-white/5 pt-10 xl:pt-0" onClick={e => e.stopPropagation()}>
+                                        {isAwaiting ? (
+                                            <button 
+                                                onClick={() => setAssignModal(g)}
+                                                className="w-full xl:w-72 py-6 bg-white text-black rounded-2xl font-black uppercase tracking-[4px] text-[11px] hover:bg-emerald-500 hover:text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-4"
+                                            >
+                                                <Shield size={20} strokeWidth={3} /> DEPLOY_RESOURCES
+                                            </button>
+                                        ) : (
+                                            <div className="w-full xl:w-72 py-6 bg-white/5 border border-white/5 text-stone-500 rounded-2xl font-black uppercase tracking-[4px] text-[11px] flex items-center justify-center gap-4">
+                                                <CheckCircle size={20} /> MISSION_ACTIVE
+                                            </div>
                                         )}
                                     </div>
+                                    <div className="ml-4">
+                                        <ChevronRight size={24} className={`text-stone-700 transition-all ${isExpanded ? 'rotate-90 text-emerald-500' : ''}`} />
+                                    </div>
                                 </div>
 
-                                <div className="w-full xl:w-auto xl:pl-12 border-t xl:border-t-0 xl:border-l border-white/5 pt-10 xl:pt-0">
-                                    {isAwaiting ? (
-                                        <button 
-                                            onClick={() => setAssignModal(g)}
-                                            className="w-full xl:w-72 py-6 bg-white text-black rounded-2xl font-black uppercase tracking-[4px] text-[11px] hover:bg-emerald-500 hover:text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-4"
+                                <AnimatePresence>
+                                    {isExpanded && (
+                                        <motion.div 
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="overflow-hidden"
                                         >
-                                            <Shield size={20} strokeWidth={3} /> DEPLOY_RESOURCES
-                                        </button>
-                                    ) : (
-                                        <div className="w-full xl:w-72 py-6 bg-white/5 border border-white/5 text-stone-500 rounded-2xl font-black uppercase tracking-[4px] text-[11px] flex items-center justify-center gap-4">
-                                            <CheckCircle size={20} /> MISSION_ACTIVE
-                                        </div>
+                                            <div className="pt-10 mt-10 border-t border-white/5 grid grid-cols-1 md:grid-cols-3 gap-8">
+                                                <div className="p-6 bg-black/20 rounded-3xl border border-white/5">
+                                                    <p className="text-[10px] font-black text-stone-600 uppercase tracking-[3px] mb-3">ASSIGNED_PERSONNEL</p>
+                                                    <p className="text-lg font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                                                        <User size={18} className="text-emerald-500" /> {g.assigned_worker || 'UNASSIGNED'}
+                                                    </p>
+                                                </div>
+                                                <div className="p-6 bg-black/20 rounded-3xl border border-white/5">
+                                                    <p className="text-[10px] font-black text-stone-600 uppercase tracking-[3px] mb-3">SYNC_TIMESTAMP</p>
+                                                    <p className="text-lg font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                                                        <Clock size={18} className="text-emerald-500" /> {new Date(g.created_at).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                                <div className="p-6 bg-black/20 rounded-3xl border border-white/5">
+                                                    <p className="text-[10px] font-black text-stone-600 uppercase tracking-[3px] mb-3">TACTICAL_STATUS</p>
+                                                    <p className="text-lg font-black text-emerald-500 uppercase tracking-tighter flex items-center gap-3">
+                                                        <Shield size={18} /> {g.status.toUpperCase()}
+                                                    </p>
+                                                </div>
+                                                {g.resolution_note && (
+                                                    <div className="md:col-span-3 p-8 bg-emerald-500/5 rounded-[2rem] border border-emerald-500/10">
+                                                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[4px] mb-4">RESOLUTION_INTELLIGENCE</p>
+                                                        <p className="text-xl font-black text-stone-300 leading-tight uppercase tracking-tighter italic">"{g.resolution_note}"</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
                                     )}
-                                </div>
+                                </AnimatePresence>
                             </motion.div>
                         );
                     })

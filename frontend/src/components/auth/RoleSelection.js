@@ -13,26 +13,26 @@ const RoleCard = ({ role, title, desc, icon: Icon, color, onClick, delay }) => (
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay }}
         onClick={onClick}
-        className="glass-panel group p-8 rounded-[2.5rem] border border-stone-200/60 transition-all cursor-pointer bg-white relative overflow-hidden hover:shadow-2xl hover:shadow-stone-200/50 flex flex-col h-full"
+        className="group p-8 rounded-[2.5rem] border border-white/5 transition-all cursor-pointer bg-[#141414] relative overflow-hidden active:scale-[0.98] duration-500 flex flex-col h-full hover:border-emerald-500/30"
     >
-        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Icon size={120} />
+        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity text-emerald-500 blur-sm group-hover:blur-0 duration-700">
+            <Icon size={140} strokeWidth={1} />
         </div>
         
         <div className="relative z-10 flex flex-col h-full">
-            <div className={`size-14 rounded-2xl flex items-center justify-center mb-10 transition-all shadow-sm ${color} group-hover:scale-110`}>
-                <Icon size={24} />
+            <div className={`size-16 rounded-2xl flex items-center justify-center mb-10 transition-all shadow-xl bg-white/5 border border-white/10 text-emerald-500 group-hover:bg-emerald-600 group-hover:text-white group-hover:scale-110 duration-500`}>
+                <Icon size={28} />
             </div>
             
-            <h3 className="text-3xl font-display font-bold text-stone-900 mb-2 group-hover:text-emerald-600 transition-colors uppercase tracking-tight">{title}</h3>
-            <p className="text-sm font-medium text-stone-400 mb-auto leading-relaxed pr-4 uppercase tracking-widest text-[10px]">
+            <h3 className="text-3xl font-black text-white mb-3 group-hover:text-emerald-500 transition-colors uppercase tracking-tight leading-none group-hover:translate-x-1 duration-500">{title}</h3>
+            <p className="text-[11px] font-bold text-white/40 mb-auto leading-relaxed pr-6 uppercase tracking-widest italic group-hover:text-white/60 transition-colors duration-500">
                 {desc}
             </p>
             
-            <div className="mt-12 flex items-center justify-between text-stone-300 group-hover:text-emerald-600 transition-colors">
-                <span className="text-[10px] font-bold uppercase tracking-[4px]">Initialize Protocol</span>
-                <div className="size-8 rounded-full bg-stone-50 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all">
-                    <ChevronRight size={16} />
+            <div className="mt-12 flex items-center justify-between text-white/20 group-hover:text-white transition-all duration-500">
+                <span className="text-[10px] font-black uppercase tracking-[5px] group-hover:tracking-[6px] transition-all">Initialize Protocol</span>
+                <div className="size-10 rounded-full bg-white/5 border border-white/5 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-all duration-500">
+                    <ChevronRight size={20} />
                 </div>
             </div>
         </div>
@@ -42,80 +42,37 @@ const RoleCard = ({ role, title, desc, icon: Icon, color, onClick, delay }) => (
 const RoleSelectionPage = () => {
     const navigate = useNavigate();
 
-    const roles = [
-        { 
-            key: 'citizen', 
-            title: 'Citizen', 
-            desc: 'Public portal for grievance submission and real-time development tracking.', 
-            icon: Users, 
-            color: 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
-        },
-        { 
-            key: 'worker', 
-            title: 'Field Worker', 
-            desc: 'Tactical reconnaissance and on-ground mission management for assigned sectors.', 
-            icon: Briefcase, 
-            color: 'bg-stone-100 text-stone-600 border border-stone-200' 
-        },
-        { 
-            key: 'panna', 
-            title: 'Panna Pramukh', 
-            desc: 'Registry intelligence and localized voter engagement orchestration hub.', 
-            icon: UserCheck, 
-            color: 'bg-stone-900 text-white' 
-        },
-        { 
-            key: 'admin', 
-            title: 'Admin', 
-            desc: 'Command center oversight for high-level resource deployment and operational audits.', 
-            icon: ShieldCheck, 
-            color: 'bg-amber-50 text-amber-600 border border-amber-100' 
-        },
-        { 
-            key: 'analyst', 
-            title: 'Analyst', 
-            desc: 'Deep data synthesis and predictive intelligence for state-wide policy alignment.', 
-            icon: BarChart3, 
-            color: 'bg-stone-50 text-stone-900 border border-stone-100 shadow-sm' 
-        },
-        { 
-            key: 'city_manager', 
-            title: 'Manager', 
-            desc: 'Regional strategy command and multi-sector intervention synchronization.', 
-            icon: Globe, 
-            color: 'bg-emerald-100 text-emerald-900 border border-emerald-200' 
-        }
-    ];
-
     return (
-        <div className="min-h-screen bg-stone-50 font-display selection:bg-emerald-100 selection:text-emerald-900 relative overflow-hidden">
+        <div className="min-h-screen bg-[#0c0c0c] text-white font-display selection:bg-emerald-500/30 selection:text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(16,185,129,0.05),transparent)] pointer-events-none" />
+            
             {/* Background Texture */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none grayscale mix-blend-multiply">
-                <div className="size-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
+            <div className="absolute inset-0 opacity-[0.05] pointer-events-none grayscale mix-blend-overlay">
+                <div className="size-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
             </div>
 
             <div className="max-w-7xl mx-auto px-8 py-20 relative z-10">
                 {/* Header */}
-                <header className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-stone-200/60 pb-8">
-                    <div>
+                <header className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-12 border-b border-white/5 pb-12">
+                    <div className="max-w-2xl">
                         <motion.div 
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="flex items-center gap-3 mb-6"
+                            className="flex items-center gap-4 mb-8"
                         >
-                            <div className="size-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                                <Zap size={20} />
+                            <div className="size-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                                <Zap size={24} />
                             </div>
-                            <span className="text-[10px] font-black uppercase tracking-[6px] text-stone-400">BoothIQ_Core</span>
+                            <span className="text-[11px] font-black uppercase tracking-[8px] text-white/20">BoothIQ_Core_Node</span>
                         </motion.div>
                         <motion.h1 
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="text-6xl font-bold tracking-tighter text-stone-900 leading-[0.9]"
+                            className="text-6xl md:text-8xl font-black tracking-tighter text-white leading-[0.85] uppercase"
                         >
-                            WELCOME TO <br />
-                            <span className="text-stone-300">BOOTHIQ PORTAL</span>
+                            CHOOSE YOUR <br />
+                            <span className="text-emerald-500">COMMAND PORTAL</span>
                         </motion.h1>
                     </div>
                     
@@ -123,12 +80,16 @@ const RoleSelectionPage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5 }}
-                        className="flex items-center gap-6 text-[10px] font-bold uppercase tracking-[4px] text-stone-400 pb-2"
+                        className="flex flex-col gap-3 pb-2"
                     >
-                        <div className="flex items-center gap-2">
-                            <Radio size={12} className="text-emerald-500" />
-                            <span>Status: Online</span>
+                        <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/5">
+                            <span className="relative flex size-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                                <span className="relative inline-flex rounded-full size-2 bg-emerald-500" />
+                            </span>
+                            <span className="text-[10px] font-bold uppercase tracking-[4px] text-emerald-500">System: Operational</span>
                         </div>
+                        <span className="text-[9px] font-bold text-white/10 uppercase tracking-[5px] text-right">Matrix_v5.2_Sync</span>
                     </motion.div>
                 </header>
 
@@ -137,44 +98,38 @@ const RoleSelectionPage = () => {
                         { 
                             key: 'citizen', 
                             title: 'Citizen', 
-                            desc: 'Report local problems and track government schemes in your area.', 
+                            desc: 'Public portal for grievance submission and real-time development tracking.', 
                             icon: Users, 
-                            color: 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
                         },
                         { 
                             key: 'worker', 
                             title: 'Field Officer', 
-                            desc: 'Manage daily tasks and visit assigned locations in your area.', 
+                            desc: 'Tactical reconnaissance and on-ground mission management for assigned sectors.', 
                             icon: Briefcase, 
-                            color: 'bg-stone-100 text-stone-600 border border-stone-200' 
                         },
                         { 
                             key: 'panna', 
                             title: 'Voter Guide', 
-                            desc: 'Assist local voters and keep the voter registry up to date.', 
+                            desc: 'Registry intelligence and localized voter engagement orchestration hub.', 
                             icon: UserCheck, 
-                            color: 'bg-stone-900 text-white' 
                         },
                         { 
                             key: 'admin', 
                             title: 'Booth Manager', 
-                            desc: 'Full control of booth operations, resource management, and help desk.', 
+                            desc: 'Command center oversight for high-level resource deployment and operational audits.', 
                             icon: ShieldCheck, 
-                            color: 'bg-amber-50 text-amber-600 border border-amber-100' 
                         },
                         { 
                             key: 'analyst', 
                             title: 'Data Analyst', 
-                            desc: 'Analyze booth performance and suggest improvements based on data.', 
+                            desc: 'Deep data synthesis and predictive intelligence for state-wide policy alignment.', 
                             icon: BarChart3, 
-                            color: 'bg-stone-50 text-stone-900 border border-stone-100 shadow-sm' 
                         },
                         { 
                             key: 'city_manager', 
-                            title: 'Admin', 
-                            desc: 'High-level oversight of all booths and regional planning.', 
+                            title: 'City Admin', 
+                            desc: 'Regional strategy command and multi-sector intervention synchronization.', 
                             icon: Globe, 
-                            color: 'bg-emerald-100 text-emerald-900 border border-emerald-200' 
                         }
                     ].map((role, idx) => (
                         <RoleCard 
@@ -187,16 +142,19 @@ const RoleSelectionPage = () => {
                 </div>
 
                 {/* Footer Info */}
-                <footer className="mt-32 pt-12 border-t border-stone-200/60 flex flex-col md:flex-row items-center justify-between gap-8">
-                    <p className="text-[10px] font-bold text-stone-300 uppercase tracking-[4px]">Access Restricted to Authorized Personnel Only</p>
-                    <div className="flex items-center gap-4">
-                         <div className="size-2 rounded-full bg-emerald-500" />
-                         <span className="text-[10px] font-bold text-stone-900 uppercase tracking-widest">E-Sarthi v4.0 Global Deployment</span>
+                <footer className="mt-32 pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[6px]">Access Restricted &bull; Tactical Authorization Required</p>
+                    <div className="flex items-center gap-6">
+                         <div className="flex items-center gap-3">
+                             <div className="size-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
+                             <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">E-Sarthi v5.2 Deployment</span>
+                         </div>
                     </div>
                 </footer>
             </div>
         </div>
     );
 };
+
 
 export default RoleSelectionPage;

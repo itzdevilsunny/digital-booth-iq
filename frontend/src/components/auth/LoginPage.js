@@ -17,8 +17,6 @@ const LoginPage = () => {
     const [loading, setLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
-    const isCitizen = roleKey === 'citizen';
-
     const handleLogin = (e) => {
         e.preventDefault();
         setLoading(true);
@@ -33,16 +31,12 @@ const LoginPage = () => {
     };
 
     return (
-        <div className={`min-h-screen w-full flex overflow-hidden font-display selection:bg-emerald-100 selection:text-emerald-900 ${
-            isCitizen ? 'bg-stone-50' : 'bg-[#0a0a0a] text-white'
-        }`}>
+        <div className="min-h-screen w-full flex overflow-hidden font-display bg-[#0c0c0c] text-white selection:bg-emerald-500/30 selection:text-white">
             {/* Left Panel - High Fidelity Hero Section */}
-            <div className={`hidden lg:flex flex-[0.45] flex-col justify-between p-16 relative overflow-hidden ${
-                isCitizen ? 'bg-emerald-600 text-white shadow-2xl z-20' : 'bg-stone-900/50 border-r border-white/5'
-            }`}>
+            <div className="hidden lg:flex flex-[0.45] flex-col justify-between p-16 relative overflow-hidden bg-stone-900/50 border-r border-white/5">
                 {/* Background Textures */}
-                <div className="absolute inset-0 opacity-10 pointer-events-none mix-blend-overlay">
-                    <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent)]" />
+                <div className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay">
+                    <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.1),transparent)]" />
                     <div className="size-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
                 </div>
 
@@ -50,14 +44,15 @@ const LoginPage = () => {
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center gap-3 mb-16"
+                        className="flex items-center gap-4 mb-20 group cursor-pointer"
+                        onClick={() => navigate('/')}
                     >
-                        <div className="size-12 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-lg">
-                            <ShieldCheck size={28} className={isCitizen ? 'text-white' : 'text-emerald-500'} />
+                        <div className="size-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:bg-white group-hover:text-black transition-all">
+                            <ShieldCheck size={28} />
                         </div>
                         <div>
-                            <p className="text-xl font-black tracking-tight leading-none">BoothIQ</p>
-                            <p className="text-[10px] font-bold uppercase tracking-[4px] opacity-60">Intelligence Hub</p>
+                            <p className="text-xl font-black tracking-tight leading-none uppercase">BoothIQ</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[4px] opacity-40">Intelligence Hub</p>
                         </div>
                     </motion.div>
                     
@@ -65,21 +60,19 @@ const LoginPage = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="text-6xl font-bold leading-[0.9] tracking-tighter mb-8 text-balance"
+                        className="text-6xl font-black leading-[0.9] tracking-tighter mb-8 text-balance uppercase"
                     >
-                        TRUSTED <br />
-                        <span className={isCitizen ? 'text-white/50' : 'text-emerald-500'}>GOVERNANCE</span>
+                        SECURE <br />
+                        <span className="text-emerald-500">PORTAL</span>
                     </motion.h1>
                     
                     <motion.p 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className={`text-lg mb-12 max-w-sm font-medium leading-relaxed ${isCitizen ? 'text-white/70' : 'text-stone-400'}`}
+                        className="text-lg mb-12 max-w-sm font-medium leading-relaxed text-white/40 uppercase tracking-tight italic"
                     >
-                        {isCitizen 
-                            ? 'Lodge grievances, track community evolution, and engage with your sector representatives securely.' 
-                            : 'Access mission-critical field reconnaissance and tactical deployment tools for real-time sector control.'}
+                        Access mission-critical tactical deployment tools and intelligence reconnaissance in real-time.
                     </motion.p>
                 </div>
 
@@ -87,8 +80,8 @@ const LoginPage = () => {
                     <div className="space-y-8">
                         {[
                             { icon: Fingerprint, text: 'Biometric Handshake Active', sub: 'AES-256 Protocol' },
-                            { icon: Radio, text: 'Encrypted Node Connection', sub: 'Lat: 1.2ms / Secure' },
-                            { icon: Verified, text: 'E-Sarthi Governance Node', sub: 'V4.0 Compliance' }
+                            { icon: Radio, text: 'Encrypted Node Connection', sub: 'Lat: 0.8ms / Secure' },
+                            { icon: Verified, text: 'E-Sarthi Governance Node', sub: 'V5.0 Matrix Compliance' }
                         ].map((item, i) => (
                             <motion.div 
                                 key={i} 
@@ -97,28 +90,30 @@ const LoginPage = () => {
                                 transition={{ delay: 0.4 + (i * 0.1) }}
                                 className="flex items-center gap-5 group cursor-default"
                             >
-                                <div className={`size-10 rounded-xl flex items-center justify-center transition-all shadow-sm ${isCitizen ? 'bg-white text-emerald-600' : 'bg-stone-800 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-stone-900'}`}>
+                                <div className="size-10 rounded-xl flex items-center justify-center transition-all shadow-sm bg-white/5 border border-white/5 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-stone-900 group-hover:scale-110 duration-500">
                                     <item.icon size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-bold tracking-tight">{item.text}</p>
-                                    <p className={`text-[10px] uppercase font-bold tracking-widest opacity-40`}>{item.sub}</p>
+                                    <p className="text-sm font-bold tracking-tight uppercase">{item.text}</p>
+                                    <p className="text-[10px] uppercase font-bold tracking-widest opacity-30">{item.sub}</p>
                                 </div>
                             </motion.div>
                         ))}
                     </div>
                 </div>
 
-                <div className="relative z-10 flex items-center justify-between text-[10px] font-bold uppercase tracking-[4px] opacity-40">
-                    <span>Alpha_Build_v5.0</span>
+                <div className="relative z-10 flex items-center justify-between text-[10px] font-bold uppercase tracking-[4px] opacity-20">
+                    <span>Alpha_Build_v5.2</span>
                     <span>© 2026 BoothIQ System</span>
                 </div>
             </div>
 
             {/* Right Panel - Stunning Form Interface */}
-            <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
-                <div className={`absolute top-0 right-0 p-12 opacity-5 ${isCitizen ? 'text-stone-200' : 'text-stone-800'}`}>
-                    <Cpu size={300} strokeWidth={1} />
+            <div className="flex-1 flex flex-col items-center justify-center p-8 relative bg-[#0c0c0c]">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.02),transparent)] pointer-events-none" />
+                
+                <div className="absolute top-0 right-0 p-12 opacity-[0.03] text-emerald-500 rotate-12">
+                    <Cpu size={400} strokeWidth={1} />
                 </div>
 
                 <motion.div 
@@ -133,61 +128,53 @@ const LoginPage = () => {
                             transition={{ type: "spring", stiffness: 260, damping: 20 }}
                             className="inline-flex relative mb-8"
                         >
-                            <div className={`size-20 rounded-3xl flex items-center justify-center shadow-2xl ${isCitizen ? 'bg-white border border-stone-100 text-emerald-600 shadow-emerald-500/10' : 'bg-stone-900 border border-white/5 text-emerald-500'}`}>
-                                <UserCheck size={40} />
+                            <div className="size-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl text-emerald-500 backdrop-blur-xl group cursor-pointer hover:border-emerald-500/50 transition-colors duration-500">
+                                <UserCheck size={40} className="group-hover:scale-110 transition-transform duration-500" />
                             </div>
-                            <div className="absolute -top-2 -right-2 size-6 rounded-full bg-emerald-500 border-4 border-white dark:border-[#0a0a0a] shadow-lg animate-pulse" />
+                            <div className="absolute -top-2 -right-2 size-6 rounded-full bg-emerald-500 border-4 border-[#0c0c0c] shadow-lg animate-pulse" />
                         </motion.div>
                         
-                        <h2 className={`text-4xl font-bold tracking-tighter mb-2 ${isCitizen ? 'text-stone-900' : 'text-white'}`}>
+                        <h2 className="text-4xl font-black tracking-tighter mb-2 text-white uppercase">
                             Access Request
                         </h2>
-                        <p className={`text-sm font-medium ${isCitizen ? 'text-stone-400' : 'text-stone-600'}`}>
-                            Synchronize with the {isCitizen ? 'Citizen Hub' : 'Tactical Admin'} core.
+                        <p className="text-[11px] font-bold text-white/40 uppercase tracking-[0.3em]">
+                            Synchronizing with tactical <span className="text-emerald-500">{roleKey}</span> core.
                         </p>
                     </div>
 
                     <form onSubmit={handleLogin} className="space-y-8">
                         <div className="space-y-3">
                             <div className="flex justify-between items-center px-2">
-                                <label className={`text-[10px] font-bold uppercase tracking-[3px] ${isCitizen ? 'text-stone-400' : 'text-stone-600'}`}>
+                                <label className="text-[10px] font-bold uppercase tracking-[4px] text-white/40">
                                     Strategic Identifier
                                 </label>
                             </div>
                             <div className="relative group">
-                                <Mail className={`absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 ${isCitizen ? 'text-stone-300 group-focus-within:text-emerald-600' : 'text-stone-700 group-focus-within:text-emerald-500'}`} size={20} />
+                                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 transition-all duration-300 text-white/20 group-focus-within:text-emerald-500" size={20} />
                                 <input 
                                     type="text" 
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="Enter identifier (or leave blank)"
-                                    className={`w-full pl-14 pr-6 py-5 rounded-[2rem] border transition-all outline-none font-medium shadow-sm active:scale-[0.99] ${
-                                        isCitizen 
-                                        ? 'bg-white border-stone-100 focus:border-emerald-600 focus:ring-8 focus:ring-emerald-500/5 text-stone-900 placeholder:text-stone-200' 
-                                        : 'bg-[#111111] border-white/5 focus:border-emerald-500/50 text-white placeholder:text-stone-800 focus:ring-8 focus:ring-emerald-500/5'
-                                    }`}
+                                    placeholder="Enter identifier"
+                                    className="w-full pl-16 pr-6 py-6 rounded-[2rem] border bg-white/5 border-white/5 focus:border-emerald-500/50 text-white placeholder:text-white/10 focus:ring-8 focus:ring-emerald-500/5 transition-all outline-none font-bold text-sm tracking-widest uppercase"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-3">
                             <div className="flex justify-between items-center px-2">
-                                <label className={`text-[10px] font-bold uppercase tracking-[3px] ${isCitizen ? 'text-stone-400' : 'text-stone-600'}`}>
+                                <label className="text-[10px] font-bold uppercase tracking-[4px] text-white/40">
                                     Access Key
                                 </label>
                             </div>
                             <div className="relative group">
-                                <Key className={`absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 ${isCitizen ? 'text-stone-300 group-focus-within:text-emerald-600' : 'text-stone-700 group-focus-within:text-emerald-500'}`} size={20} />
+                                <Key className="absolute left-6 top-1/2 -translate-y-1/2 transition-all duration-300 text-white/20 group-focus-within:text-emerald-500" size={20} />
                                 <input 
                                     type="password" 
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="Enter key (any works)"
-                                    className={`w-full pl-14 pr-6 py-5 rounded-[2rem] border transition-all outline-none font-medium shadow-sm active:scale-[0.99] ${
-                                        isCitizen 
-                                        ? 'bg-white border-stone-100 focus:border-emerald-600 focus:ring-8 focus:ring-emerald-500/5 text-stone-900 placeholder:text-stone-200' 
-                                        : 'bg-[#111111] border-white/5 focus:border-emerald-500/50 text-white placeholder:text-stone-800 focus:ring-8 focus:ring-emerald-500/5'
-                                    }`}
+                                    placeholder="Enter secure key"
+                                    className="w-full pl-16 pr-6 py-6 rounded-[2rem] border bg-white/5 border-white/5 focus:border-emerald-500/50 text-white placeholder:text-white/10 focus:ring-8 focus:ring-emerald-500/5 transition-all outline-none font-bold text-sm tracking-widest uppercase"
                                 />
                             </div>
                         </div>
@@ -196,24 +183,20 @@ const LoginPage = () => {
                             <button 
                                 type="submit"
                                 disabled={loading || showSuccess}
-                                className={`w-full py-5 rounded-[2rem] font-bold text-sm uppercase tracking-[4px] flex items-center justify-center gap-3 transition-all transform active:scale-[0.97] shadow-2xl relative overflow-hidden group ${
-                                    isCitizen 
-                                    ? 'bg-emerald-600 text-white hover:bg-stone-900 shadow-emerald-500/20' 
-                                    : 'bg-emerald-500 text-stone-950 hover:bg-white shadow-emerald-500/5'
-                                }`}
+                                className="w-full py-6 rounded-[2rem] font-black text-[12px] uppercase tracking-[5px] flex items-center justify-center gap-4 transition-all transform active:scale-[0.98] shadow-2xl relative overflow-hidden group bg-emerald-600 text-white hover:bg-white hover:text-black border border-white/5"
                             >
                                 <AnimatePresence mode="wait">
                                     {showSuccess ? (
                                         <motion.div initial={{ y: 20 }} animate={{ y: 0 }} className="flex items-center gap-2">
                                             <ShieldCheck size={20} />
-                                            <span>BYPASS SUCCESS</span>
+                                            <span>ACCESS GRANTED</span>
                                         </motion.div>
                                     ) : loading ? (
                                         <div className="size-6 rounded-full border-2 border-current border-t-transparent animate-spin" />
                                     ) : (
-                                        <div className="flex items-center gap-3 group-hover:translate-x-1 transition-transform">
+                                        <div className="flex items-center gap-4 group-hover:translate-x-1 transition-transform duration-500">
                                             <span>INITIALIZE HUB</span>
-                                            <ArrowRight size={18} />
+                                            <ArrowRight size={20} />
                                         </div>
                                     )}
                                 </AnimatePresence>
@@ -222,14 +205,14 @@ const LoginPage = () => {
                         </div>
                     </form>
 
-                    <div className="mt-16 flex items-center justify-center gap-8 py-8 border-t border-stone-100/50">
-                        <div className="flex items-center gap-2 opacity-30 grayscale hover:grayscale-0 transition-all cursor-crosshair">
-                            <Radio size={12} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">Global Sec.</span>
+                    <div className="mt-16 flex items-center justify-center gap-10 py-10 border-t border-white/5">
+                        <div className="flex items-center gap-3 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-crosshair">
+                            <Radio size={14} className="text-emerald-500" />
+                            <span className="text-[10px] font-black uppercase tracking-[3px]">Global Sec.</span>
                         </div>
-                        <div className="flex items-center gap-2 opacity-30 grayscale hover:grayscale-0 transition-all cursor-crosshair">
-                            <ShieldClose size={12} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">Threat Matrix</span>
+                        <div className="flex items-center gap-3 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-crosshair">
+                            <ShieldClose size={14} className="text-rose-500" />
+                            <span className="text-[10px] font-black uppercase tracking-[3px]">Threat Matrix</span>
                         </div>
                     </div>
                 </motion.div>
@@ -239,3 +222,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+

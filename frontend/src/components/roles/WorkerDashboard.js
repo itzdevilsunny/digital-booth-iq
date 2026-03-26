@@ -56,7 +56,7 @@ const MissionCard = ({ task, onStart, onResolve, delay }) => {
                             onClick={() => onStart(task.id)}
                             className="w-full md:w-56 py-5 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-[4px] text-[10px] hover:bg-emerald-500 transition-all shadow-2xl shadow-emerald-600/20 active:scale-95 flex items-center justify-center gap-3 border border-white/10"
                         >
-                            <span>ENGAGE MISSION</span> <ArrowRight size={18} />
+                            <span>ENGAGE MISSION</span> <ChevronRight size={18} />
                         </button>
                     ) : (
                         <button 
@@ -130,7 +130,7 @@ export default function WorkerDashboard({ currentUser: initialUser }) {
                             <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[3px]">ACTIVE_ENCRYPTED_SYNC</p>
                         </div>
                         <div className="size-1 rounded-full bg-stone-800" />
-                        <p className="text-stone-500 text-[10px] font-black uppercase tracking-[3px]">OFFICER_{currentUser?.name}</p>
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[3px]">OFFICER_{currentUser?.name}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -163,7 +163,7 @@ export default function WorkerDashboard({ currentUser: initialUser }) {
                         className="bg-white/5 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/5 shadow-2xl flex items-center justify-between group hover:border-emerald-500/30 transition-all"
                     >
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-[3px] text-stone-600 mb-2 group-hover:text-stone-400 transition-colors">{s.label}</p>
+                            <p className="text-[10px] font-black uppercase tracking-[3px] text-white/20 mb-2 group-hover:text-white/40 transition-colors">{s.label}</p>
                             <p className="text-4xl font-black text-white tracking-tighter group-hover:text-emerald-500 transition-colors uppercase">{s.val}</p>
                         </div>
                         <div className="size-14 rounded-2xl bg-emerald-600/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 group-hover:scale-110 transition-transform">
@@ -203,7 +203,7 @@ export default function WorkerDashboard({ currentUser: initialUser }) {
                                 <Shield className="text-white" size={48} strokeWidth={2.5} />
                              </div>
                              <h4 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-none">ALL_TARGETS_NEUTRALIZED</h4>
-                             <p className="text-stone-500 text-sm max-w-sm mx-auto uppercase tracking-tighter font-medium leading-relaxed">The sector is currently stabilized. All reported anomalies have been resolved and indexed.</p>
+                             <p className="text-white/40 text-sm max-w-sm mx-auto uppercase tracking-tighter font-medium leading-relaxed">The sector is currently stabilized. All reported anomalies have been resolved and indexed.</p>
                         </motion.div>
                     ) : (
                         activeMissions.map((task, idx) => (

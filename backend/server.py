@@ -504,14 +504,17 @@ async def get_graph_data():
     
     nodes = []
     links = []
+    # Set of IDs present in this batch to prevent frontend crashes (node not found)
+    valid_ids = {str(v["id"]) for v in voters}
     
     for v in voters:
         address = v.get("address", "Unknown")
         street = address.split(",")[0] if "," in address else address
         is_priority_area = area_complaints.get(street, 0) > 3
         
+        v_id_str = str(v["id"])
         nodes.append({
-            "id": str(v["id"]),
+            "id": v_id_str,
             "label": v.get("name", "Unknown"),
             "sentiment": v.get("sentiment", "neutral"),
             "influence": v.get("influence_score", 0),
@@ -520,11 +523,14 @@ async def get_graph_data():
         })
         
         for conn in v.get("connections", []):
-            links.append({
-                "source": str(v["id"]),
-                "target": str(conn["to"]),
-                "type": conn.get("type", "community")
-            })
+            target_id = str(conn["to"])
+            # Only add link if target node exists in this data batch
+            if target_id in valid_ids:
+                links.append({
+                    "source": v_id_str,
+                    "target": target_id,
+                    "type": conn.get("type", "community")
+                })
             
     return {"nodes": nodes, "links": links}
 

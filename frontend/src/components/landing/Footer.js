@@ -3,21 +3,24 @@ import { Icon } from "./shared";
 
 export function Footer() {
   return (
-    <footer className="bg-[#f8f5f0] pt-20 pb-10 border-t border-gold/10">
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-10 mb-16">
+    <footer className="bg-[#0c0c0c] pt-20 pb-10 border-t border-white/5 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_100%,rgba(16,185,129,0.03),transparent)] pointer-events-none" />
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-5 gap-10 mb-16 relative z-10">
         {/* Brand */}
         <div className="col-span-2">
-          <div className="flex items-center gap-2 mb-6">
-            <Icon name="how_to_vote" size={24} className="text-primary" />
-            <h2 className="text-navy text-lg font-serif font-bold">BoothIQ</h2>
+          <div className="flex items-center gap-4 mb-6 group cursor-pointer">
+            <div className="size-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:bg-white group-hover:text-black transition-all">
+              <Icon name="how_to_vote" size={20} />
+            </div>
+            <h2 className="text-white text-2xl font-black leading-none tracking-tighter uppercase">BoothIQ</h2>
           </div>
-          <p className="text-navy/60 text-sm max-w-xs mb-6">
+          <p className="text-white/40 text-[11px] max-w-xs mb-6 font-medium italic uppercase tracking-[2px]">
             The premium intelligence platform for modern political warfare.
           </p>
           <div className="flex gap-4">
             {["alternate_email", "call", "feed"].map((icon) => (
-              <motion.div key={icon} whileHover={{ scale: 1.2, color: "#c9a74a" }}>
-                <span className="text-navy/60 hover:text-primary transition-colors duration-300 cursor-pointer">
+              <motion.div key={icon} whileHover={{ scale: 1.1, color: "#10b981" }}>
+                <span className="text-white/20 hover:text-emerald-500 transition-colors duration-300 cursor-pointer">
                   <Icon name={icon} />
                 </span>
               </motion.div>
@@ -32,11 +35,11 @@ export function Footer() {
           { title: "Resources", links: ["Blog", "Case Studies", "Help Center", "API Docs"] },
         ].map((col) => (
           <div key={col.title} className="flex flex-col gap-4">
-            <h4 className="text-navy font-bold text-sm uppercase tracking-wider">{col.title}</h4>
+            <h4 className="text-white font-bold text-[10px] uppercase tracking-[0.3em] opacity-80">{col.title}</h4>
             {col.links.map((link) => (
               <span
                 key={link}
-                className="text-navy/60 text-sm hover:text-primary hover:translate-x-1 transition-all duration-300 inline-block cursor-pointer"
+                className="text-white/30 text-[10px] font-medium hover:text-emerald-400 hover:translate-x-1 transition-all duration-300 inline-block cursor-pointer uppercase tracking-wider"
               >
                 {link}
               </span>
@@ -45,13 +48,16 @@ export function Footer() {
         ))}
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-gold/10 flex flex-col md:flex-row justify-between items-center gap-4">
-        <p className="text-navy/40 text-xs">
+      <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
+        <p className="text-white/20 text-[9px] font-bold uppercase tracking-[0.3em]">
           &copy; 2024 BoothIQ Intelligence Private Limited. All rights reserved.
         </p>
-        <div className="flex items-center gap-2 px-3 py-1 rounded bg-gold/5 border border-gold/10">
-          <span className="w-2 h-2 rounded-full bg-saffron animate-pulse" />
-          <span className="text-[10px] text-navy/60 uppercase tracking-widest font-mono">
+        <div className="flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/5">
+          <span className="relative flex size-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+            <span className="relative inline-flex rounded-full size-2 bg-emerald-500" />
+          </span>
+          <span className="text-[9px] text-white/40 uppercase tracking-[0.4em] font-bold">
             Made for Bharat Mandapam 2026
           </span>
         </div>
@@ -59,3 +65,4 @@ export function Footer() {
     </footer>
   );
 }
+

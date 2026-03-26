@@ -19,7 +19,7 @@ const Layout = ({ children, title = "Dashboard" }) => {
                         </button>
                         <div className="hidden sm:block">
                             <h2 className="font-display font-black text-2xl text-white tracking-tighter">{title}</h2>
-                            <p className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold">BoothIQ Intelligence Matrix</p>
+                            <p className="text-[9px] uppercase tracking-[0.3em] text-white/40 font-bold">BoothIQ Intelligence Matrix</p>
                         </div>
                     </div>
 

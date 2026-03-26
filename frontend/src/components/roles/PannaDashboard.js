@@ -282,14 +282,12 @@ export default function PannaDashboard({ currentUser, boothId }) {
             )}
 
             {tab === 'calls' && (
-                <div className="space-y-4">
+                <div className="space-y-6">
                     {calls.length === 0 ? (
-                        <div className="p-20 text-center glass-panel rounded-[3rem] bg-stone-50/20 border-stone-100">
-                            <div className="size-20 rounded-full bg-white flex items-center justify-center mx-auto mb-8 shadow-sm">
-                                <PhoneOff className="text-stone-200" size={40} />
-                            </div>
-                            <h4 className="text-2xl font-display font-bold text-stone-900 mb-2">No Comms Traffic</h4>
-                            <p className="text-stone-400 text-sm max-w-sm mx-auto">No field communications have been registered for this sector. Initiate outbound engagement to populate log.</p>
+                        <div className="p-32 text-center bg-[#1a1a1a] rounded-[4rem] border border-white/5 border-dashed">
+                            <PhoneOff className="w-20 h-20 text-emerald-500/10 mx-auto mb-10" />
+                            <h4 className="text-4xl font-black text-white uppercase tracking-tighter">NO_COMMS_TRAFFIC</h4>
+                            <p className="text-stone-600 text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">Sector intelligence feeds are silent. Initiate V_CALL protocols to populate registry.</p>
                         </div>
                     ) : (
                         calls.map((c, idx) => {
@@ -299,38 +297,38 @@ export default function PannaDashboard({ currentUser, boothId }) {
                             return (
                                 <motion.div 
                                     key={c.id} 
-                                    initial={{ opacity: 0, x: -10 }} 
+                                    initial={{ opacity: 0, x: -30 }} 
                                     animate={{ opacity: 1, x: 0 }} 
                                     transition={{ delay: idx * 0.05 }}
-                                    className="glass-panel p-6 sm:p-8 rounded-[2.5rem] border border-stone-200/50 flex flex-col sm:flex-row sm:items-center gap-8 group hover:border-emerald-500/30 transition-all shadow-sm"
+                                    className="bg-[#1a1a1a] p-10 rounded-[3rem] border border-white/5 flex flex-col sm:flex-row sm:items-center gap-10 group hover:border-emerald-500/20 transition-all shadow-2xl relative overflow-hidden"
                                 >
-                                    <div className={`size-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${isAnswered ? 'bg-emerald-500/10 text-emerald-600 shadow-emerald-200/20' : 'bg-rose-500/10 text-rose-600 shadow-rose-200/20'}`}>
-                                        <CIcon size={28} />
+                                    <div className={`size-20 rounded-3xl flex items-center justify-center shrink-0 border border-white/5 shadow-2xl ${isAnswered ? 'bg-emerald-500/10 text-emerald-500 shadow-emerald-500/20' : 'bg-rose-500/10 text-rose-500 shadow-rose-500/20'}`}>
+                                        <CIcon size={32} strokeWidth={3} />
                                     </div>
                                     
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <h4 className="font-display font-bold text-xl text-stone-900 group-hover:text-emerald-700">{c.voter_name}</h4>
-                                            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {new Date(c.created_at).toLocaleDateString()}</span>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h4 className="font-black text-3xl text-white tracking-tighter uppercase leading-none group-hover:text-emerald-400 transition-colors">{c.voter_name}</h4>
+                                            <span className="text-[10px] font-black text-stone-600 uppercase tracking-[4px]">DELTA_{new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
-                                        <div className="flex items-center gap-4">
-                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${isAnswered ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                                {c.status.replace('_', ' ')}
-                                            </span>
+                                        <div className="flex items-center gap-6">
+                                            <div className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isAnswered ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'}`}>
+                                                SEC_{c.status.toUpperCase()}
+                                            </div>
                                             {c.sentiment && (
-                                                <span className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${s.color}`}>
-                                                    <s.icon size={12} /> {c.sentiment}
-                                                </span>
+                                                <div className={`flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${s.color}`}>
+                                                    <s.icon size={12} strokeWidth={3} /> {c.sentiment.toUpperCase()}
+                                                </div>
                                             )}
                                         </div>
                                         {c.notes && (
-                                            <div className="mt-4 p-4 bg-stone-50 rounded-2xl border border-stone-100 text-sm font-medium text-stone-600 italic leading-relaxed">
+                                            <div className="mt-8 p-6 bg-black/40 rounded-[2rem] border border-white/5 text-sm font-black text-stone-500 uppercase tracking-widest leading-relaxed">
                                                 "{c.notes}"
                                             </div>
                                         )}
                                     </div>
                                     
-                                    <ChevronRight size={20} className="text-stone-200 group-hover:text-emerald-600 transition-colors hidden sm:block" />
+                                    <ChevronRight size={24} className="text-stone-800 group-hover:text-emerald-500 transition-colors hidden sm:block" />
                                 </motion.div>
                             );
                         })
@@ -338,135 +336,135 @@ export default function PannaDashboard({ currentUser, boothId }) {
                 </div>
             )}
 
-            {/* Modals Layer */}
+            {/* Modals Layer */}            {/* Modals Layer */}
             {createPortal(
                 <AnimatePresence>
                     {(callModal || grievanceModal) && (
-                        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6">
+                        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-10">
                             <motion.div 
                                 initial={{ opacity: 0 }} 
                                 animate={{ opacity: 1 }} 
                                 exit={{ opacity: 0 }}
                                 onClick={() => { setCallModal(null); setGrievanceModal(null); }}
-                                className="absolute inset-0 bg-stone-950/70 backdrop-blur-xl" 
+                                className="absolute inset-0 bg-[#0c0c0c]/90 backdrop-blur-3xl" 
                             />
                             
                             <motion.div 
                                 initial={{ y: '100%', opacity: 0 }} 
                                 animate={{ y: 0, opacity: 1 }} 
                                 exit={{ y: '100%', opacity: 0 }}
-                                className="relative w-full max-w-lg bg-white rounded-t-[2.5rem] sm:rounded-[3rem] shadow-2xl overflow-hidden"
+                                className="relative w-full max-w-2xl bg-[#141414] rounded-t-[4rem] sm:rounded-[4rem] border border-white/5 shadow-2xl overflow-hidden"
                             >
-                                <div className="p-10">
+                                <div className="p-10 sm:p-16">
                                     {callModal && (
-                                        <div className="space-y-8">
+                                        <div className="space-y-12">
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <div className="px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-[9px] font-bold uppercase tracking-widest border border-emerald-200 mb-4 inline-block">
-                                                        Intelligence Log
+                                                    <div className="px-4 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-[10px] font-black uppercase tracking-[3px] border border-emerald-500/20 mb-6 inline-block">
+                                                        INTELLIGENCE_LOG
                                                     </div>
-                                                    <h4 className="text-3xl font-display font-bold text-stone-900 tracking-tight">Post-Call Briefing</h4>
-                                                    <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 mt-1">{callModal.name} · {callModal.phone}</p>
+                                                    <h4 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">V_CALL_DEBRIEFING</h4>
+                                                    <p className="text-[10px] font-black uppercase tracking-[4px] text-stone-600 mt-6">TARGET: {callModal.name} · {callModal.phone}</p>
                                                 </div>
-                                                <button onClick={() => setCallModal(null)} className="size-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-900">
-                                                    <X size={20} />
+                                                <button onClick={() => setCallModal(null)} className="size-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-stone-400 hover:text-white transition-all">
+                                                    <X size={24} />
                                                 </button>
                                             </div>
 
-                                            <div className="space-y-6">
-                                                <div className="space-y-3">
-                                                    <label className="text-[10px] font-bold uppercase tracking-[4px] text-stone-400 pl-1">Operational Outcome</label>
-                                                    <div className="flex gap-2">
+                                            <div className="space-y-10">
+                                                <div className="space-y-4">
+                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-stone-700 pl-1">OPERATIONAL_OUTCOME</label>
+                                                    <div className="flex gap-4">
                                                         {['answered', 'no_answer'].map(s => (
                                                             <button 
                                                                 key={s} 
                                                                 onClick={() => setCallStatus(s)}
-                                                                className={`flex-1 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all border ${
+                                                                className={`flex-1 py-6 rounded-2xl text-[10px] font-black uppercase tracking-[3px] transition-all border ${
                                                                     callStatus === s 
-                                                                        ? 'bg-stone-900 border-stone-900 text-white shadow-xl shadow-stone-200' 
-                                                                        : 'bg-stone-50 border-stone-200 text-stone-400 hover:border-stone-400'
+                                                                        ? 'bg-emerald-600 border-emerald-500 text-white shadow-2xl shadow-emerald-600/40' 
+                                                                        : 'bg-white/5 border-white/5 text-stone-600 hover:border-white/10'
                                                                 }`}
                                                             >
-                                                                {s.replace('_', ' ')}
+                                                                SEC_{s.toUpperCase()}
                                                             </button>
                                                         ))}
                                                     </div>
                                                 </div>
 
-                                                <div className="space-y-3">
-                                                    <label className="text-[10px] font-bold uppercase tracking-[4px] text-stone-400 pl-1">Field Observations</label>
+                                                <div className="space-y-4">
+                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-stone-700 pl-1">FIELD_OBSERVATIONS</label>
                                                     <textarea 
                                                         value={callNotes} 
                                                         onChange={e => setCallNotes(e.target.value)}
-                                                        placeholder="Log technical findings and voter disposition..."
-                                                        className="w-full p-6 bg-stone-50 rounded-[2rem] border border-stone-200 focus:border-emerald-600 outline-none text-sm font-medium resize-none h-32 placeholder:text-stone-300" 
+                                                        placeholder="TRANSCRIBE_TACTICAL_FINDINGS..."
+                                                        className="w-full p-8 bg-black/40 rounded-[2.5rem] border border-white/5 focus:border-emerald-500 outline-none text-lg font-black text-white uppercase tracking-tighter resize-none h-40 placeholder:text-stone-800" 
                                                     />
                                                 </div>
 
                                                 <button 
                                                     onClick={handleLogCall} 
                                                     disabled={submitting}
-                                                    className="w-full py-5 bg-stone-900 text-white rounded-2xl font-bold uppercase tracking-widest shadow-2xl hover:bg-emerald-600 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                                                    className="w-full py-8 bg-white text-black rounded-[2rem] font-black uppercase tracking-[4px] shadow-2xl hover:bg-emerald-500 hover:text-white active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-4 text-[11px]"
                                                 >
-                                                    {submitting ? <RefreshCw className="size-5 animate-spin" /> : <><PhoneCall size={18} /> Transmit Intel</>}
+                                                    {submitting ? <RefreshCw className="size-6 animate-spin" /> : <><PhoneCall size={20} strokeWidth={3} /> TRANSMIT_INTEL</>}
                                                 </button>
                                             </div>
                                         </div>
                                     )}
 
                                     {grievanceModal && (
-                                        <div className="space-y-8">
+                                        <div className="space-y-12">
                                             <div className="flex justify-between items-start">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="size-14 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 shadow-sm">
-                                                        <AlertTriangle size={28} />
+                                                <div className="flex items-center gap-6">
+                                                    <div className="size-20 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 shadow-2xl shadow-rose-500/20">
+                                                        <AlertTriangle size={40} strokeWidth={3} />
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-3xl font-display font-bold text-stone-900 tracking-tight">Report Vulnerability</h4>
-                                                        <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-stone-400 mt-1">Vector Identification: {grievanceModal.name}</p>
+                                                        <h4 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">SECTOR_VULNERABILITY</h4>
+                                                        <p className="text-[10px] font-black uppercase tracking-[4px] text-stone-600 mt-4">VECTOR_ID: {grievanceModal.name}</p>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => setGrievanceModal(null)} className="size-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 hover:text-stone-900">
-                                                    <X size={20} />
+                                                <button onClick={() => setGrievanceModal(null)} className="size-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-stone-400 hover:text-white transition-all">
+                                                    <X size={24} />
                                                 </button>
                                             </div>
 
-                                            <div className="space-y-6">
-                                                <div className="space-y-3">
-                                                    <label className="text-[10px] font-bold uppercase tracking-[4px] text-stone-400 pl-1">Vector Category</label>
+                                            <div className="space-y-10">
+                                                <div className="space-y-4">
+                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-stone-700 pl-1">VECTOR_CATEGORY</label>
                                                     <div className="relative">
                                                         <select 
                                                             value={grievanceCat} 
                                                             onChange={e => setGrievanceCat(e.target.value)}
-                                                            className="w-full p-5 bg-stone-50 rounded-[1.5rem] border border-stone-200 focus:border-stone-900 outline-none text-sm font-bold transition-all appearance-none cursor-pointer pr-12"
+                                                            className="w-full p-8 bg-black/40 rounded-[2rem] border border-white/5 focus:border-rose-500 outline-none text-lg font-black text-white uppercase tracking-tighter transition-all appearance-none cursor-pointer pr-12"
                                                         >
-                                                            <option value="">Matrix Optimization (AI)</option>
+                                                            <option value="" className="bg-[#141414]">MATRIX_OPTIMIZATION</option>
                                                             {['infrastructure', 'utilities', 'healthcare', 'security', 'logistics', 'education'].map(cat => (
-                                                                <option key={cat} value={cat}>{cat}</option>
+                                                                <option key={cat} value={cat} className="bg-[#141414]">{cat.toUpperCase()}</option>
                                                             ))}
                                                         </select>
-                                                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400">
-                                                            <ChevronRight size={20} className="rotate-90" />
+                                                        <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none text-stone-700">
+                                                            <ChevronRight size={24} className="rotate-90" />
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                <div className="space-y-3">
-                                                    <label className="text-[10px] font-bold uppercase tracking-[4px] text-stone-400 pl-1">Situation Briefing</label>
+                                                <div className="space-y-4">
+                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-stone-700 pl-1">SITUATION_BRIEFING</label>
                                                     <textarea 
                                                         value={grievanceDesc} 
                                                         onChange={e => setGrievanceDesc(e.target.value)}
-                                                        placeholder="Detail the localized infrastructure or security failure..."
-                                                        className="w-full p-6 bg-stone-50 rounded-[2rem] border border-stone-200 focus:border-rose-600 outline-none text-sm font-medium resize-none h-32 placeholder:text-stone-300" 
+                                                        placeholder="CLASSIFY_FAILURE_PARAMETERS..."
+                                                        className="w-full p-8 bg-black/40 rounded-[2.5rem] border border-white/5 focus:border-rose-500 outline-none text-lg font-black text-white uppercase tracking-tighter resize-none h-40 placeholder:text-stone-800" 
                                                     />
                                                 </div>
 
                                                 <button 
                                                     onClick={handleCreateGrievance} 
                                                     disabled={submitting || !grievanceDesc.trim()}
-                                                    className="w-full py-5 bg-stone-900 text-white rounded-2xl font-bold uppercase tracking-widest shadow-2xl hover:bg-rose-600 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                                                    className="w-full py-8 bg-rose-600 text-white rounded-[2rem] font-black uppercase tracking-[4px] shadow-2xl shadow-rose-500/40 hover:bg-rose-500 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-4 text-[11px]"
                                                 >
-                                                    {submitting ? <RefreshCw className="size-5 animate-spin" /> : <><Shield size={18} /> Register Vulnerability</>}
+                                                    {submitting ? <RefreshCw className="size-6 animate-spin" /> : <><Shield size={20} strokeWidth={3} /> REGISTER_VULNERABILITY</>}
                                                 </button>
                                             </div>
                                         </div>

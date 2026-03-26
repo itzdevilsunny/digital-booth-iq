@@ -138,6 +138,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(null);
     const [applying, setApplying] = useState(null);
+    const [expandedId, setExpandedId] = useState(null);
 
     const safeBoothId = parseInt(boothId) || 17;
 
@@ -268,7 +269,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                     </span>
                                 </div>
                                 
-                                <div className="space-y-4">
+                                <div className="max-h-[600px] overflow-y-auto pr-2 custom-scrollbar space-y-4">
                                     {grievances.length === 0 ? (
                                         <div className="p-16 text-center border-2 border-dashed border-stone-200 rounded-[2rem] bg-stone-50/50">
                                             <p className="text-stone-400 font-display text-lg italic">Everything looks good. No issues found.</p>
@@ -276,36 +277,74 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                     ) : (
                                         grievances.map((g, idx) => {
                                             const config = STATUS_CONFIG[g.status] || STATUS_CONFIG.submitted;
+                                            const isExpanded = expandedId === g.id;
                                             return (
                                                 <motion.div 
                                                     key={g.id} 
                                                     initial={{ opacity: 0, y: 10 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ delay: idx * 0.05 }}
-                                                    className="glass-panel p-5 rounded-3xl border border-stone-200 flex items-center gap-6 group hover:border-emerald-500/30 transition-all shadow-sm"
+                                                    className={`glass-panel p-5 rounded-3xl border border-stone-200 transition-all shadow-sm group hover:border-emerald-500/30 cursor-pointer ${isExpanded ? 'ring-2 ring-emerald-500/20' : ''}`}
+                                                    onClick={() => setExpandedId(isExpanded ? null : g.id)}
                                                 >
-                                                    <div className={`size-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${config.bg} ${config.color} shadow-stone-100`}>
-                                                        <config.icon size={28} />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <div className={`size-1.5 rounded-full ${config.dot}`} />
-                                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${config.color}`}>
-                                                                {config.label}
-                                                            </span>
-                                                            <span className="text-[10px] font-mono text-stone-400 ml-2">ID: #{g.id}</span>
+                                                    <div className="flex items-center gap-6">
+                                                        <div className={`size-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${config.bg} ${config.color} shadow-stone-100`}>
+                                                            <config.icon size={28} />
                                                         </div>
-                                                        <h4 className="text-lg font-bold text-stone-900 truncate tracking-tight">{g.description}</h4>
-                                                        <div className="flex items-center gap-4 mt-2">
-                                                            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
-                                                                <Calendar size={12} className="text-emerald-600" /> {new Date(g.created_at || Date.now()).toLocaleDateString()}
-                                                            </span>
-                                                            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
-                                                                <MapPin size={12} className="text-emerald-600" /> Area {g.booth_id}
-                                                            </span>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <div className={`size-1.5 rounded-full ${config.dot}`} />
+                                                                <span className={`text-[10px] font-bold uppercase tracking-widest ${config.color}`}>
+                                                                    {config.label}
+                                                                </span>
+                                                                <span className="text-[10px] font-mono text-stone-400 ml-2">ID: #{g.id}</span>
+                                                            </div>
+                                                            <h4 className="text-lg font-bold text-stone-900 truncate tracking-tight">{g.description}</h4>
+                                                            <div className="flex items-center gap-4 mt-2">
+                                                                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
+                                                                    <Calendar size={12} className="text-emerald-600" /> {new Date(g.created_at || Date.now()).toLocaleDateString()}
+                                                                </span>
+                                                                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
+                                                                    <MapPin size={12} className="text-emerald-600" /> Area {g.booth_id}
+                                                                </span>
+                                                            </div>
                                                         </div>
+                                                        <ChevronRight size={20} className={`text-stone-300 group-hover:text-emerald-600 transition-all hidden sm:block ${isExpanded ? 'rotate-90' : ''}`} />
                                                     </div>
-                                                    <ChevronRight size={20} className="text-stone-300 group-hover:text-emerald-600 transition-colors hidden sm:block" />
+
+                                                    <AnimatePresence>
+                                                        {isExpanded && (
+                                                            <motion.div 
+                                                                initial={{ height: 0, opacity: 0 }}
+                                                                animate={{ height: 'auto', opacity: 1 }}
+                                                                exit={{ height: 0, opacity: 0 }}
+                                                                className="overflow-hidden"
+                                                            >
+                                                                <div className="pt-6 mt-6 border-t border-stone-100 space-y-4">
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                                        <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100">
+                                                                            <p className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Assigned Personnel</p>
+                                                                            <p className="text-sm font-bold text-stone-900 flex items-center gap-2">
+                                                                                <User size={14} className="text-emerald-600" /> {g.assigned_worker || 'Awaiting assignment'}
+                                                                            </p>
+                                                                        </div>
+                                                                        <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100">
+                                                                            <p className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Resolution Protocol</p>
+                                                                            <p className="text-sm font-bold text-stone-900 flex items-center gap-2">
+                                                                                <CheckCircle2 size={14} className="text-emerald-600" /> {g.status === 'resolved' ? 'Operational Success' : 'Matrix Intervention Pending'}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    {g.resolution_note && (
+                                                                        <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100/50">
+                                                                            <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Field Intelligence Note</p>
+                                                                            <p className="text-sm text-stone-700 font-medium italic">"{g.resolution_note}"</p>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
                                                 </motion.div>
                                             )
                                         })
@@ -363,7 +402,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                             disabled={!description || submitting}
                                             className="w-full py-6 bg-emerald-600 text-white rounded-[1.5rem] font-black uppercase tracking-[4px] flex items-center justify-center gap-4 transition-all hover:bg-emerald-500 active:scale-[0.98] disabled:opacity-50 shadow-2xl shadow-emerald-500/20 border border-white/10"
                                         >
-                                            {submitting ? <RefreshCw className="animate-spin" size={24} /> : <><span>INITIALIZE REPORT</span> <ArrowRight size={24} /></>}
+                                            {submitting ? <RefreshCw className="animate-spin" size={24} /> : <><span>INITIALIZE REPORT</span> <ChevronRight size={24} /></>}
                                         </button>
                                     </div>
                                 </div>
@@ -437,7 +476,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                                         : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-2xl shadow-emerald-500/20 border border-white/10'
                                                     }`}
                                                 >
-                                                    {applying === scheme.id ? <RefreshCw className="animate-spin" size={18} /> : isApplied ? <BadgeCheck size={20} /> : <ArrowRight size={20} />}
+                                                    {applying === scheme.id ? <RefreshCw className="animate-spin" size={18} /> : isApplied ? <BadgeCheck size={20} /> : <ChevronRight size={20} />}
                                                     {isApplied ? 'SECURE_ACCESS_GRANTED' : 'INITIALIZE APPLICATION'}
                                                 </button>
                                                 <button className="size-14 rounded-2xl bg-white/5 text-stone-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all border border-white/5 flex items-center justify-center shadow-2xl">

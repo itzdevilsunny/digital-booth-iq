@@ -91,7 +91,7 @@ const Sidebar = () => {
                             <p className="text-xs font-black text-white truncate tracking-tight uppercase">Pratik K.</p>
                             <div className="flex items-center gap-2 mt-0.5">
                                 <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                <p className="text-[9px] text-stone-500 truncate font-bold uppercase tracking-widest">{role.replace('_', ' ')}</p>
+                                <p className="text-[9px] text-white/40 truncate font-bold uppercase tracking-widest">{role.replace('_', ' ')}</p>
                             </div>
                         </div>
                     </div>
@@ -100,7 +100,7 @@ const Sidebar = () => {
                 <div className="flex flex-col gap-2">
                     <button 
                         onClick={() => navigate('/select-role')}
-                        className="w-full flex items-center justify-between px-5 py-4 rounded-2xl text-stone-500 hover:text-white hover:bg-white/5 transition-all group"
+                        className="w-full flex items-center justify-between px-5 py-4 rounded-2xl text-white/40 hover:text-white hover:bg-white/5 transition-all group"
                     >
                         <div className="flex items-center gap-3">
                             <Activity size={16} />
@@ -111,7 +111,7 @@ const Sidebar = () => {
                     
                     <button 
                         onClick={() => navigate('/')}
-                        className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-stone-700 hover:text-rose-500 transition-colors group"
+                        className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-white/20 hover:text-rose-500 transition-colors group"
                     >
                         <LogOut size={16} />
                         <span className="text-[10px] font-bold uppercase tracking-[3px]">Terminate Session</span>
