@@ -5,7 +5,7 @@ import {
   Send, RefreshCw, User, MapPin, ChevronRight,
   Calendar, CheckCircle2, Activity, AlertCircle,
   FileText, ExternalLink, BadgeCheck,
-  Briefcase, Phone, MessageSquare, Shield
+  Briefcase, Phone, MessageSquare, Shield, Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AIChatbot from './AIChatbot';
@@ -137,6 +137,8 @@ export default function CitizenDashboard({ currentUser, boothId }) {
     const [submitted, setSubmitted] = useState(null);
     const [applying, setApplying] = useState(null);
     const [expandedId, setExpandedId] = useState(null);
+    const [workers, setWorkers] = useState([]);
+    const [admin, setAdmin] = useState(null);
 
     const safeBoothId = parseInt(boothId) || 17;
 

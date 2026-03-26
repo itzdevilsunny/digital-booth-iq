@@ -4,7 +4,7 @@ import { getAnalytics, getGraphData } from '../../api';
 import { 
   Users, AlertTriangle, PhoneCall, RefreshCw, 
   TrendingUp, TrendingDown, ShieldCheck, Activity,
-  BrainCircuit, Network
+  BrainCircuit, Network, Target, Zap, Lightbulb
 } from 'lucide-react';
 import ForceGraph2D from 'react-force-graph-2d';
 

@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { getGrievances, updateGrievance, getUsersByRole, getVoters, getBooths } from '../../api';
-import { 
-    Users, 
+import {
+    Users,
     ChevronRight,
     MapPin,
     Target,
@@ -16,7 +16,11 @@ import {
     LayoutDashboard,
     X,
     ClipboardList,
-    Shield
+    Shield,
+    RefreshCw,
+    User,
+    Zap,
+    Info
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -66,8 +70,10 @@ export default function AdminDashboard({ currentUser, boothId }) {
 
     const [grievances, setGrievances] = useState([]);
     const [workers, setWorkers] = useState([]);
+    const [applications, setApplications] = useState([]);
     const [voters, setVoters] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [admin, setAdmin] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [tab, setTab] = useState(getTabFromPath(location.pathname));
     const [assignModal, setAssignModal] = useState(null);
     const [selectedWorker, setSelectedWorker] = useState('');
