@@ -14,10 +14,29 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AIChatbot from './AIChatbot';
+import { translations, languages } from '../../translations';
 
 // --- Simple Sub-components ---
 
-const StatCard = ({ label, value, icon: Icon, color, delay }) => (
+const LanguageSelector = ({ currentLanguage, onLanguageChange }) => (
+    <div className="flex items-center gap-2 bg-stone-50 p-1 rounded-2xl border border-stone-200 shadow-sm">
+        {languages.map((lang) => (
+            <button
+                key={lang.code}
+                onClick={() => onLanguageChange(lang.code)}
+                className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all ${
+                    currentLanguage === lang.code 
+                    ? 'bg-stone-900 text-white shadow-lg' 
+                    : 'text-stone-400 hover:text-stone-600 hover:bg-stone-100'
+                }`}
+            >
+                {lang.native}
+            </button>
+        ))}
+    </div>
+);
+
+const StatCard = ({ label, value, icon: Icon, color, delay, t }) => (
     <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -33,12 +52,12 @@ const StatCard = ({ label, value, icon: Icon, color, delay }) => (
         </div>
         <div className="mt-4 flex items-center gap-2">
             <div className="size-1.5 rounded-full animate-pulse" style={{ backgroundColor: color }} />
-            <span className="text-[9px] font-bold text-stone-400 uppercase tracking-tighter">Live feed</span>
+            <span className="text-[9px] font-bold text-stone-400 uppercase tracking-tighter">{t('live')}</span>
         </div>
     </motion.div>
 );
 
-const InsightsBanner = ({ insights, loading }) => (
+const InsightsBanner = ({ insights, loading, t }) => (
     <div className="relative overflow-hidden rounded-[2.5rem] bg-white p-8 md:p-12 text-stone-900 border border-stone-200 shadow-xl shadow-stone-200/50 group">
         <div className="absolute inset-0 bg-grid-pattern opacity-5" />
         <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 blur-[100px] rounded-full -mr-32 -mt-32" />
@@ -47,12 +66,12 @@ const InsightsBanner = ({ insights, loading }) => (
             <div className="flex-1">
                 <div className="flex items-center gap-3 mb-6">
                     <span className="px-4 py-1 bg-emerald-50 rounded-full text-[10px] font-bold uppercase tracking-[2px] text-emerald-600 border border-emerald-100">
-                        AI Insights
+                        {t('aiInsights')}
                     </span>
                     <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 </div>
                 <h2 className="text-4xl md:text-5xl font-black mb-4 leading-[0.9] tracking-tighter text-stone-900">
-                    Booth Status <br />Overview
+                    {t('overviewTitle').split(' ').slice(0, 2).join(' ')} <br />{t('overviewTitle').split(' ').slice(2).join(' ')}
                 </h2>
                 {loading ? (
                     <div className="space-y-3 opacity-20">
@@ -61,7 +80,7 @@ const InsightsBanner = ({ insights, loading }) => (
                     </div>
                 ) : (
                     <p className="text-stone-500 text-sm md:text-lg leading-relaxed max-w-xl font-medium">
-                        {insights?.[0] || "Your booth is running smoothly. No major issues detected."}
+                        {insights?.[0] || t('overviewDesc')}
                     </p>
                 )}
             </div>
@@ -143,6 +162,17 @@ export default function CitizenDashboard({ currentUser, boothId }) {
     const [workers, setWorkers] = useState([]);
     const [admin, setAdmin] = useState(null);
     const [error, setError] = useState(null);
+    const [language, setLanguage] = useState(localStorage.getItem('portalLanguage') || 'en');
+
+    const t = (key) => {
+        if (!translations[language]) return key;
+        return translations[language][key] || key;
+    };
+
+    const handleLanguageChange = (newLang) => {
+        setLanguage(newLang);
+        localStorage.setItem('portalLanguage', newLang);
+    };
 
     const safeBoothId = parseInt(boothId) || 17;
 
