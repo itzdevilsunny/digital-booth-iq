@@ -1247,19 +1247,35 @@ async def update_grievance(data: GrievanceUpdate):
                 metadata={"grievance_id": str(data.id)}
             )
 
-        # --- NOTIFICATION HOOK: STATUS UPDATE ---
-        if data.status and data.status == "resolved":
-            # Find the voter_id for this grievance
-            grievance = await supabase_request("GET", f"grievances?id=eq.{data.id}", params={"select": "voter_id"})
-            if grievance and grievance[0].get("voter_id"):
-                v_id = str(grievance[0]["voter_id"])
-                await send_notification(
-                    user_id=v_id,
-                    title="Mission Accomplished",
-                    message="Your reported issue has been resolved. Thank you for your patience!",
-                    n_type="success",
-                    metadata={"grievance_id": str(data.id)}
-                )
+        # --- NOTIFICATION HOOK: STATUS UPDATE & ASSIGNMENT ---
+        # Fetch current grievance details to find the voter_id
+        try:
+            grievance_list = await supabase_request("GET", f"grievances?id=eq.{data.id}", params={"select": "voter_id,category,status"})
+            if grievance_list and isinstance(grievance_list, list) and len(grievance_list) > 0:
+                grievance = grievance_list[0]
+                v_id = str(grievance.get("voter_id"))
+                category = grievance.get("category", "issue")
+                current_status = data.status or grievance.get("status", "updated")
+                
+                if v_id and v_id != "None":
+                    status_messages = {
+                        "assigned": f"Your {category} report has been assigned to a field officer for immediate action.",
+                        "in_progress": f"A field officer is now working on your {category} report.",
+                        "resolved": f"Success! Your {category} report has been resolved. Thank you for your cooperation.",
+                        "submitted": f"Your {category} report is currently under review by the booth management team."
+                    }
+                    
+                    msg = status_messages.get(current_status, f"The status of your {category} report has been updated to: {current_status}")
+                    
+                    await send_notification(
+                        user_id=v_id,
+                        title=f"Report Update: {current_status.upper()}",
+                        message=msg,
+                        n_type="success" if current_status == "resolved" else "info",
+                        metadata={"grievance_id": str(data.id), "status": current_status}
+                    )
+        except Exception as e:
+            logger.error(f"Failed to send status update notification to voter: {e}")
 
         return {"status": "updated", "id": data.id}
     except Exception as e:
@@ -1894,23 +1910,25 @@ async def seed_data():
         
         # Seed system users for each role
         users = [
-            {"id": "panna-1", "name": "Meena Devi", "role": "panna", "booth_id": 17},
-            {"id": "panna-2", "name": "Rajkumar Singh", "role": "panna", "booth_id": 18},
-            {"id": "admin-1", "name": "Ramesh Gupta", "role": "admin", "booth_id": 17},
-            {"id": "admin-2", "name": "Anita Verma", "role": "admin", "booth_id": 18},
+            {"id": "panna-1", "name": "Meena Devi", "role": "panna", "booth_id": 17, "email": "meena@boothiq.ai", "phone": "9876543201"},
+            {"id": "panna-2", "name": "Rajkumar Singh", "role": "panna", "booth_id": 18, "email": "rajkumar@boothiq.ai", "phone": "9876543202"},
+            {"id": "admin-1", "name": "Ramesh Gupta", "role": "admin", "booth_id": 17, "email": "ramesh@boothiq.ai", "phone": "9876543203"},
+            {"id": "admin-2", "name": "Anita Verma", "role": "admin", "booth_id": 18, "email": "anita@boothiq.ai", "phone": "9876543204"},
             {
                 "id": "city_manager-1", 
                 "name": "Rajesh Khanna", 
                 "role": "city_manager", 
                 "city_id": "DELHI-01",
-                "assigned_booths": [1, 17, 18, 19, 20]
+                "assigned_booths": [1, 17, 18, 19, 20],
+                "email": "rajesh@boothiq.ai",
+                "phone": "9876543205"
             },
-            {"id": "worker-1", "name": "Sunil Kumar", "role": "worker", "booth_id": 17},
-            {"id": "worker-2", "name": "Priya Yadav", "role": "worker", "booth_id": 17},
-            {"id": "worker-3", "name": "Ajay Tiwari", "role": "worker", "booth_id": 18},
-            {"id": "analyst-1", "name": "Deepak Sharma", "role": "analyst", "booth_id": 17},
-            {"id": "citizen-1", "name": "Vikram Singh", "role": "citizen", "booth_id": 17},
-            {"id": "citizen-2", "name": "Lata Maurya", "role": "citizen", "booth_id": 18},
+            {"id": "worker-1", "name": "Sunil Kumar", "role": "worker", "booth_id": 17, "email": "sunil@boothiq.ai", "phone": "9876543206"},
+            {"id": "worker-2", "name": "Priya Yadav", "role": "worker", "booth_id": 17, "email": "priya@boothiq.ai", "phone": "9876543207"},
+            {"id": "worker-3", "name": "Ajay Tiwari", "role": "worker", "booth_id": 18, "email": "ajay@boothiq.ai", "phone": "9876543208"},
+            {"id": "analyst-1", "name": "Deepak Sharma", "role": "analyst", "booth_id": 17, "email": "deepak@boothiq.ai", "phone": "9876543209"},
+            {"id": "citizen-1", "name": "Vikram Singh", "role": "citizen", "booth_id": 17, "email": "vikram@example.com", "phone": "9876543210"},
+            {"id": "citizen-2", "name": "Lata Maurya", "role": "citizen", "booth_id": 18, "email": "lata@example.com", "phone": "9876543211"},
         ]
         
         await db.users.insert_many(users)
@@ -1943,9 +1961,10 @@ async def seed_data():
             template = user_templates[i % len(user_templates)]
             booth_id = int(str(template["booth"]).replace("B", ""))
             
-            # Enrich name and phone for uniqueness
+            # Enrich name, phone and email for uniqueness
             full_name = f"{template['name']} {i}"
             phone = f"98765{i:05d}"
+            email = f"voter_{i}@example.com"
             
             voters_to_insert.append({
                 "id": f"V{1000 + i}",
@@ -1953,6 +1972,7 @@ async def seed_data():
                 "address": f"{template['area']}, Household {template['hh']}_{i % 100}",
                 "booth_id": booth_id,
                 "phone": phone,
+                "email": email,
                 "sentiment": template["sent"],
                 "tags": [template["cat"]],
                 "grievances": [{"id": f"G{i}", "description": template["issue"], "status": "pending"}],

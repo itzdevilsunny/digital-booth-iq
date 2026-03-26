@@ -10,7 +10,7 @@ import {
   Calendar, CheckCircle2, Activity, AlertCircle,
   FileText, ExternalLink, BadgeCheck,
   Briefcase, Phone, MessageSquare, Shield, Info,
-  Fingerprint, Target
+  Fingerprint, Target, Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AIChatbot from './AIChatbot';
@@ -561,6 +561,13 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                     <span className="text-white font-mono">{currentUser?.id || 'V1001'}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-[10px] font-bold py-3 border-b border-white/5">
+                                    <span className="text-white/40 uppercase tracking-[2px]">Contact</span>
+                                    <div className="flex flex-col items-end gap-1">
+                                        <a href={`tel:${voterProfile?.phone || ''}`} className="text-white hover:text-emerald-400 transition-colors">{voterProfile?.phone || '9876543210'}</a>
+                                        <a href={`mailto:${voterProfile?.email || ''}`} className="text-white/60 hover:text-emerald-400 transition-colors lowercase tracking-normal font-medium">{voterProfile?.email || 'voter@example.com'}</a>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between text-[10px] font-bold py-3 border-b border-white/5">
                                     <span className="text-white/40 uppercase tracking-[2px]">Booth Access</span>
                                     <span className="text-white font-mono">#{safeBoothId}</span>
                                 </div>
@@ -584,7 +591,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                             </h3>
                             <div className="space-y-4">
                                 {admin && (
-                                    <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200 flex items-center gap-4 group/item hover:bg-stone-100 transition-all cursor-pointer">
+                                    <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200 flex items-center gap-4 group/item hover:bg-stone-100 transition-all">
                                         <div className="size-12 rounded-2xl bg-stone-900 text-emerald-500 flex items-center justify-center font-black text-xl shadow-lg border border-stone-800">
                                             {admin.name?.[0]}
                                         </div>
@@ -592,13 +599,18 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                             <p className="font-black text-sm tracking-tight leading-none mb-1 text-stone-900">{admin.name}</p>
                                             <p className="text-[9px] uppercase font-bold text-stone-400 tracking-[2px]">Administrator</p>
                                         </div>
-                                        <div className="ml-auto size-10 rounded-full bg-stone-200 flex items-center justify-center text-stone-400 group-hover/item:bg-stone-900 group-hover/item:text-emerald-500 transition-all">
-                                            <Phone size={16} />
+                                        <div className="ml-auto flex items-center gap-2">
+                                            <a href={`mailto:${admin.email || 'admin@boothiq.ai'}`} className="size-9 rounded-full bg-stone-200 flex items-center justify-center text-stone-400 hover:bg-stone-900 hover:text-emerald-500 transition-all">
+                                                <Mail size={14} />
+                                            </a>
+                                            <a href={`tel:${admin.phone || ''}`} className="size-9 rounded-full bg-stone-200 flex items-center justify-center text-stone-400 hover:bg-stone-900 hover:text-emerald-500 transition-all">
+                                                <Phone size={14} />
+                                            </a>
                                         </div>
                                     </div>
                                 )}
                                 {workers.slice(0, 3).map((w) => (
-                                    <div key={w.id} className="bg-white p-4 rounded-2xl border border-stone-100 flex items-center gap-4 group/item hover:bg-stone-50 transition-all cursor-pointer">
+                                    <div key={w.id} className="bg-white p-4 rounded-2xl border border-stone-100 flex items-center gap-4 group/item hover:bg-stone-50 transition-all">
                                         <div className="size-10 rounded-2xl bg-stone-100 text-stone-400 flex items-center justify-center font-black text-lg border border-stone-200 group-hover/item:bg-stone-900 group-hover/item:text-emerald-500 transition-all">
                                             {w.name?.[0]}
                                         </div>
@@ -606,8 +618,13 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                             <p className="font-black text-sm tracking-tight leading-none mb-1 text-stone-700 group-hover/item:text-stone-900 transition-colors">{w.name}</p>
                                             <p className="text-[9px] uppercase font-bold text-stone-300 tracking-[2px]">Field Worker</p>
                                         </div>
-                                        <div className="ml-auto size-10 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover/item:bg-stone-900 group-hover/item:text-emerald-500 transition-all">
-                                            <MessageSquare size={16} />
+                                        <div className="ml-auto flex items-center gap-2">
+                                            <a href={`mailto:${w.email || 'worker@boothiq.ai'}`} className="size-9 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 hover:bg-stone-900 hover:text-emerald-500 transition-all">
+                                                <Mail size={14} />
+                                            </a>
+                                            <a href={`tel:${w.phone || ''}`} className="size-9 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 hover:bg-stone-900 hover:text-emerald-500 transition-all">
+                                                <Phone size={14} />
+                                            </a>
                                         </div>
                                     </div>
                                 ))}
