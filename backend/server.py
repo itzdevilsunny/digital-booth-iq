@@ -42,6 +42,14 @@ SUPABASE_URL = os.environ['SUPABASE_URL']
 SUPABASE_KEY = os.environ['SUPABASE_ANON_KEY']
 SARVAM_API_KEY = os.environ.get('SARVAM_API_KEY', '')
 
+# Real Notification Services Config
+TWILIO_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
+TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER', '')
+TWILIO_WHATSAPP_NUMBER = os.environ.get('TWILIO_WHATSAPP_NUMBER', 'whatsapp:+14155238886') # Twilio Sandbox default
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+FROM_EMAIL = os.environ.get('FROM_EMAIL', 'notifications@boothiq.ai')
+
 SUPABASE_HEADERS = {
     "apikey": SUPABASE_KEY,
     "Authorization": f"Bearer {SUPABASE_KEY}",
@@ -116,8 +124,132 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+# --- REAL NOTIFICATION SERVICES ---
+
+class NotificationHub:
+    """Unified notification hub for Email, SMS, and WhatsApp"""
+    
+    @staticmethod
+    async def send_email(to_email: str, subject: str, content: str):
+        """Send real email using Resend API"""
+        if not RESEND_API_KEY:
+            logger.warning(f"[EMAIL MOCK] To: {to_email} | Subject: {subject}")
+            return False
+            
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.post(
+                    "https://api.resend.com/emails",
+                    headers={
+                        "Authorization": f"Bearer {RESEND_API_KEY}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "from": f"BoothIQ Support <{FROM_EMAIL}>",
+                        "to": [to_email],
+                        "subject": subject,
+                        "html": f"<div style='font-family:sans-serif;padding:20px;border-radius:10px;background:#f9f9f9;'>{content}</div>"
+                    }
+                )
+                if response.status_code == 200 or response.status_code == 201:
+                    logger.info(f"Email sent successfully to {to_email}")
+                    return True
+                logger.error(f"Resend Error: {response.status_code} {response.text}")
+                return False
+            except Exception as e:
+                logger.error(f"Email Exception: {e}")
+                return False
+
+    @staticmethod
+    async def send_sms(to_phone: str, message: str):
+        """Send real SMS using Twilio"""
+        if not TWILIO_SID or not TWILIO_AUTH_TOKEN:
+            logger.warning(f"[SMS MOCK] To: {to_phone} | Msg: {message}")
+            return False
+            
+        auth = base64.b64encode(f"{TWILIO_SID}:{TWILIO_AUTH_TOKEN}".encode()).decode()
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.post(
+                    f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_SID}/Messages.json",
+                    headers={"Authorization": f"Basic {auth}"},
+                    data={
+                        "To": to_phone,
+                        "From": TWILIO_PHONE_NUMBER,
+                        "Body": message
+                    }
+                )
+                if response.status_code == 201:
+                    logger.info(f"SMS sent successfully to {to_phone}")
+                    return True
+                logger.error(f"Twilio SMS Error: {response.status_code} {response.text}")
+                return False
+            except Exception as e:
+                logger.error(f"SMS Exception: {e}")
+                return False
+
+    @staticmethod
+    async def send_whatsapp(to_phone: str, message: str):
+        """Send real WhatsApp message using Twilio WhatsApp API"""
+        if not TWILIO_SID or not TWILIO_AUTH_TOKEN:
+            logger.warning(f"[WHATSAPP MOCK] To: {to_phone} | Msg: {message}")
+            return False
+            
+        # Ensure correct format for WhatsApp
+        wa_to = f"whatsapp:{to_phone}" if not to_phone.startswith('whatsapp:') else to_phone
+        auth = base64.b64encode(f"{TWILIO_SID}:{TWILIO_AUTH_TOKEN}".encode()).decode()
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.post(
+                    f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_SID}/Messages.json",
+                    headers={"Authorization": f"Basic {auth}"},
+                    data={
+                        "To": wa_to,
+                        "From": TWILIO_WHATSAPP_NUMBER,
+                        "Body": message
+                    }
+                )
+                if response.status_code == 201:
+                    logger.info(f"WhatsApp sent successfully to {to_phone}")
+                    return True
+                logger.error(f"Twilio WhatsApp Error: {response.status_code} {response.text}")
+                return False
+            except Exception as e:
+                logger.error(f"WhatsApp Exception: {e}")
+                return False
+
+# --- UTILITIES ---
+
+async def get_user_contact(user_id: str):
+    """Fetch contact info from MongoDB or Supabase for a given ID"""
+    try:
+        # Try MongoDB first (Voter)
+        voter = await db.voters.find_one({"id": user_id})
+        if not voter and str(user_id).isdigit():
+            voter = await db.voters.find_one({"id": f"V{user_id}"})
+        
+        if voter:
+            return {
+                "phone": voter.get("phone"),
+                "email": voter.get("email") or f"{user_id}@boothiq.ai",
+                "name": voter.get("name")
+            }
+            
+        # Try Supabase if not in MongoDB
+        eci_data = await supabase_request("GET", "voters_eci", params={"id": f"eq.{user_id}"})
+        if eci_data and len(eci_data) > 0:
+            return {
+                "phone": eci_data[0].get("phone"),
+                "email": f"{user_id}@boothiq.ai",
+                "name": eci_data[0].get("name")
+            }
+    except Exception as e:
+        logger.error(f"Error fetching contact info for {user_id}: {e}")
+    return {"phone": None, "email": f"{user_id}@boothiq.ai", "name": "Citizen"}
+
 async def send_notification(user_id: str, title: str, message: str, n_type: str = "info", metadata: dict = None):
-    """Multi-channel notification dispatcher"""
+    """Multi-channel notification dispatcher with real service integration"""
     notification = {
         "id": str(uuid.uuid4()),
         "user_id": user_id,
@@ -129,46 +261,56 @@ async def send_notification(user_id: str, title: str, message: str, n_type: str 
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
-    # 1. Store in MongoDB
+    # 1. Store in MongoDB for History
     try:
         await db.notifications.insert_one(notification.copy())
     except Exception as e:
         logger.error(f"Failed to store notification: {e}")
 
-    # 2. Live WebSocket Push
+    # 2. Live WebSocket Push (Fastest delivery)
     if "_id" in notification: del notification["_id"]
     await manager.send_personal_message(notification, user_id)
     
-    # 3. Mock Email / SMS
-    logger.info(f"[NOTIFY] Channel: Email | Destination: {user_id}@boothiq.ai | Subject: {title}")
-    logger.info(f"[NOTIFY] Channel: SMS | Destination: +91-XXXXX-XXXXX | Message: {message}")
+    # 3. Real Multi-Channel Dispatch
+    # Resolve contact info if not in metadata
+    contact = await get_user_contact(user_id)
+    user_email = (metadata or {}).get("email") or contact["email"]
+    user_phone = (metadata or {}).get("phone") or contact["phone"]
+    
+    # Dispatch Email
+    await NotificationHub.send_email(user_email, title, message)
+    
+    # Dispatch SMS & WhatsApp
+    if user_phone:
+        await NotificationHub.send_sms(user_phone, f"{title}: {message}")
+        await NotificationHub.send_whatsapp(user_phone, f"*BoothIQ Notification*\n\n*{title}*\n{message}")
 
 # --- AI FUNCTIONS (Rule-based with Sarvam fallback) ---
 
 def classify_grievance(description: str) -> dict:
-    """Rule-based classification for grievance category, priority, sentiment"""
+    """Enhanced rule-based classification for grievance category, priority, sentiment"""
     text = description.lower()
     
-    # Category classification
+    # Category mapping with expanded keywords
+    category_map = {
+        "water": ["water", "pani", "nala", "pump", "pipe", "borewell", "handpump", "supply", "leak", "sewerage", "drain"],
+        "road": ["road", "pothole", "sadak", "path", "gali", "footpath", "street", "tar", "asphalt", "concrete"],
+        "electricity": ["electricity", "bijli", "power", "light", "wire", "transformer", "pole", "current", "outage", "voltage"],
+        "sanitation": ["drain", "sewer", "garbage", "kuda", "safai", "toilet", "sanitation", "clean", "dustbin", "waste", "dump"],
+        "healthcare": ["hospital", "doctor", "health", "clinic", "medicine", "dawai", "fever", "sick", "ambulance", "patient"],
+        "education": ["school", "education", "teacher", "padhai", "college", "book", "fees", "uniform", "midday", "meal"]
+    }
+    
     category = "other"
-    text = description.lower()
-    if any(w in text for w in ["water", "pani", "nala", "pump", "pipe", "borewell", "handpump", "supply"]):
-        category = "water"
-    elif any(w in text for w in ["road", "pothole", "sadak", "path", "gali", "footpath", "street"]):
-        category = "road"
-    elif any(w in text for w in ["electricity", "bijli", "power", "light", "wire", "transformer", "pole", "current", "bijli"]):
-        category = "electricity"
-    elif any(w in text for w in ["drain", "sewer", "garbage", "kuda", "safai", "toilet", "sanitation", "clean", "dustbin"]):
-        category = "sanitation"
-    elif any(w in text for w in ["hospital", "doctor", "health", "clinic", "medicine", "dawai", "fever", "sick"]):
-        category = "healthcare"
-    elif any(w in text for w in ["school", "education", "teacher", "padhai", "college", "book", "fees"]):
-        category = "education"
+    for cat, keywords in category_map.items():
+        if any(kw in text for kw in keywords):
+            category = cat
+            break
 
+    # Sentiment analysis with better coverage
     sentiment = "neutral"
-    text = description.lower()
-    negative_words = ["broken", "bad", "problem", "issue", "fail", "worst", "terrible", "dirty", "danger", "urgent", "kharab", "tuta", "ganda", "nhi", "no", "poor", "slow"]
-    positive_words = ["good", "better", "fixed", "clean", "thanks", "acha", "dhanyavaad", "shukriya", "great", "nice", "excellent", "fast"]
+    negative_words = ["broken", "bad", "problem", "issue", "fail", "worst", "terrible", "dirty", "danger", "urgent", "kharab", "tuta", "ganda", "nhi", "no", "poor", "slow", "pathetic", "delay"]
+    positive_words = ["good", "better", "fixed", "clean", "thanks", "acha", "dhanyavaad", "shukriya", "great", "nice", "excellent", "fast", "satisfied", "helpful"]
     
     neg_count = sum(1 for w in negative_words if w in text)
     pos_count = sum(1 for w in positive_words if w in text)
@@ -178,12 +320,12 @@ def classify_grievance(description: str) -> dict:
     elif pos_count > neg_count:
         sentiment = "positive"
 
-    # Priority
+    # Priority determination
     priority = "medium"
-    urgent_words = ["urgent", "emergency", "danger", "flood", "fire", "collapse", "accident", "turant", "zaroori", "immediate"]
-    if any(w in text for w in urgent_words):
+    urgent_words = ["urgent", "emergency", "danger", "flood", "fire", "collapse", "accident", "turant", "zaroori", "immediate", "life", "threat", "death"]
+    if any(w in text for w in urgent_words) or (category in ["healthcare", "electricity"] and sentiment == "negative"):
         priority = "high"
-    elif category == "other" and sentiment == "neutral":
+    elif category == "other" and sentiment != "negative":
         priority = "low"
 
     return {"category": category, "sentiment": sentiment, "priority": priority}
@@ -967,10 +1109,18 @@ async def create_grievance(data: GrievanceCreate):
             grievance["ai_priority"] = ai_result["priority"]
             
             # --- NOTIFICATION HOOK ---
-            # Notify Booth Staff (Admins and Workers)
+            # Notify Booth Staff and Voter
             try:
-                # In a real app, we'd find the specific users for this booth
-                # For now, let's mock-notify 'admin_1' and 'worker_1'
+                # Notify the person who filed it
+                await send_notification(
+                    user_id=str(data.voter_id) if data.voter_id else "anonymous",
+                    title="Grievance Filed Successfully",
+                    message=f"Your {category} issue has been logged. Ref ID: {grievance.get('id', 'N/A')}",
+                    n_type="success",
+                    metadata={"phone": data.voter_phone}
+                )
+                
+                # Notify Booth Staff (Admins)
                 await send_notification(
                     user_id="admin_1",
                     title="New Grievance Filed",

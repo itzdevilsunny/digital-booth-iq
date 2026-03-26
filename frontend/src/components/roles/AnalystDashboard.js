@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { getAnalytics, getGraphData } from '../../api';
+import { getAnalytics, getGrievances } from '../../api';
 import { 
   Users, AlertTriangle, PhoneCall, RefreshCw, 
   TrendingUp, TrendingDown, ShieldCheck, Activity,
-  BrainCircuit, Network, Target, Zap, Lightbulb
+  BrainCircuit, Network, Target, Zap, Lightbulb, BarChart2
 } from 'lucide-react';
-import ForceGraph2D from 'react-force-graph-2d';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const MetricCard = ({ label, value, icon: Icon, color, trend, delay }) => (
     <motion.div 
@@ -48,29 +48,18 @@ const MetricCard = ({ label, value, icon: Icon, color, trend, delay }) => (
 
 export default function AnalystDashboard({ currentUser, boothId }) {
     const [stats, setStats] = useState(null);
-    const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+    const [grievances, setGrievances] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // Tactical Defense: Ensure graph links only reference existing nodes to prevent crash
-    const validatedGraphData = useMemo(() => {
-        const nodeIds = new Set(graphData.nodes.map(n => String(n.id)));
-        return {
-            nodes: graphData.nodes,
-            links: graphData.links.filter(l => 
-                nodeIds.has(String(l.source)) && nodeIds.has(String(l.target))
-            )
-        };
-    }, [graphData]);
 
     const loadData = useCallback(async () => {
         setLoading(true);
         try {
-            const [analytics, graph] = await Promise.all([
+            const [analytics, grievancesRaw] = await Promise.all([
                 getAnalytics(boothId),
-                getGraphData()
+                getGrievances({ booth_id: boothId })
             ]);
             setStats(analytics);
-            setGraphData(graph);
+            setGrievances(grievancesRaw || []);
         } catch (e) { console.error(e); }
         setLoading(false);
     }, [boothId]);
@@ -114,10 +103,25 @@ export default function AnalystDashboard({ currentUser, boothId }) {
         );
     }
 
-    const sentTotal = Object.values(stats.sentiment_distribution).reduce((a, b) => a + b, 0);
-    const sentPcts = Object.entries(stats.sentiment_distribution).map(([k, v]) => ({
-        key: k, value: v, pct: sentTotal > 0 ? ((v / sentTotal) * 100).toFixed(1) : 0
-    }));
+    // Build real chart data from grievances
+    const chartData = useMemo(() => {
+        const cats = {};
+        grievances.forEach(g => {
+            const cat = g.category || 'General';
+            if (!cats[cat]) cats[cat] = { name: cat, resolved: 0, pending: 0, total: 0 };
+            cats[cat].total += 1;
+            if (g.status === 'resolved') cats[cat].resolved += 1;
+            else cats[cat].pending += 1;
+        });
+        // Fallback: build from stats if no grievances returned yet
+        if (Object.keys(cats).length === 0 && stats) {
+            return [
+                { name: 'Pending', resolved: 0, pending: stats.pending_issues || 0, total: stats.pending_issues || 0 },
+                { name: 'Resolved', resolved: stats.resolved_issues || 0, pending: 0, total: stats.resolved_issues || 0 },
+            ];
+        }
+        return Object.values(cats).sort((a, b) => b.total - a.total).slice(0, 7);
+    }, [grievances, stats]);
 
     const SENTIMENT_CONFIG = { 
         positive: { color: 'text-emerald-600', bg: 'bg-emerald-600', label: 'Positive Trajectory', icon: TrendingUp },
@@ -165,57 +169,74 @@ export default function AnalystDashboard({ currentUser, boothId }) {
 
             {/* Visual Analytics Grid */}
             <div className="grid lg:grid-cols-3 gap-8">
-                {/* Knowledge Graph Card */}
+                {/* Knowledge Graph Card — Real Grievance Breakdown Chart */}
                 <div className="lg:col-span-2 bg-[#141414] p-10 rounded-[4rem] border border-white/5 relative overflow-hidden group">
                     <div className="absolute top-10 right-10 z-20">
                          <div className="flex items-center gap-3 bg-black/40 backdrop-blur-xl px-4 py-2 rounded-full border border-white/5">
                             <span className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-                            <span className="text-[9px] font-black uppercase tracking-[3px] text-emerald-500/80">LIVE_RELATIONAL_STREAM</span>
+                            <span className="text-[9px] font-black uppercase tracking-[3px] text-emerald-500/80">LIVE_GRIEVANCE_DATA</span>
                          </div>
                     </div>
                     
                     <div className="flex items-center gap-4 mb-12">
                         <div className="size-14 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20 shadow-2xl shadow-emerald-500/10">
-                            <Network size={28} strokeWidth={2.5} />
+                            <BarChart2 size={28} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">SOCIAL_TOPOLOGY</h4>
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-2">FAMILY_RELATIONAL_MATRIX_V2.0</p>
+                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">GRIEVANCE_BREAKDOWN</h4>
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-2">ISSUES_BY_CATEGORY_AND_STATUS</p>
                         </div>
                     </div>
 
-                    <div className="h-[550px] w-full bg-black/40 rounded-[3rem] border border-white/5 relative cursor-crosshair overflow-hidden group/canvas transition-all">
-                        {validatedGraphData.nodes.length > 0 ? (
-                            <ForceGraph2D
-                                graphData={validatedGraphData}
-                                nodeLabel={node => `
-                                    <div class="px-5 py-4 bg-[#0c0c0c] text-white rounded-3xl shadow-2xl font-black text-[10px] border border-white/5">
-                                        <div class="font-black border-b border-white/5 mb-3 pb-2 text-emerald-500 uppercase tracking-[2px]">${node.label}</div>
-                                        <div class="flex justify-between gap-10 mb-2 opacity-50 uppercase tracking-[1px]"><span>INFLUENCE</span> <span class="font-black text-white">${node.influence}</span></div>
-                                        <div class="flex justify-between gap-10 opacity-50 uppercase tracking-[1px]"><span>RISK_VECTOR</span> <span class="font-black text-emerald-400 uppercase">${node.risk}</span></div>
-                                    </div>
-                                `}
-                                nodeColor={node => {
-                                    if (node.sentiment === 'positive') return '#10b981';
-                                    if (node.sentiment === 'negative') return '#f43f5e';
-                                    return '#444444';
-                                }}
-                                nodeVal={node => node.influence + 4}
-                                linkColor={() => '#1a1a1a'}
-                                linkWidth={1}
-                                backgroundColor="transparent"
-                                width={800}
-                                height={550}
-                            />
-                        ) : (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="text-center space-y-6">
-                                    <BrainCircuit size={64} className="mx-auto text-white/10 animate-pulse" />
-                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[6px]">MAPPING_NEURAL_NODES...</p>
+                    {chartData.length === 0 ? (
+                        <div className="h-[550px] flex items-center justify-center text-center">
+                            <div className="space-y-4">
+                                <BrainCircuit size={48} className="mx-auto text-white/10 animate-pulse" />
+                                <p className="text-[10px] font-black text-white/20 uppercase tracking-[6px]">NO_DATA_YET...</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="h-[500px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData} margin={{ top: 10, right: 20, left: -10, bottom: 60 }} barCategoryGap="30%">
+                                    <XAxis 
+                                        dataKey="name" 
+                                        tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 900 }}
+                                        tickLine={false}
+                                        axisLine={{ stroke: 'rgba(255,255,255,0.05)' }}
+                                        angle={-35}
+                                        textAnchor="end"
+                                        interval={0}
+                                    />
+                                    <YAxis 
+                                        tick={{ fill: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: 700 }}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        allowDecimals={false}
+                                    />
+                                    <Tooltip 
+                                        contentStyle={{ background: '#0c0c0c', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '10px 16px' }}
+                                        labelStyle={{ color: '#10b981', fontWeight: 900, fontSize: 11, textTransform: 'uppercase', letterSpacing: 2 }}
+                                        itemStyle={{ color: 'rgba(255,255,255,0.6)', fontWeight: 700, fontSize: 11 }}
+                                        cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                                    />
+                                    <Bar dataKey="resolved" name="Resolved" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
+                                    <Bar dataKey="pending" name="Pending" stackId="a" fill="#f43f5e" radius={[6, 6, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                            {/* Legend */}
+                            <div className="flex items-center justify-center gap-8 mt-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="size-3 rounded-full bg-emerald-500" />
+                                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[2px]">Resolved</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="size-3 rounded-full bg-rose-500" />
+                                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[2px]">Pending</span>
                                 </div>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Sentiment Breakdown Card */}

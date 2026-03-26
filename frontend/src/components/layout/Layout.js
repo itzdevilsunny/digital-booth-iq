@@ -1,11 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
 import NotificationBell from '../ui/NotificationBell';
 import AIChatbot from '../roles/AIChatbot';
-import { Menu, Search, User } from 'lucide-react';
+import { Menu, Search, User, ArrowLeft } from 'lucide-react';
 
 const Layout = ({ children, title = "Dashboard" }) => {
+    const navigate = useNavigate();
+
     return (
         <div className="flex min-h-screen bg-[#0c0c0c] overflow-hidden selection:bg-emerald-500/30 selection:text-emerald-200">
             {/* Sidebar - Desktop Only */}
@@ -18,7 +21,17 @@ const Layout = ({ children, title = "Dashboard" }) => {
                         <button className="md:hidden size-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white active:scale-95 transition-transform">
                             <Menu size={22} />
                         </button>
-                        <div className="hidden sm:block">
+                        
+                        {/* PC Back Button */}
+                        <button 
+                            onClick={() => navigate('/select-role')}
+                            className="hidden md:flex size-11 rounded-2xl bg-white/5 border border-white/10 items-center justify-center text-white/40 hover:text-emerald-500 hover:border-emerald-500/30 hover:bg-emerald-500/10 transition-all group"
+                            title="Back to Role Selection"
+                        >
+                            <ArrowLeft size={20} className="group-hover:-translate-x-0.5 transition-transform" />
+                        </button>
+
+                        <div className="hidden sm:block ml-2">
                             <h2 className="font-display font-black text-2xl text-white tracking-tighter">{title}</h2>
                             <p className="text-[9px] uppercase tracking-[0.3em] text-white/40 font-bold">BoothIQ Intelligence Matrix</p>
                         </div>

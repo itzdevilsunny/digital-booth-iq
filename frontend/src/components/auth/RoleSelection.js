@@ -52,6 +52,19 @@ const RoleSelectionPage = () => {
             </div>
 
             <div className="max-w-7xl mx-auto px-8 py-20 relative z-10">
+                {/* Back Button */}
+                <motion.button
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    onClick={() => navigate('/')}
+                    className="mb-12 flex items-center gap-3 text-white/40 hover:text-emerald-500 transition-all group"
+                >
+                    <div className="size-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-emerald-500/30 group-hover:bg-emerald-500/10">
+                        <ArrowLeft size={16} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-[4px]">Return to Landing</span>
+                </motion.button>
+
                 {/* Header */}
                 <header className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-12 border-b border-white/5 pb-12">
                     <div className="max-w-2xl">
