@@ -53,7 +53,7 @@ const NotificationBell = () => {
               </div>
 
               <div className="overflow-y-auto flex-1 custom-scrollbar">
-                {notifications.length === 0 ? (
+                {!Array.isArray(notifications) || notifications.length === 0 ? (
                   <div className="p-8 text-center">
                     <p className="text-xs text-[#080d1a]/40 font-medium italic">No notifications yet.</p>
                   </div>

@@ -20,8 +20,13 @@ export const NotificationProvider = ({ children, userId }) => {
     try {
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/notifications?user_id=${userId}`);
       const data = await response.json();
-      setNotifications(data);
-      setUnreadCount(data.filter(n => !n.read).length);
+      if (Array.isArray(data)) {
+        setNotifications(data);
+        setUnreadCount(data.filter(n => !n.read).length);
+      } else {
+        console.error('Expected notification array but got:', data);
+        setNotifications([]);
+      }
     } catch (e) {
       console.error('Error fetching notification history:', e);
     }
@@ -37,7 +42,7 @@ export const NotificationProvider = ({ children, userId }) => {
 
     socket.onmessage = (event) => {
       const notification = JSON.parse(event.data);
-      setNotifications(prev => [notification, ...prev]);
+      setNotifications(prev => Array.isArray(prev) ? [notification, ...prev] : [notification]);
       setUnreadCount(prev => prev + 1);
       
       // Trigger toast

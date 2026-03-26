@@ -497,11 +497,15 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
 @api_router.get("/notifications")
 async def get_notifications(user_id: str):
     """Get notification history for a user"""
-    notifications = await db.notifications.find(
-        {"user_id": user_id},
-        {"_id": 0}
-    ).sort("created_at", -1).to_list(50)
-    return notifications
+    try:
+        notifications = await db.notifications.find(
+            {"user_id": str(user_id)},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(50)
+        return notifications
+    except Exception as e:
+        logger.error(f"Error fetching notifications: {e}")
+        return []
 
 @api_router.patch("/notifications/{id}/read")
 async def mark_notification_read(id: str):
