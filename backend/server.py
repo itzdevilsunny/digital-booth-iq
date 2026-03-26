@@ -1494,6 +1494,16 @@ async def get_voter_services():
     ]
     return services
 
+def sanitize_for_json(obj):
+    """Recursive helper to convert non-serializable objects (like ObjectId, datetime) to strings"""
+    if isinstance(obj, dict):
+        return {k: sanitize_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_for_json(i) for i in obj]
+    elif hasattr(obj, '__str__') and not isinstance(obj, (int, float, bool, str, type(None))):
+        return str(obj)
+    return obj
+
 # --- ROUTES: AI CHATBOT ---
 
 @api_router.post("/chat")
@@ -1541,9 +1551,9 @@ async def ai_chat(data: ChatRequest):
         context_prompt = f"""
         You are ESarthi, an intelligent AI assistant for the BoothIQ Governance Platform.
         User Identity: {user.get('name', 'Citizen') if user else 'Citizen'} (Role: {user.get('role', 'Voter') if user else 'Voter'})
-        Voter Context: {json.dumps(voter) if voter else 'No direct registry match, but assisting as a local resident.'}
+        Voter Context: {json.dumps(sanitize_for_json(voter)) if voter else 'No direct registry match, but assisting as a local resident.'}
         Platform Data:
-        - Active Grievances: {json.dumps(system_grievances)} (Total: {len(grievances) if grievances else 0})
+        - Active Grievances: {json.dumps(sanitize_for_json(system_grievances))} (Total: {len(grievances) if grievances else 0})
         - Available Schemes: {json.dumps([s['name'] for s in schemes]) if schemes else '[]'}
         
         Current Query: {data.message}
@@ -1611,10 +1621,10 @@ async def ai_chat(data: ChatRequest):
                 if "insufficient_quota" in str(ai_err):
                     ai_reply = "Institutional AI Quota Exceeded. I am standing by for manual assistance. Please check back later for full intelligence services."
         
-        return {"response": ai_reply or "I am currently undergoing maintenance. Please try again in a moment."}
+        return {"response": ai_reply if ai_reply else "I'm sorry, I'm having trouble connecting to my intelligence core. How can I assist you manually?"}
     except Exception as e:
-        logger.error(f"Chat Error: {e}")
-        return {"response": "I am currently undergoing maintenance. Please try again in a moment."}
+        logger.error(f"Chat Error [Full Trace]: {e}", exc_info=True)
+        return {"response": f"System Alert: A backend synchronization error occurred. Error: {str(e)[:100]}"}
 
 @api_router.post("/ai/stt")
 async def speech_to_text(file: UploadFile = File(...), language_code: str = Form("hi-IN"), user_id: str = Form("anonymous")):
