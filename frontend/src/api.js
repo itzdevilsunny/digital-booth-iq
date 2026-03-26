@@ -45,6 +45,11 @@ export const getBoothsSummary = () => api.get('/manager/booths-summary').then(r 
 export const analyzeBooth = (boothId) => api.post('/manager/analyze', { booth_id: boothId }).then(r => r.data);
 export const sendTargetedUpdate = (data) => api.post('/manager/send-update', data).then(r => r.data);
 
+// Schemes
+export const getSchemes = () => api.get('/schemes').then(r => r.data);
+export const applyForScheme = (data) => api.post('/schemes/apply', data).then(r => r.data);
+export const getApplications = (voterId) => api.get(`/schemes/applications?voter_id=${voterId}`).then(r => r.data);
+
 // Seed
 export const seedData = () => api.post('/seed').then(r => r.data);
 

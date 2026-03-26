@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { createGrievance, getGrievances, getAnalytics, getUsersByRole } from '../../api';
+import { createGrievance, getGrievances, getAnalytics, getUsersByRole, getSchemes, applyForScheme, getApplications } from '../../api';
 import { 
   Send, RefreshCw, User, MapPin, ChevronRight, 
-  Calendar, CheckCircle2, Clock, Activity, AlertCircle
+  Calendar, CheckCircle2, Clock, Activity, AlertCircle,
+  FileText, Search, PlusCircle, ExternalLink, Info, BadgeCheck
 } from 'lucide-react';
 import NotificationBell from '../ui/NotificationBell';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -178,9 +179,12 @@ export default function CitizenDashboard({ currentUser, boothId }) {
   const [analytics, setAnalytics] = useState(null);
   const [workers, setWorkers] = useState([]);
   const [admin, setAdmin] = useState(null);
+  const [schemes, setSchemes] = useState([]);
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(null);
+  const [applying, setApplying] = useState(null);
 
   const safeBoothId = parseInt(boothId) || 17;
 
@@ -188,22 +192,26 @@ export default function CitizenDashboard({ currentUser, boothId }) {
     if (!safeBoothId) return;
     setLoading(true);
     try {
-      const gData = await getGrievances({ booth_id: safeBoothId });
+      const [gData, aData, wData, admData, sData, appData] = await Promise.all([
+        getGrievances({ booth_id: safeBoothId }),
+        getAnalytics(safeBoothId),
+        getUsersByRole('worker'),
+        getUsersByRole('admin'),
+        getSchemes(),
+        currentUser?.id ? getApplications(currentUser.id) : Promise.resolve([])
+      ]);
+      
       setGrievances(gData || []);
-      
-      const aData = await getAnalytics(safeBoothId);
       setAnalytics(aData);
-      
-      const wData = await getUsersByRole('worker');
       setWorkers(wData?.filter(w => w.booth_id === safeBoothId) || []);
-      
-      const admData = await getUsersByRole('admin');
       setAdmin(admData?.find(a => a.booth_id === safeBoothId) || null);
+      setSchemes(sData || []);
+      setApplications(appData || []);
     } catch (e) { 
       console.error("Sync error:", e); 
     }
     setLoading(false);
-  }, [safeBoothId]);
+  }, [safeBoothId, currentUser?.id]);
 
   useEffect(() => {
     fetchData();
@@ -225,9 +233,25 @@ export default function CitizenDashboard({ currentUser, boothId }) {
       fetchData();
     } catch (e) { console.error(e); }
     setSubmitting(false);
-  };
+    };
 
-  const STATUS_CONFIG = {
+    const handleApplyScheme = async (schemeId) => {
+      if (!currentUser?.id) return;
+      setApplying(schemeId);
+      try {
+        await applyForScheme({
+          voter_id: currentUser.id,
+          scheme_id: schemeId,
+          booth_id: safeBoothId
+        });
+        fetchData();
+      } catch (e) {
+        console.error("Application error:", e);
+      }
+      setApplying(null);
+    };
+
+    const STATUS_CONFIG = {
     submitted: { label: 'Registered', icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-100 border-amber-200' },
     assigned: { label: 'Personnel Deployed', icon: User, color: 'text-blue-600', bg: 'bg-blue-100 border-blue-200' },
     in_progress: { label: 'Active Intervention', icon: Activity, color: 'text-[#c9a84c]', bg: 'bg-orange-50 border-orange-200' },
@@ -351,7 +375,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                   </div>
                 </div>
               </motion.div>
-            ) : (
+            ) : tab === 'report' ? (
               <div className="max-w-2xl">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                   className="bg-white border border-slate-200 p-10 rounded-2xl shadow-xl relative overflow-hidden">
@@ -397,6 +421,92 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                   </div>
                 </motion.div>
               </div>
+            ) : (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h2 className="text-3xl font-serif font-black text-slate-900 uppercase tracking-tight">Government Schemes</h2>
+                    <p className="text-sm text-slate-500 font-medium">Verified welfare programs and institutional support</p>
+                  </div>
+                  <div className="px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-3">
+                    <BadgeCheck className="text-emerald-600" size={18} />
+                    <span className="text-[10px] font-mono font-black text-emerald-700 uppercase tracking-widest">Citizen Eligibility Active</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {schemes.map((scheme) => {
+                    const isApplied = applications.some(a => a.scheme_id === scheme.id);
+                    return (
+                      <div key={scheme.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:border-primary/40 transition-all group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-6 opacity-[0.03]">
+                          <FileText size={60} className="text-navy" />
+                        </div>
+                        <div className="flex items-start justify-between mb-6">
+                          <span className="px-3 py-1 bg-slate-50 border border-slate-100 rounded text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest">
+                            {scheme.category}
+                          </span>
+                          {isApplied && (
+                            <span className="px-3 py-1 bg-emerald-50 border border-emerald-100 rounded text-[9px] font-mono font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1">
+                              <CheckCircle2 size={10} /> Applied
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight mb-2 group-hover:text-primary transition-colors">{scheme.name}</h3>
+                        <p className="text-xs text-slate-500 leading-relaxed mb-6 font-medium">{scheme.desc}</p>
+                        
+                        <div className="flex items-center gap-4 pt-6 border-t border-slate-50">
+                          <button 
+                            onClick={() => handleApplyScheme(scheme.id)}
+                            disabled={isApplied || applying === scheme.id}
+                            className={`flex-1 py-3 rounded-xl text-[10px] font-mono font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
+                              isApplied ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-navy text-primary hover:bg-slate-800 active:scale-[0.98]'
+                            }`}
+                          >
+                            {applying === scheme.id ? <RefreshCw className="animate-spin" size={14} /> : isApplied ? 'Registered' : <PlusCircle size={14} />}
+                            {isApplied ? 'Application Logged' : 'Initialize Application'}
+                          </button>
+                          <button className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-primary transition-all border border-slate-100">
+                            <Info size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {applications.length > 0 && (
+                  <div className="mt-16">
+                    <h3 className="font-serif text-2xl font-bold text-slate-900 tracking-tight uppercase mb-6">Active Applications</h3>
+                    <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+                      <table className="w-full text-left">
+                        <thead className="bg-slate-50 border-b border-slate-200 font-mono text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                          <tr>
+                            <th className="px-6 py-4">Reference</th>
+                            <th className="px-6 py-4">Scheme</th>
+                            <th className="px-6 py-4">Applied Date</th>
+                            <th className="px-6 py-4">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {applications.map((app) => (
+                            <tr key={app.id} className="text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                              <td className="px-6 py-4 font-mono text-[10px] text-slate-400">#{app.id.slice(0, 8)}</td>
+                              <td className="px-6 py-4 font-bold uppercase tracking-tight">{schemes.find(s => s.id === app.scheme_id)?.name}</td>
+                              <td className="px-6 py-4">{new Date(app.applied_at).toLocaleDateString()}</td>
+                              <td className="px-6 py-4">
+                                <span className="px-2 py-1 bg-amber-50 text-amber-600 border border-amber-100 rounded-md font-mono text-[9px] font-black uppercase tracking-widest">
+                                  {app.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
             )}
           </div>
 

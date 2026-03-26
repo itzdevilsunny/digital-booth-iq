@@ -277,9 +277,14 @@ class VoterUpdate(BaseModel):
 class CallCreate(BaseModel):
     voter_id: Union[int, str]
     voter_name: str
-    status: str = "pending"
-    notes: str = ""
+    status: str
+    notes: Optional[str] = ""
     booth_id: Union[int, str]
+
+class SchemeApplication(BaseModel):
+    voter_id: str
+    scheme_id: str
+    booth_id: int
 
 class ManagerUpdate(BaseModel):
     booth_id: Union[int, str]
@@ -1037,6 +1042,51 @@ async def manager_send_update(data: ManagerUpdate):
         logger.error(f"Manager update error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/schemes")
+async def get_schemes():
+    """Get list of available government schemes"""
+    schemes = [
+        {"id": "SCH-001", "name": "Pradhan Mantri Awas Yojana", "category": "Housing", "desc": "Housing for all by 2022 scheme for urban areas.", "eligibility": "Low income families"},
+        {"id": "SCH-002", "name": "Ayushman Bharat", "category": "Healthcare", "desc": "Free health coverage up to 5 lakhs per family.", "eligibility": "SECC 2011 listed families"},
+        {"id": "SCH-003", "name": "PM Kisan Samman Nidhi", "category": "Welfare", "desc": "Income support of 6000 per year to farmers.", "eligibility": "Small and marginal farmers"},
+        {"id": "SCH-004", "name": "Ujjwala Yojana", "category": "Energy", "desc": "Free LPG connection to women of BPL households.", "eligibility": "BPL households"}
+    ]
+    return schemes
+
+@api_router.post("/schemes/apply")
+async def apply_scheme(data: SchemeApplication):
+    """Log a scheme application"""
+    try:
+        application = {
+            "id": str(uuid.uuid4()),
+            "voter_id": data.voter_id,
+            "scheme_id": data.scheme_id,
+            "booth_id": data.booth_id,
+            "status": "pending",
+            "applied_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.scheme_applications.insert_one(application)
+        
+        # Send notification to user
+        await send_notification(
+            user_id=data.voter_id,
+            title="Application Received",
+            message=f"Your application for scheme {data.scheme_id} has been successfully logged.",
+            n_type="success"
+        )
+        
+        return {"status": "success", "application_id": application["id"]}
+    except Exception as e:
+        logger.error(f"Error applying for scheme: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/schemes/applications")
+async def get_applications(voter_id: str):
+    """Get applications for a specific voter"""
+    cursor = db.scheme_applications.find({"voter_id": voter_id}, {"_id": 0})
+    apps = await cursor.to_list(length=100)
+    return apps
+
 # --- ROUTES: SEED DATA ---
 
 @api_router.post("/seed")
@@ -1288,4 +1338,6 @@ async def shutdown_db_client():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    # Use PORT env var for production deployment
+    port = int(os.environ.get("PORT", 8001))
+    uvicorn.run(app, host="0.0.0.0", port=port)
