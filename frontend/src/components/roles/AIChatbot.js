@@ -117,12 +117,16 @@ export default function AIChatbot({ currentUser, boothId }) {
     <>
       {/* Chat Toggle Button - above bottom nav on mobile */}
       <button 
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-28 right-5 md:bottom-8 md:right-8 z-[60] size-14 md:size-16 bg-emerald-600 text-white rounded-full shadow-2xl shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all group overflow-hidden border-2 border-emerald-500/40"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`fixed bottom-28 right-5 md:bottom-8 md:right-8 z-[80] size-14 md:size-16 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group overflow-hidden border-2 ${
+          isOpen 
+            ? 'bg-slate-900 text-white border-slate-700 shadow-slate-900/30' 
+            : 'bg-emerald-600 text-white border-emerald-500/40 shadow-emerald-500/30'
+        }`}
       >
         <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        <MessageSquare size={24} className="relative z-10" />
-        <div className="absolute -top-1 -right-1 size-3.5 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+        {isOpen ? <X size={24} className="relative z-10" /> : <MessageSquare size={24} className="relative z-10" />}
+        {!isOpen && <div className="absolute -top-1 -right-1 size-3.5 bg-red-500 rounded-full border-2 border-white animate-pulse" />}
       </button>
 
       <AnimatePresence>

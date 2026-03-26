@@ -2,6 +2,7 @@ services:
   - type: web
     name: booth-iq-backend
     env: python
+    runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -16,6 +17,6 @@ services:
       - key: OPENAI_API_KEY
         sync: false
       - key: CORS_ORIGINS
-        value: "*" # Update this to your Vercel URL later for security
+        value: "*"
       - key: PYTHON_VERSION
-        value: 3.10.0
+        value: 3.11.0

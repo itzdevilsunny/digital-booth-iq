@@ -19,21 +19,18 @@ import base64
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-import ssl as _ssl
-
-# MongoDB connection — explicit SSL context for Python 3.14 compatibility
-# Python 3.14 changed TLS defaults which breaks implicit Atlas SSL negotiation
-_ssl_ctx = _ssl.create_default_context()
-_ssl_ctx.check_hostname = False
-_ssl_ctx.verify_mode = _ssl.CERT_NONE
-
+# MongoDB connection — use connection string TLS params for Python 3.14 compatibility
+# motor's AsyncIOMotorClient does not accept ssl_context directly; rely on URI params instead.
 mongo_url = os.environ['MONGO_URL']
+# Append tlsInsecure if not already in URL (handles Python 3.14 strict TLS defaults)
+if 'tlsInsecure' not in mongo_url and '?' in mongo_url:
+    mongo_url += '&tlsInsecure=true'
+elif 'tlsInsecure' not in mongo_url:
+    mongo_url += '?tlsInsecure=true'
+
 client = AsyncIOMotorClient(
     mongo_url,
     serverSelectionTimeoutMS=5000,
-    tls=True,
-    tlsAllowInvalidCertificates=True,
-    ssl_context=_ssl_ctx,
 )
 db = client[os.environ['DB_NAME']]
 
