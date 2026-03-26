@@ -7,6 +7,7 @@ import {
   ChevronRight, Calendar, UserCircle, X, ShieldAlert,
   Zap, BadgeCheck, ClipboardList, Send, MapPin, Users
 } from 'lucide-react';
+import NotificationBell from '../ui/NotificationBell';
 
 const STATUS_CONFIG = {
   submitted: { label: 'Awaiting Orders', bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20', icon: ShieldAlert },
@@ -97,9 +98,12 @@ export default function WorkerDashboard({ currentUser: initialUser }) {
                 </div>
               </div>
             </div>
-            <button onClick={loadData} className="p-2 hover:bg-black/5 rounded-full transition-colors relative">
-               <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
-            </button>
+            <div className="flex items-center gap-3">
+              <NotificationBell />
+              <button onClick={loadData} className="p-2 hover:bg-black/5 rounded-full transition-colors relative">
+                 <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+              </button>
+            </div>
           </div>
         </div>
       </header>

@@ -22,7 +22,7 @@ export default function CityManagerDashboard({ currentUser }) {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [selectedVoters, setSelectedVoters] = useState([]);
-  const [voterFilter, setVoterFilter] = useState({ category: '', sentiment: '' });
+  const [voterFilter, setVoterFilter] = useState({ segment: '', sentiment: '' });
   const [voters, setVoters] = useState([]);
   const [sendingUpdate, setSendingUpdate] = useState(false);
   const [updateMessage, setUpdateMessage] = useState('');
@@ -38,22 +38,35 @@ export default function CityManagerDashboard({ currentUser }) {
 
   useEffect(() => { loadBooths(); }, [loadBooths]);
 
+  const loadBoothVoters = useCallback(async (boothId) => {
+    if (!boothId) return;
+    try {
+      const voterData = await getVoters(boothId);
+      setVoters(voterData || []);
+    } catch (e) { console.error(e); }
+  }, []);
+
   const handleAnalyze = async (boothId) => {
     setAnalyzing(true);
     try {
       const result = await analyzeBooth(boothId);
       setAnalysisResult(result);
       
-      // Auto-filter voters based on top priority
-      const voterData = await getVoters(boothId);
-      setVoters(voterData || []);
+      // Load voters if not already loaded or refresh
+      await loadBoothVoters(boothId);
       
       if (result.top_priority) {
-        setVoterFilter(prev => ({ ...prev, category: result.top_priority }));
+        setVoterFilter(prev => ({ ...prev, segment: result.top_priority }));
       }
     } catch (e) { console.error(e); }
     setAnalyzing(false);
   };
+
+  useEffect(() => {
+    if (selectedBooth) {
+      loadBoothVoters(selectedBooth.id);
+    }
+  }, [selectedBooth, loadBoothVoters]);
 
   const handleSendUpdate = async () => {
     if (!updateMessage || selectedVoters.length === 0) return;
@@ -78,9 +91,9 @@ export default function CityManagerDashboard({ currentUser }) {
   );
 
   const filteredVoters = voters.filter(v => {
-    const catMatch = !voterFilter.category || v.category === voterFilter.category;
+    const segmentMatch = !voterFilter.segment || v.segment === voterFilter.segment;
     const sentMatch = !voterFilter.sentiment || v.sentiment === voterFilter.sentiment;
-    return catMatch && sentMatch;
+    return segmentMatch && sentMatch;
   });
 
   // Main Grid View

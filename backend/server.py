@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from typing import Optional, Union, Any, List
 import uuid
 from datetime import datetime, timezone
+from fastapi import WebSocket, WebSocketDisconnect
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -41,6 +42,71 @@ api_router = APIRouter(prefix="/api")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# --- NOTIFICATION INFRASTRUCTURE ---
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: dict[str, List[WebSocket]] = {}
+
+    async def connect(self, user_id: str, websocket: WebSocket):
+        await websocket.accept()
+        if user_id not in self.active_connections:
+            self.active_connections[user_id] = []
+        self.active_connections[user_id].append(websocket)
+        logger.info(f"User {user_id} connected. Active connections: {len(self.active_connections[user_id])}")
+
+    def disconnect(self, user_id: str, websocket: WebSocket):
+        if user_id in self.active_connections:
+            self.active_connections[user_id].remove(websocket)
+            if not self.active_connections[user_id]:
+                del self.active_connections[user_id]
+        logger.info(f"User {user_id} disconnected.")
+
+    async def send_personal_message(self, message: dict, user_id: str):
+        if user_id in self.active_connections:
+            for connection in self.active_connections[user_id]:
+                try:
+                    await connection.send_json(message)
+                except Exception as e:
+                    logger.error(f"Error sending ws message to {user_id}: {e}")
+
+    async def broadcast(self, message: dict):
+        for user_id in self.active_connections:
+            for connection in self.active_connections[user_id]:
+                try:
+                    await connection.send_json(message)
+                except Exception as e:
+                    logger.error(f"Error broadcasting to {user_id}: {e}")
+
+manager = ConnectionManager()
+
+async def send_notification(user_id: str, title: str, message: str, n_type: str = "info", metadata: dict = None):
+    """Multi-channel notification dispatcher"""
+    notification = {
+        "id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "title": title,
+        "message": message,
+        "type": n_type,
+        "metadata": metadata or {},
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # 1. Store in MongoDB
+    try:
+        await db.notifications.insert_one(notification.copy())
+    except Exception as e:
+        logger.error(f"Failed to store notification: {e}")
+
+    # 2. Live WebSocket Push
+    if "_id" in notification: del notification["_id"]
+    await manager.send_personal_message(notification, user_id)
+    
+    # 3. Mock Email / SMS
+    logger.info(f"[NOTIFY] Channel: Email | Destination: {user_id}@boothiq.ai | Subject: {title}")
+    logger.info(f"[NOTIFY] Channel: SMS | Destination: +91-XXXXX-XXXXX | Message: {message}")
 
 # --- AI FUNCTIONS (Rule-based with Sarvam fallback) ---
 
@@ -415,6 +481,34 @@ async def get_graph_data():
             
     return {"nodes": nodes, "links": links}
 
+# --- ROUTES: NOTIFICATIONS ---
+
+@app.websocket("/ws/notifications/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: str):
+    await manager.connect(user_id, websocket)
+    try:
+        while True:
+            # Keep connection alive
+            data = await websocket.receive_text()
+            # Optional: handle client messages
+    except WebSocketDisconnect:
+        manager.disconnect(user_id, websocket)
+
+@api_router.get("/notifications")
+async def get_notifications(user_id: str):
+    """Get notification history for a user"""
+    notifications = await db.notifications.find(
+        {"user_id": user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+    return notifications
+
+@api_router.patch("/notifications/{id}/read")
+async def mark_notification_read(id: str):
+    """Mark a notification as read"""
+    await db.notifications.update_one({"id": id}, {"$set": {"read": True}})
+    return {"status": "success"}
+
 # --- ROUTES: BOOTHS ---
 
 @api_router.get("/booths")
@@ -669,6 +763,22 @@ async def create_grievance(data: GrievanceCreate):
             grievance["ai_category"] = ai_result["category"]
             grievance["ai_sentiment"] = ai_result["sentiment"]
             grievance["ai_priority"] = ai_result["priority"]
+            
+            # --- NOTIFICATION HOOK ---
+            # Notify Booth Staff (Admins and Workers)
+            try:
+                # In a real app, we'd find the specific users for this booth
+                # For now, let's mock-notify 'admin_1' and 'worker_1'
+                await send_notification(
+                    user_id="admin_1",
+                    title="New Grievance Filed",
+                    message=f"A new {category} issue has been reported in Booth {real_booth_id}.",
+                    n_type="warning",
+                    metadata={"grievance_id": str(grievance["id"])}
+                )
+            except Exception as e:
+                logger.error(f"Notification Hook Error: {e}")
+            
             return grievance
         
         raise HTTPException(status_code=500, detail="Failed to create grievance")
@@ -721,7 +831,30 @@ async def update_grievance(data: GrievanceUpdate):
                 await supabase_request("PATCH", f"grievances?id=eq.{data.id}", json_data={
                     "status": "assigned"
                 })
-        
+            
+            # --- NOTIFICATION HOOK: ASSIGNMENT ---
+            await send_notification(
+                user_id=str(data.assigned_to),
+                title="Grievance Assigned",
+                message=f"You have been assigned a new grievance (ID: {data.id}).",
+                n_type="info",
+                metadata={"grievance_id": str(data.id)}
+            )
+
+        # --- NOTIFICATION HOOK: STATUS UPDATE ---
+        if data.status and data.status == "resolved":
+            # Find the voter_id for this grievance
+            grievance = await supabase_request("GET", f"grievances?id=eq.{data.id}", params={"select": "voter_id"})
+            if grievance and grievance[0].get("voter_id"):
+                v_id = str(grievance[0]["voter_id"])
+                await send_notification(
+                    user_id=v_id,
+                    title="Mission Accomplished",
+                    message="Your reported issue has been resolved. Thank you for your patience!",
+                    n_type="success",
+                    metadata={"grievance_id": str(data.id)}
+                )
+
         return {"status": "updated", "id": data.id}
     except Exception as e:
         logger.error(f"Error updating grievance: {e}")
@@ -1018,27 +1151,41 @@ async def seed_data():
             logger.error(f"Booth Check Failed: {e}")
             best_id = 1 
         
-        # 3. Prepare Supabase Batches (First 100 for speed, MongoDB keeps all 1000)
+        # 3. Prepare Supabase Batches (First 300 for volume, MongoDB keeps all 1000)
         eci_records = []
         enrichment_records = []
         
-        for i in range(1, 101):
+        # Create a few more booths for variety
+        try:
+            more_booths = [
+                {"id": 2, "booth_number": 18, "name": "East Gate Strategic Hub", "ward_number": "Sector 10"},
+                {"id": 3, "booth_number": 19, "name": "Metro Terminal Center", "ward_number": "Sector 11"},
+                {"id": 4, "booth_number": 20, "name": "Global Tech Park Unit", "ward_number": "Sector 12"}
+            ]
+            for b in more_booths:
+                await supabase_request("POST", "booths", json_data=b)
+        except: pass
+
+        for i in range(1, 301):
             v = voters_to_insert[i-1]
             eci_id = 1000 + i
-            # Type-Agnostic IDs: Try to match whatever the schema expects
+            
+            # Distribute voters across booths 1, 2, 3, 4
+            target_booth = (i % 4) + 1
+            
             eci_records.append({
                 "id": str(eci_id),
                 "name": v["name"],
                 "phone": v["phone"],
-                "booth_id": str(best_id), # String match
+                "booth_id": str(target_booth),
                 "address": v["address"],
-                "gender": "Other",
-                "dob": "1990-01-01"
+                "gender": "Male" if i % 2 == 0 else "Female",
+                "dob": f"{1970 + (i % 30)}-01-01"
             })
             enrichment_records.append({
                 "eci_voter_id": str(eci_id),
                 "sentiment": v["sentiment"],
-                "segment": "other",
+                "segment": v["tags"][0],
                 "influence_score": float(v["influence_score"]),
                 "risk_level": v["risk"]
             })
@@ -1051,17 +1198,18 @@ async def seed_data():
         except Exception as e:
             logger.error(f"Voter Sync Failed: {e}")
 
-        # 4. Seed grievances
+        # 4. Seed grievances (more volume)
         try:
             await supabase_request("DELETE", "grievances", params={"id": "gt.0"})
             gr_recs = []
-            for i in range(1, 6):
+            for i in range(1, 21):
                 v = voters_to_insert[i-1]
+                target_booth = (i % 4) + 1
                 gr_recs.append({
                     "voter_id": str(1000 + i),
-                    "booth_id": str(best_id),
+                    "booth_id": str(target_booth),
                     "description": v["grievances"][0]["description"],
-                    "status": "submitted",
+                    "status": "submitted" if i % 3 != 0 else "resolved",
                     "category": v["tags"][0]
                 })
             await supabase_request("POST", "grievances", json_data=gr_recs)

@@ -19,6 +19,7 @@ import CitizenDashboard from './components/roles/CitizenDashboard';
 import AnalystDashboard from './components/roles/AnalystDashboard';
 import CityManagerDashboard from './components/roles/CityManagerDashboard';
 import { Users, Shield, Wrench, UserCircle, BarChart3, MapPin, RefreshCw, LogOut, ChevronRight, ShieldCheck, Globe } from 'lucide-react';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 /* ─── Role Configuration ─── */
 const ROLE_CONFIG = {
@@ -160,7 +161,8 @@ function DashboardPage() {
           </div>
         </div>
       ) : (
-        <div className="relative">
+        <NotificationProvider userId={currentUser?.id}>
+          <div className="relative">
           <button onClick={() => setSelectedRole('')} 
             className="fixed bottom-8 left-8 z-[60] px-6 py-3 bg-[#080d1a] text-white rounded-2xl text-[10px] font-mono font-black uppercase tracking-widest shadow-2xl hover:bg-[#c9a84c] transition-all flex items-center gap-3 active:scale-95">
             <LogOut size={16} /> Exit Role
@@ -171,7 +173,8 @@ function DashboardPage() {
               boothId={currentUser?.booth_id || 17} 
             />
           )}
-        </div>
+          </div>
+        </NotificationProvider>
       )}
     </div>
   );

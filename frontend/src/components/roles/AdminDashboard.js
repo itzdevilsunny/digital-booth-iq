@@ -7,6 +7,7 @@ import {
   MapPin, User, Search, Filter, RefreshCw, X,
   ChevronRight, Activity, TrendingUp, Info
 } from 'lucide-react';
+import NotificationBell from '../ui/NotificationBell';
 
 const STATUS_CONFIG = {
   submitted: { label: 'Awaiting Deployment', bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20', icon: AlertCircle },
@@ -95,6 +96,7 @@ export default function AdminDashboard({ boothId }) {
             </div>
             
             <div className="flex items-center gap-4">
+               <NotificationBell />
                <button onClick={loadData} className="p-2 hover:bg-black/5 rounded-full transition-colors relative">
                  <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
                </button>

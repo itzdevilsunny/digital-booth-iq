@@ -11,7 +11,7 @@ import ForceGraph2D from 'react-force-graph-2d';
 
 export default function AnalystDashboard({ currentUser, boothId }) {
   const [stats, setStats] = useState(null);
-  const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
+  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {

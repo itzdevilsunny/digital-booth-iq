@@ -4,6 +4,7 @@ import {
   Send, RefreshCw, User, MapPin, ChevronRight, 
   Calendar, CheckCircle2, Clock, Activity, AlertCircle
 } from 'lucide-react';
+import NotificationBell from '../ui/NotificationBell';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Sub-components (Ported from Booth IQ) ---
@@ -242,6 +243,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
             <p className="font-mono text-[10px] tracking-[3px] uppercase text-slate-500">Authorized Access: {currentUser?.name || "Citizen"}</p>
           </div>
           <div className="flex items-center gap-4">
+             <NotificationBell />
              <button onClick={fetchData} className="size-10 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600 hover:text-primary transition-all">
                 <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
              </button>
