@@ -2,6 +2,7 @@ import React from 'react';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
 import NotificationBell from '../ui/NotificationBell';
+import AIChatbot from '../roles/AIChatbot';
 import { Menu, Search, User } from 'lucide-react';
 
 const Layout = ({ children, title = "Dashboard" }) => {
@@ -56,6 +57,9 @@ const Layout = ({ children, title = "Dashboard" }) => {
 
                 {/* Bottom Nav - Mobile Only */}
                 <BottomNav />
+
+                {/* Global AI Chatbot FAB */}
+                <AIChatbot currentUser={null} boothId={17} />
             </div>
         </div>
     );

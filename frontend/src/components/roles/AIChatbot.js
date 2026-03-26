@@ -115,14 +115,14 @@ export default function AIChatbot({ currentUser, boothId }) {
 
   return (
     <>
-      {/* Chat Toggle Button */}
+      {/* Chat Toggle Button - above bottom nav on mobile */}
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 right-8 z-[60] size-16 bg-navy text-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group overflow-hidden border-2 border-primary/20"
+        className="fixed bottom-28 right-5 md:bottom-8 md:right-8 z-[60] size-14 md:size-16 bg-emerald-600 text-white rounded-full shadow-2xl shadow-emerald-500/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all group overflow-hidden border-2 border-emerald-500/40"
       >
-        <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        <MessageSquare size={28} className="relative z-10" />
-        <div className="absolute -top-1 -right-1 size-4 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <MessageSquare size={24} className="relative z-10" />
+        <div className="absolute -top-1 -right-1 size-3.5 bg-red-500 rounded-full border-2 border-white animate-pulse" />
       </button>
 
       <AnimatePresence>
@@ -131,20 +131,20 @@ export default function AIChatbot({ currentUser, boothId }) {
             initial={{ opacity: 0, y: 100, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 100, scale: 0.9 }}
-            className="fixed bottom-28 right-8 z-[70] w-[400px] h-[600px] bg-white rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
+            className="fixed bottom-0 right-0 md:bottom-28 md:right-8 z-[70] w-full md:w-[400px] h-[75vh] md:h-[560px] bg-white rounded-t-3xl md:rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
           >
             {/* Header */}
-            <div className="bg-navy p-6 flex items-center justify-between text-white relative overflow-hidden">
+            <div className="bg-[#0c0c0c] p-5 flex items-center justify-between text-white relative overflow-hidden">
               <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
               <div className="flex items-center gap-4 relative z-10">
-                <div className="size-12 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">
-                  <Sparkles size={24} className="text-primary" />
+                <div className="size-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                  <Sparkles size={24} className="text-emerald-400" />
                 </div>
                 <div>
                   <h3 className="font-serif text-lg font-black tracking-tight uppercase">ESarthi AI</h3>
                   <div className="flex items-center gap-2">
                     <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <p className="text-[10px] font-mono font-bold text-primary uppercase tracking-widest">Protocol Active</p>
+                    <p className="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest">Protocol Active</p>
                   </div>
                 </div>
               </div>
@@ -156,7 +156,7 @@ export default function AIChatbot({ currentUser, boothId }) {
             {/* Messages */}
             <div 
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50"
+              className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-slate-50/50"
             >
               {messages.map((m, i) => (
                 <motion.div 
@@ -173,7 +173,7 @@ export default function AIChatbot({ currentUser, boothId }) {
                       {m.role === 'bot' && (
                         <button 
                           onClick={() => handleTTS(m.content)}
-                          className={`p-1 rounded-md hover:bg-slate-200 transition-colors ${isSpeaking ? 'text-primary' : 'text-slate-400'}`}
+                          className={`p-1 rounded-md hover:bg-slate-200 transition-colors ${isSpeaking ? 'text-emerald-500' : 'text-slate-400'}`}
                         >
                           <Volume2 size={10} />
                         </button>
@@ -181,7 +181,7 @@ export default function AIChatbot({ currentUser, boothId }) {
                     </div>
                     <div className={`p-4 rounded-2xl text-xs font-medium leading-relaxed shadow-sm ${
                       m.role === 'user' 
-                        ? 'bg-navy text-white rounded-tr-none' 
+                        ? 'bg-[#0c0c0c] text-white rounded-tr-none' 
                         : 'bg-white border border-slate-200 text-slate-700 rounded-tl-none'
                     }`}>
                       {m.content}
@@ -192,7 +192,7 @@ export default function AIChatbot({ currentUser, boothId }) {
               {loading && (
                 <div className="flex justify-start">
                   <div className="bg-white border border-slate-200 p-4 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-2">
-                    <Loader2 size={14} className="animate-spin text-primary" />
+                    <Loader2 size={14} className="animate-spin text-emerald-500" />
                     <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Processing...</span>
                   </div>
                 </div>
@@ -200,7 +200,7 @@ export default function AIChatbot({ currentUser, boothId }) {
             </div>
 
             {/* Input Area */}
-            <div className="p-6 bg-white border-t border-slate-100">
+            <div className="p-4 md:p-6 bg-white border-t border-slate-100">
               <div className="flex items-center gap-3">
                 <div className="flex-1 relative">
                   <input 
@@ -209,13 +209,13 @@ export default function AIChatbot({ currentUser, boothId }) {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                     placeholder="Inquire with ESarthi..."
-                    className="w-full pl-4 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-navy placeholder:text-slate-400 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                    className="w-full pl-4 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
                   />
                   <button 
                     onMouseDown={startRecording}
                     onMouseUp={stopRecording}
                     onMouseLeave={stopRecording}
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'text-slate-400 hover:text-primary hover:bg-slate-100'}`}
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'text-slate-400 hover:text-emerald-500 hover:bg-slate-100'}`}
                   >
                     {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
                   </button>
@@ -223,7 +223,7 @@ export default function AIChatbot({ currentUser, boothId }) {
                 <button 
                   onClick={() => handleSend()}
                   disabled={!input.trim() || loading}
-                  className="p-4 bg-navy text-primary rounded-2xl shadow-lg hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
+                  className="p-4 bg-[#0c0c0c] text-emerald-400 rounded-2xl shadow-lg hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
                 >
                   <Send size={20} />
                 </button>
