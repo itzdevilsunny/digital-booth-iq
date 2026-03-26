@@ -2,12 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { getGrievances, updateGrievance, getUsersByRole, getVoters, getBooths } from '../../api';
+import { getGrievances, updateGrievance, getUsersByRole, getVoters } from '../../api';
 import {
     Users,
     ChevronRight,
     MapPin,
-    Target,
     Activity,
     CheckCircle,
     Clock,
@@ -15,7 +14,6 @@ import {
     AlertCircle,
     LayoutDashboard,
     X,
-    ClipboardList,
     Shield,
     RefreshCw,
     User,
@@ -70,9 +68,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
 
     const [grievances, setGrievances] = useState([]);
     const [workers, setWorkers] = useState([]);
-    const [applications, setApplications] = useState([]);
     const [voters, setVoters] = useState([]);
-    const [admin, setAdmin] = useState(null);
     const [loading, setLoading] = useState(false);
     const [tab, setTab] = useState(getTabFromPath(location.pathname));
     const [assignModal, setAssignModal] = useState(null);

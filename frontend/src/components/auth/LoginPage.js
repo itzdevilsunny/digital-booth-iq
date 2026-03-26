@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Mail, Lock, Fingerprint, ShieldCheck,
-    Verified, Globe, Cpu, Zap, Radio,
-    ChevronRight, Key, UserCheck, ShieldClose,
-    ArrowRight, AtSign, Shield
+    Mail, Fingerprint, ShieldCheck,
+    Verified, Cpu, Radio,
+    ChevronRight, Key, UserCheck, ShieldClose
 } from 'lucide-react';
 
 const LoginPage = () => {

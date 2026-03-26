@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, MessageSquare, ShieldCheck, ChevronRight, Zap, LogOut } from 'lucide-react';
+import { LayoutDashboard, Zap, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const BottomNav = () => {

@@ -1,6 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Navbar } from './Navbar';
 import { Hero } from './Hero';
 import { ProblemStatement } from './ProblemStatement';
@@ -9,7 +7,7 @@ import { HowItWorks } from './HowItWorks';
 import { Roles } from './Roles';
 import { SecurityEthics } from './SecurityEthics';
 import { MultilingualSupport } from './MultilingualSupport';
-import { CTA_Section } from './CTA_Section';
+import { CTASection } from './CTA_Section';
 import { Footer } from './Footer';
 
 const LandingPage = () => {
@@ -45,7 +43,7 @@ const LandingPage = () => {
                 <MultilingualSupport />
                 
                 <div className="relative isolate px-6 py-32 sm:py-40 lg:px-8 bg-gradient-to-b from-transparent to-black">
-                    <CTA_Section />
+                    <CTASection />
                 </div>
             </main>
             <Footer />

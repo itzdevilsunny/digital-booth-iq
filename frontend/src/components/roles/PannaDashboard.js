@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getVoters, updateVoter, getCalls, createCall, createGrievance } from '../../api';
 import { 
   Phone, PhoneOff, PhoneMissed, UserCircle, ArrowUpCircle, ArrowDownCircle, 
-  MinusCircle, AlertTriangle, CheckCircle, Search, RefreshCw, BarChart3,
-  Users, Calendar, ChevronRight, X, PhoneCall, MessageSquare,
-  Activity, Zap, Shield, Info, UserPlus, PhoneForwarded
+  MinusCircle, AlertTriangle, Search, RefreshCw, BarChart3,
+  Users, ChevronRight, X, PhoneCall,
+  Activity, Shield, PhoneForwarded
 } from 'lucide-react';
 
 const SENTIMENT_STYLES = {

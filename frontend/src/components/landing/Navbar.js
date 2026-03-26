@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Icon } from "./shared";
-import { Zap, ShieldCheck } from "lucide-react";
+import { Zap } from "lucide-react";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);

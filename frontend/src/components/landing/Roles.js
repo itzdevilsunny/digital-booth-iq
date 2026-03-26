@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Icon, Reveal, StaggerContainer, staggerChild } from "./shared";
+import { Reveal, StaggerContainer, staggerChild } from "./shared";
 
 export function Roles() {
   const roles = [

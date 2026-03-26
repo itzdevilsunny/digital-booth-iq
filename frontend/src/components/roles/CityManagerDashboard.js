@@ -77,7 +77,6 @@ export default function CityManagerDashboard({ currentUser }) {
     const [booths, setBooths] = useState([]);
     const [selectedBooth, setSelectedBooth] = useState(null);
     const [alerts, setAlerts] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [resolving, setResolving] = useState(false);
     
@@ -91,7 +90,6 @@ export default function CityManagerDashboard({ currentUser }) {
     const [updateMessage, setUpdateMessage] = useState('');
 
     const loadBooths = useCallback(async () => {
-        setLoading(true);
         try {
             const [bData, aData] = await Promise.all([
                 getBoothsSummary(),
@@ -100,7 +98,6 @@ export default function CityManagerDashboard({ currentUser }) {
             setBooths(bData || []);
             setAlerts(aData || []);
         } catch (e) { console.error(e); }
-        setLoading(false);
     }, []);
 
     useEffect(() => { loadBooths(); }, [loadBooths]);

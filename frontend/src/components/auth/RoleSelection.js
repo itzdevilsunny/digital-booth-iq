@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { 
     ShieldCheck, Users, Briefcase, UserCheck, 
     BarChart3, Globe, Zap, 
-    ChevronRight, Cpu, Radio, Network
+    ChevronRight
 } from 'lucide-react';
 
 const RoleCard = ({ role, title, desc, icon: Icon, color, onClick, delay }) => (

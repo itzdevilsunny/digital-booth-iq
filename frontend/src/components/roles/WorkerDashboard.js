@@ -72,8 +72,7 @@ const MissionCard = ({ task, onStart, onResolve, delay }) => {
     );
 };
 
-export default function WorkerDashboard({ currentUser: initialUser }) {
-    const [currentUser, setCurrentUser] = useState(initialUser);
+export default function WorkerDashboard({ currentUser }) {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [resolveModal, setResolveModal] = useState(null);

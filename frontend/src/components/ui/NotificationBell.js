@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, CheckCircle2, AlertCircle, Info, Bell, X, ShieldCheck, Zap, Radio } from 'lucide-react';
+import { Clock, CheckCircle2, AlertCircle, Info, Bell, X, Zap } from 'lucide-react';
 
 const NotificationBell = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();

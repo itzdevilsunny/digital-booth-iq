@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Reveal, Icon } from "./shared";
 import { useNavigate } from "react-router-dom";
 
-export function CTA_Section() {
+export function CTASection() {
   const navigate = useNavigate();
   const scrollTo = (id) => {
     const element = document.getElementById(id);
