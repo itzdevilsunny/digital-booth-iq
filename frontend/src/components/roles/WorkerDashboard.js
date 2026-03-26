@@ -6,7 +6,7 @@ import {
   CheckCircle2, RefreshCw, 
   ChevronRight, Clock, ShieldAlert,
   Zap, BadgeCheck, ClipboardList, Send, MapPin,
-  Shield, Activity
+  Shield, Activity, X
 } from 'lucide-react';
 
 const STATUS_CONFIG = {

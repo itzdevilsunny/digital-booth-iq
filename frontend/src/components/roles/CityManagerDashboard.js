@@ -10,7 +10,14 @@ import {
   Zap,
   ChevronRight,
   MapPin, RefreshCw, Layers,
-  Sparkles
+  Sparkles,
+  BrainCircuit,
+  ShieldAlert,
+  BarChart3,
+  Activity,
+  Users,
+  Target,
+  Send
 } from 'lucide-react';
 
 const BoothCard = ({ booth, onClick }) => (
