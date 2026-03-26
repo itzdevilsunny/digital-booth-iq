@@ -66,6 +66,25 @@ export default function AnalystDashboard({ currentUser, boothId }) {
 
     useEffect(() => { loadData(); }, [loadData]);
 
+    // ⚠️ Must be above early returns — Rules of Hooks
+    const chartData = useMemo(() => {
+        const cats = {};
+        grievances.forEach(g => {
+            const cat = g.category || 'General';
+            if (!cats[cat]) cats[cat] = { name: cat, resolved: 0, pending: 0, total: 0 };
+            cats[cat].total += 1;
+            if (g.status === 'resolved') cats[cat].resolved += 1;
+            else cats[cat].pending += 1;
+        });
+        if (Object.keys(cats).length === 0 && stats) {
+            return [
+                { name: 'Pending', resolved: 0, pending: stats.pending_issues || 0, total: stats.pending_issues || 0 },
+                { name: 'Resolved', resolved: stats.resolved_issues || 0, pending: 0, total: stats.resolved_issues || 0 },
+            ];
+        }
+        return Object.values(cats).sort((a, b) => b.total - a.total).slice(0, 7);
+    }, [grievances, stats]);
+
     if (loading) {
         return (
             <div className="py-40 text-center">
@@ -102,26 +121,6 @@ export default function AnalystDashboard({ currentUser, boothId }) {
             </div>
         );
     }
-
-    // Build real chart data from grievances
-    const chartData = useMemo(() => {
-        const cats = {};
-        grievances.forEach(g => {
-            const cat = g.category || 'General';
-            if (!cats[cat]) cats[cat] = { name: cat, resolved: 0, pending: 0, total: 0 };
-            cats[cat].total += 1;
-            if (g.status === 'resolved') cats[cat].resolved += 1;
-            else cats[cat].pending += 1;
-        });
-        // Fallback: build from stats if no grievances returned yet
-        if (Object.keys(cats).length === 0 && stats) {
-            return [
-                { name: 'Pending', resolved: 0, pending: stats.pending_issues || 0, total: stats.pending_issues || 0 },
-                { name: 'Resolved', resolved: stats.resolved_issues || 0, pending: 0, total: stats.resolved_issues || 0 },
-            ];
-        }
-        return Object.values(cats).sort((a, b) => b.total - a.total).slice(0, 7);
-    }, [grievances, stats]);
 
     const SENTIMENT_CONFIG = { 
         positive: { color: 'text-emerald-600', bg: 'bg-emerald-600', label: 'Positive Trajectory', icon: TrendingUp },
