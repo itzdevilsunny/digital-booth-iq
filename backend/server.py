@@ -951,6 +951,19 @@ async def create_call(data: CallCreate):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/voters/profile/{voter_id}")
+async def get_voter_profile(voter_id: str):
+    """Get detailed profile for a specific voter from MongoDB"""
+    # Try with original ID and V-prefix
+    voter = await db.voters.find_one({"id": voter_id}, {"_id": 0})
+    if not voter and voter_id.isdigit():
+        voter = await db.voters.find_one({"id": f"V{voter_id}"}, {"_id": 0})
+    
+    if not voter:
+        raise HTTPException(status_code=404, detail="Voter profile not found")
+    
+    return voter
+
 # --- ROUTES: GRIEVANCES ---
 
 @api_router.get("/grievances")

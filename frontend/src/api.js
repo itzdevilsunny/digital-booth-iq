@@ -16,6 +16,7 @@ export const getUsersByRole = (role) => api.get(`/users/role/${role}`).then(r =>
 
 // Voters
 export const getVoters = (boothId) => api.get(`/voters?booth_id=${boothId}`).then(r => r.data);
+export const getVoterProfile = (voterId) => api.get(`/voters/profile/${voterId}`).then(r => r.data);
 export const updateVoter = (data) => api.patch('/voters', data).then(r => r.data);
 
 // Calls

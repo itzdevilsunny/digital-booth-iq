@@ -1,11 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { createGrievance, getGrievances, getAnalytics, getUsersByRole, getSchemes, applyForScheme, getApplications, getVoterServices } from '../../api';
+import { 
+  createGrievance, getGrievances, getAnalytics, getUsersByRole, 
+  getSchemes, applyForScheme, getApplications, getVoterServices, 
+  getVoterProfile 
+} from '../../api';
 import { 
   Send, RefreshCw, User, MapPin, ChevronRight,
   Calendar, CheckCircle2, Activity, AlertCircle,
   FileText, ExternalLink, BadgeCheck,
-  Briefcase, Phone, MessageSquare, Shield, Info
+  Briefcase, Phone, MessageSquare, Shield, Info,
+  Fingerprint, Target
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AIChatbot from './AIChatbot';
@@ -134,6 +139,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
     const [submitted, setSubmitted] = useState(null);
     const [applying, setApplying] = useState(null);
     const [expandedId, setExpandedId] = useState(null);
+    const [voterProfile, setVoterProfile] = useState(null);
     const [workers, setWorkers] = useState([]);
     const [admin, setAdmin] = useState(null);
     const [error, setError] = useState(null);
@@ -144,14 +150,15 @@ export default function CitizenDashboard({ currentUser, boothId }) {
         if (!safeBoothId) return;
         setLoading(true);
         try {
-            const [gData, aData, wData, admData, sData, appData, vsData] = await Promise.all([
+            const [gData, aData, wData, admData, sData, appData, vsData, vpData] = await Promise.all([
                 getGrievances({ booth_id: safeBoothId }),
                 getAnalytics(safeBoothId),
                 getUsersByRole('worker'),
                 getUsersByRole('admin'),
                 getSchemes(),
                 currentUser?.id ? getApplications(currentUser.id) : Promise.resolve([]),
-                getVoterServices()
+                getVoterServices(),
+                currentUser?.id ? getVoterProfile(currentUser.id).catch(() => null) : Promise.resolve(null)
             ]);
             
             setGrievances(gData || []);
@@ -161,6 +168,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
             setSchemes(sData || []);
             setApplications(appData || []);
             setVoterServices(vsData || []);
+            setVoterProfile(vpData);
         } catch (e) { 
             console.error("Sync error:", e); 
         }
@@ -509,6 +517,64 @@ export default function CitizenDashboard({ currentUser, boothId }) {
 
                 {/* Sidebar Info */}
                 <div className="lg:col-span-4 space-y-6">
+                    {/* Voter Intelligence Profile */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="bg-stone-900 text-white rounded-[3rem] p-8 shadow-2xl shadow-emerald-900/20 relative overflow-hidden group border border-emerald-500/20"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 to-transparent opacity-50" />
+                        <div className="absolute top-0 right-0 p-6 opacity-10">
+                            <Fingerprint size={80} />
+                        </div>
+                        
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="size-16 rounded-2xl bg-emerald-600 flex items-center justify-center font-black text-2xl shadow-lg shadow-emerald-500/20">
+                                    {currentUser?.name?.[0] || 'C'}
+                                </div>
+                                <div>
+                                    <h3 className="font-black text-xl tracking-tighter leading-none mb-1">{currentUser?.name || 'Citizen'}</h3>
+                                    <p className="text-[10px] uppercase font-bold text-emerald-500 tracking-[3px]">Voter Registry Verified</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-8">
+                                <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                                    <p className="text-[8px] uppercase font-black text-white/40 tracking-[2px] mb-1">Influence</p>
+                                    <p className="text-xl font-black text-emerald-400">{voterProfile?.influence_score?.toFixed(1) || '4.2'}</p>
+                                </div>
+                                <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                                    <p className="text-[8px] uppercase font-black text-white/40 tracking-[2px] mb-1">Sentiment</p>
+                                    <p className={`text-xl font-black uppercase tracking-tighter ${
+                                        voterProfile?.sentiment === 'negative' ? 'text-rose-400' : 
+                                        voterProfile?.sentiment === 'positive' ? 'text-emerald-400' : 'text-amber-400'
+                                    }`}>
+                                        {voterProfile?.sentiment || 'Neutral'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between text-[10px] font-bold py-3 border-b border-white/5">
+                                    <span className="text-white/40 uppercase tracking-[2px]">Voter ID</span>
+                                    <span className="text-white font-mono">{currentUser?.id || 'V1001'}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-[10px] font-bold py-3 border-b border-white/5">
+                                    <span className="text-white/40 uppercase tracking-[2px]">Booth Access</span>
+                                    <span className="text-white font-mono">#{safeBoothId}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-[10px] font-bold py-3">
+                                    <span className="text-white/40 uppercase tracking-[2px]">Status</span>
+                                    <span className="flex items-center gap-2 text-emerald-400">
+                                        <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        ACTIVE
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
                     {/* Support Team */}
                     <div className="bg-white text-stone-900 rounded-[3rem] p-8 shadow-xl shadow-stone-200/50 relative overflow-hidden group border border-stone-200">
                         <div className="absolute inset-0 bg-grid-pattern opacity-5" />
