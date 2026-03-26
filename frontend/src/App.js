@@ -17,10 +17,12 @@ import AdminDashboard from './components/roles/AdminDashboard';
 import WorkerDashboard from './components/roles/WorkerDashboard';
 import CitizenDashboard from './components/roles/CitizenDashboard';
 import AnalystDashboard from './components/roles/AnalystDashboard';
-import { Users, Shield, Wrench, UserCircle, BarChart3, MapPin, RefreshCw, LogOut, ChevronRight, ShieldCheck } from 'lucide-react';
+import CityManagerDashboard from './components/roles/CityManagerDashboard';
+import { Users, Shield, Wrench, UserCircle, BarChart3, MapPin, RefreshCw, LogOut, ChevronRight, ShieldCheck, Globe } from 'lucide-react';
 
 /* ─── Role Configuration ─── */
 const ROLE_CONFIG = {
+  city_manager: { label: 'City Manager', icon: Globe, color: '#6366f1', desc: 'Global city-wide oversight & strategic command' },
   panna: { label: 'Panna Pramukh', icon: Users, color: '#e8761a', desc: 'Voter registry & outreach management' },
   admin: { label: 'Booth Adhyaksh', icon: Shield, color: '#c9a84c', desc: 'Central command & mission deployment' },
   worker: { label: 'Field Staff', icon: Wrench, color: '#10b981', desc: 'On-site incident resolution units' },
@@ -29,6 +31,7 @@ const ROLE_CONFIG = {
 };
 
 const DASHBOARD_MAP = {
+  city_manager: CityManagerDashboard,
   panna: PannaDashboard,
   admin: AdminDashboard,
   worker: WorkerDashboard,

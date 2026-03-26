@@ -798,6 +798,7 @@ async def seed_data():
             {"id": "panna-2", "name": "Rajkumar Singh", "role": "panna", "booth_id": 18},
             {"id": "admin-1", "name": "Ramesh Gupta", "role": "admin", "booth_id": 17},
             {"id": "admin-2", "name": "Anita Verma", "role": "admin", "booth_id": 18},
+            {"id": "city_manager-1", "name": "Rajesh Khanna", "role": "city_manager", "booth_id": 0},
             {"id": "worker-1", "name": "Sunil Kumar", "role": "worker", "booth_id": 17},
             {"id": "worker-2", "name": "Priya Yadav", "role": "worker", "booth_id": 17},
             {"id": "worker-3", "name": "Ajay Tiwari", "role": "worker", "booth_id": 18},
