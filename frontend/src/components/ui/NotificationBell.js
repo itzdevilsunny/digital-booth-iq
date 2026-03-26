@@ -118,7 +118,7 @@ const NotificationBell = () => {
 
               <div className="p-4 border-t border-stone-100 bg-stone-50/50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <Radio size={12} className="text-emerald-500" />
+                    <Zap size={12} className="text-emerald-500" />
                     <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">End_of_Registry</span>
                 </div>
                 <button 

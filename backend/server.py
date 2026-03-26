@@ -1528,7 +1528,7 @@ async def ai_chat(data: ChatRequest):
                     'Content-Type': 'application/json'
                 }
                 payload = {
-                    "model": "sarvam-1",
+                    "model": "sarvam-m",
                     "messages": [
                         {"role": "system", "content": context_prompt},
                         {"role": "user", "content": data.message}
