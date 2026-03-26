@@ -23,7 +23,7 @@ const NotificationBell = () => {
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
         className={`relative p-2.5 rounded-xl transition-all group flex items-center justify-center border ${
-            isOpen ? 'bg-stone-900 border-stone-800 text-white shadow-xl shadow-stone-900/20' : 'bg-white border-stone-200 text-stone-900 hover:border-emerald-600 shadow-sm'
+            isOpen ? 'bg-[#141414] border-white/10 text-white shadow-xl shadow-black/20' : 'bg-white/5 border-white/5 text-white/40 hover:text-emerald-500 shadow-sm'
         }`}
       >
         <Bell size={20} className={isOpen ? 'text-emerald-500' : 'group-hover:text-emerald-600 transition-colors'} />
@@ -48,21 +48,21 @@ const NotificationBell = () => {
               initial={{ opacity: 0, y: 15, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 15, scale: 0.95 }}
-              className="absolute right-0 mt-4 w-[380px] max-h-[520px] bg-white rounded-[2rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.15)] border border-stone-200 z-50 overflow-hidden flex flex-col"
+              className="absolute right-0 mt-4 w-[380px] max-h-[520px] bg-[#141414] rounded-[2rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.4)] border border-white/10 z-50 overflow-hidden flex flex-col"
             >
-              <div className="p-6 border-b border-stone-100 flex items-center justify-between bg-white sticky top-0 z-10">
+              <div className="p-6 border-b border-white/5 flex items-center justify-between bg-[#141414] sticky top-0 z-10">
                 <div>
-                    <h3 className="text-sm font-black text-stone-900 uppercase tracking-widest flex items-center gap-2">
+                    <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
                         Intelligence Registry
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
                         <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Live Node Sync Active</span>
+                        <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Live Node Sync Active</span>
                     </div>
                 </div>
                 <button 
                   onClick={markAllAsRead}
-                  className="text-[9px] font-bold uppercase tracking-[2px] text-emerald-600 hover:text-stone-900 transition-colors bg-emerald-50 px-3 py-1.5 rounded-lg"
+                  className="text-[9px] font-bold uppercase tracking-[2px] text-emerald-500 hover:text-white transition-colors bg-white/5 px-3 py-1.5 rounded-lg"
                 >
                   Clear All
                 </button>
@@ -71,14 +71,14 @@ const NotificationBell = () => {
               <div className="overflow-y-auto flex-1 custom-scrollbar scroll-smooth">
                 {!Array.isArray(notifications) || notifications.length === 0 ? (
                   <div className="py-20 flex flex-col items-center justify-center px-8 text-center">
-                    <div className="size-16 rounded-3xl bg-stone-50 flex items-center justify-center text-stone-200 mb-6">
+                    <div className="size-16 rounded-3xl bg-white/5 flex items-center justify-center text-white/10 mb-6">
                         <Zap size={32} />
                     </div>
                     <p className="text-sm font-bold text-stone-900 mb-1">REGISTRY CLEAR</p>
                     <p className="text-xs text-stone-400 font-medium leading-relaxed uppercase tracking-widest text-[10px]">No tactical updates detected in current cycle.</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-stone-50">
+                  <div className="divide-y divide-white/5">
                     {Array.isArray(notifications) && notifications.map((n) => (
                       <motion.div 
                         key={n.id}

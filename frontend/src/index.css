@@ -40,7 +40,7 @@
 
 @layer base {
   body {
-    @apply bg-stone-50 text-stone-900 antialiased selection:bg-emerald-100 selection:text-emerald-900;
+    @apply bg-[#0c0c0c] text-white antialiased selection:bg-emerald-500/30 selection:text-white;
     font-family: "Public Sans", sans-serif;
   }
 }

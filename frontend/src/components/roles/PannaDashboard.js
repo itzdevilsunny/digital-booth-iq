@@ -7,7 +7,7 @@ import {
   Phone, PhoneOff, PhoneMissed, UserCircle, ArrowUpCircle, ArrowDownCircle, 
   MinusCircle, AlertTriangle, CheckCircle, Search, RefreshCw, BarChart3,
   Users, Calendar, ChevronRight, X, PhoneCall, MessageSquare,
-  Activity, Zap, Shield, Info, ArrowRight, UserPlus, PhoneForwarded
+  Activity, Zap, Shield, Info, UserPlus, PhoneForwarded
 } from 'lucide-react';
 
 const SENTIMENT_STYLES = {
@@ -131,14 +131,14 @@ export default function PannaDashboard({ currentUser, boothId }) {
                         <div className="px-4 py-1.5 rounded-full bg-emerald-500 text-black text-[10px] font-black uppercase tracking-[3px] flex items-center gap-2 shadow-2xl shadow-emerald-500/20">
                             <Activity size={12} strokeWidth={3} /> FIELD_INTELLIGENCE
                         </div>
-                        <div className="px-4 py-1.5 rounded-full bg-white/5 text-stone-500 text-[10px] font-black uppercase tracking-[3px] border border-white/5">
+                        <div className="px-4 py-1.5 rounded-full bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-[3px] border border-white/5">
                             SECTOR_CONTROL: {boothId}
                         </div>
                     </div>
                     <h1 className="text-6xl font-black text-white tracking-tighter uppercase leading-none">PANNA_STRATEGY_HUB</h1>
                 </div>
                 <div className="flex items-center gap-4">
-                    <button onClick={loadData} className="px-8 py-4 rounded-2xl bg-white/5 text-stone-400 hover:text-white hover:bg-white/10 transition-all flex items-center gap-3 border border-white/5 group">
+                    <button onClick={loadData} className="px-8 py-4 rounded-2xl bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all flex items-center gap-3 border border-white/5 group">
                         <RefreshCw size={18} className={`${loading ? 'animate-spin' : ''} group-hover:rotate-180 transition-transform duration-500`} />
                         <span className="text-[10px] font-black uppercase tracking-[4px]">UPDATE_REGISTRY</span>
                     </button>
@@ -163,7 +163,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                         <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
                             <s.icon size={80} />
                         </div>
-                        <p className="text-[10px] font-black uppercase tracking-[3px] text-stone-600 mb-4">{s.label}</p>
+                        <p className="text-[10px] font-black uppercase tracking-[3px] text-white/40 mb-4">{s.label}</p>
                         <h3 className={`text-4xl font-black tracking-tighter leading-none ${s.color}`}>{s.val}</h3>
                     </motion.div>
                 ))}
@@ -179,7 +179,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                             className={`px-10 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[3px] transition-all ${
                                 tab === t 
                                     ? 'bg-emerald-600 text-white shadow-2xl shadow-emerald-600/20' 
-                                    : 'text-stone-500 hover:text-stone-300'
+                                    : 'text-white/20 hover:text-white/40'
                             }`}
                         >
                             {t.toUpperCase()} {t === 'voters' ? `[${voters.length}]` : `[${calls.length}]`}
@@ -188,12 +188,12 @@ export default function PannaDashboard({ currentUser, boothId }) {
                 </div>
 
                 <div className="relative group w-full sm:w-auto">
-                    <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-stone-700 group-focus-within:text-emerald-500 transition-colors pointer-events-none" />
+                    <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-emerald-500 transition-colors pointer-events-none" />
                     <input 
                         value={search} 
                         onChange={e => setSearch(e.target.value)}
                         placeholder="SEARCH_REGISTRY..."
-                        className="pl-16 pr-8 py-5 rounded-2xl bg-white/5 border border-white/5 text-sm font-black text-white focus:border-emerald-500/50 outline-none w-full sm:w-[400px] transition-all placeholder:text-stone-800 placeholder:font-black placeholder:uppercase placeholder:tracking-[4px] placeholder:text-[10px] uppercase tracking-tighter" 
+                        className="pl-16 pr-8 py-5 rounded-2xl bg-white/5 border border-white/5 text-sm font-black text-white focus:border-emerald-500/50 outline-none w-full sm:w-[400px] transition-all placeholder:text-white/10 placeholder:font-black placeholder:uppercase placeholder:tracking-[4px] placeholder:text-[10px] uppercase tracking-tighter" 
                     />
                 </div>
             </div>
@@ -204,15 +204,15 @@ export default function PannaDashboard({ currentUser, boothId }) {
                     {loading ? (
                         <div className="col-span-full p-32 text-center bg-[#1a1a1a] rounded-[4rem] border border-white/5 border-dashed">
                             <RefreshCw className="w-16 h-16 text-emerald-500/20 animate-spin mx-auto mb-8" />
-                            <p className="text-[11px] font-black uppercase tracking-[5px] text-stone-600">DOWNLOADING_TACTICAL_DATA...</p>
+                            <p className="text-[11px] font-black uppercase tracking-[5px] text-white/20">DOWNLOADING_TACTICAL_DATA...</p>
                         </div>
                     ) : filtered.length === 0 ? (
                         <div className="col-span-full p-24 text-center bg-[#1a1a1a] rounded-[4rem] border border-white/5">
                             <div className="size-24 rounded-[3rem] bg-white/5 flex items-center justify-center mx-auto mb-10 border border-white/5">
-                                <Users className="text-stone-700" size={48} />
+                                <Users className="text-white/20" size={48} />
                             </div>
                             <h4 className="text-4xl font-black text-white mb-4 uppercase tracking-tighter">REGISTRY_EMPTY</h4>
-                            <p className="text-stone-600 text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">No localized records match your tactical search parameters. Verify SECTOR_ID configuration.</p>
+                            <p className="text-white/40 text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">No localized records match your tactical search parameters. Verify SECTOR_ID configuration.</p>
                         </div>
                     ) : (
                         filtered.map((v, idx) => {
@@ -229,11 +229,11 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                     <div className="flex items-start justify-between mb-10">
                                         <div className="flex items-center gap-6">
                                             <div className="size-20 rounded-3xl bg-white/5 border border-white/5 flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-700">
-                                                <UserCircle size={40} className="text-stone-600 group-hover:text-emerald-400 transition-colors" />
+                                                <UserCircle size={40} className="text-white/20 group-hover:text-emerald-400 transition-colors" />
                                             </div>
                                             <div>
                                                 <h4 className="font-black text-3xl text-white tracking-tighter uppercase leading-none group-hover:text-emerald-400 transition-colors">{v.name}</h4>
-                                                <p className="text-[10px] font-black text-stone-600 uppercase tracking-[4px] mt-4">{v.phone} · {v.segment}</p>
+                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-4">{v.phone} · {v.segment}</p>
                                             </div>
                                         </div>
                                         <div className={`flex items-center gap-3 px-5 py-2 rounded-full border ${s.bg} ${s.border} ${s.color}`}>
@@ -251,7 +251,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                     className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-[2px] transition-all ${
                                                         v.sentiment === sent
                                                             ? 'bg-white text-black shadow-2xl'
-                                                            : 'text-stone-600 hover:text-stone-400'
+                                                            : 'text-white/20 hover:text-white/40'
                                                     }`}
                                                 >
                                                     {sent.slice(0, 3)}
@@ -287,7 +287,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                         <div className="p-32 text-center bg-[#1a1a1a] rounded-[4rem] border border-white/5 border-dashed">
                             <PhoneOff className="w-20 h-20 text-emerald-500/10 mx-auto mb-10" />
                             <h4 className="text-4xl font-black text-white uppercase tracking-tighter">NO_COMMS_TRAFFIC</h4>
-                            <p className="text-stone-600 text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">Sector intelligence feeds are silent. Initiate V_CALL protocols to populate registry.</p>
+                            <p className="text-white/40 text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">Sector intelligence feeds are silent. Initiate V_CALL protocols to populate registry.</p>
                         </div>
                     ) : (
                         calls.map((c, idx) => {
@@ -309,7 +309,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between mb-4">
                                             <h4 className="font-black text-3xl text-white tracking-tighter uppercase leading-none group-hover:text-emerald-400 transition-colors">{c.voter_name}</h4>
-                                            <span className="text-[10px] font-black text-stone-600 uppercase tracking-[4px]">DELTA_{new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                            <span className="text-[10px] font-black text-white/20 uppercase tracking-[4px]">DELTA_{new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
                                         <div className="flex items-center gap-6">
                                             <div className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isAnswered ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'}`}>
@@ -322,13 +322,13 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                             )}
                                         </div>
                                         {c.notes && (
-                                            <div className="mt-8 p-6 bg-black/40 rounded-[2rem] border border-white/5 text-sm font-black text-stone-500 uppercase tracking-widest leading-relaxed">
+                                            <div className="mt-8 p-6 bg-black/40 rounded-[2rem] border border-white/5 text-sm font-black text-white/40 uppercase tracking-widest leading-relaxed">
                                                 "{c.notes}"
                                             </div>
                                         )}
                                     </div>
                                     
-                                    <ChevronRight size={24} className="text-stone-800 group-hover:text-emerald-500 transition-colors hidden sm:block" />
+                                    <ChevronRight size={24} className="text-white/10 group-hover:text-emerald-500 transition-colors hidden sm:block" />
                                 </motion.div>
                             );
                         })
@@ -364,16 +364,16 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                         INTELLIGENCE_LOG
                                                     </div>
                                                     <h4 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">V_CALL_DEBRIEFING</h4>
-                                                    <p className="text-[10px] font-black uppercase tracking-[4px] text-stone-600 mt-6">TARGET: {callModal.name} · {callModal.phone}</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-[4px] text-white/40 mt-6">TARGET: {callModal.name} · {callModal.phone}</p>
                                                 </div>
-                                                <button onClick={() => setCallModal(null)} className="size-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-stone-400 hover:text-white transition-all">
+                                                <button onClick={() => setCallModal(null)} className="size-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all">
                                                     <X size={24} />
                                                 </button>
                                             </div>
 
                                             <div className="space-y-10">
                                                 <div className="space-y-4">
-                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-stone-700 pl-1">OPERATIONAL_OUTCOME</label>
+                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-white/40 pl-1">OPERATIONAL_OUTCOME</label>
                                                     <div className="flex gap-4">
                                                         {['answered', 'no_answer'].map(s => (
                                                             <button 
@@ -382,7 +382,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                                 className={`flex-1 py-6 rounded-2xl text-[10px] font-black uppercase tracking-[3px] transition-all border ${
                                                                     callStatus === s 
                                                                         ? 'bg-emerald-600 border-emerald-500 text-white shadow-2xl shadow-emerald-600/40' 
-                                                                        : 'bg-white/5 border-white/5 text-stone-600 hover:border-white/10'
+                                                                        : 'bg-white/5 border-white/5 text-white/20 hover:border-white/10'
                                                                 }`}
                                                             >
                                                                 SEC_{s.toUpperCase()}
@@ -392,12 +392,12 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                 </div>
 
                                                 <div className="space-y-4">
-                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-stone-700 pl-1">FIELD_OBSERVATIONS</label>
+                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-white/40 pl-1">FIELD_OBSERVATIONS</label>
                                                     <textarea 
                                                         value={callNotes} 
                                                         onChange={e => setCallNotes(e.target.value)}
                                                         placeholder="TRANSCRIBE_TACTICAL_FINDINGS..."
-                                                        className="w-full p-8 bg-black/40 rounded-[2.5rem] border border-white/5 focus:border-emerald-500 outline-none text-lg font-black text-white uppercase tracking-tighter resize-none h-40 placeholder:text-stone-800" 
+                                                        className="w-full p-8 bg-black/40 rounded-[2.5rem] border border-white/5 focus:border-emerald-500 outline-none text-lg font-black text-white uppercase tracking-tighter resize-none h-40 placeholder:text-white/10" 
                                                     />
                                                 </div>
 
@@ -421,17 +421,17 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                     </div>
                                                     <div>
                                                         <h4 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">SECTOR_VULNERABILITY</h4>
-                                                        <p className="text-[10px] font-black uppercase tracking-[4px] text-stone-600 mt-4">VECTOR_ID: {grievanceModal.name}</p>
+                                                        <p className="text-[10px] font-black uppercase tracking-[4px] text-white/40 mt-4">VECTOR_ID: {grievanceModal.name}</p>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => setGrievanceModal(null)} className="size-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-stone-400 hover:text-white transition-all">
+                                                <button onClick={() => setGrievanceModal(null)} className="size-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all">
                                                     <X size={24} />
                                                 </button>
                                             </div>
 
                                             <div className="space-y-10">
                                                 <div className="space-y-4">
-                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-stone-700 pl-1">VECTOR_CATEGORY</label>
+                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-white/40 pl-1">VECTOR_CATEGORY</label>
                                                     <div className="relative">
                                                         <select 
                                                             value={grievanceCat} 
@@ -443,19 +443,19 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                                 <option key={cat} value={cat} className="bg-[#141414]">{cat.toUpperCase()}</option>
                                                             ))}
                                                         </select>
-                                                        <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none text-stone-700">
+                                                        <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none text-white/20">
                                                             <ChevronRight size={24} className="rotate-90" />
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <div className="space-y-4">
-                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-stone-700 pl-1">SITUATION_BRIEFING</label>
+                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-white/40 pl-1">SITUATION_BRIEFING</label>
                                                     <textarea 
                                                         value={grievanceDesc} 
                                                         onChange={e => setGrievanceDesc(e.target.value)}
                                                         placeholder="CLASSIFY_FAILURE_PARAMETERS..."
-                                                        className="w-full p-8 bg-black/40 rounded-[2.5rem] border border-white/5 focus:border-rose-500 outline-none text-lg font-black text-white uppercase tracking-tighter resize-none h-40 placeholder:text-stone-800" 
+                                                        className="w-full p-8 bg-black/40 rounded-[2.5rem] border border-white/5 focus:border-rose-500 outline-none text-lg font-black text-white uppercase tracking-tighter resize-none h-40 placeholder:text-white/10" 
                                                     />
                                                 </div>
 

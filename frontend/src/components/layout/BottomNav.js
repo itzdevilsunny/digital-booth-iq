@@ -39,7 +39,7 @@ const BottomNav = () => {
                                 className={`p-5 rounded-3xl shadow-2xl transition-all border-4 border-white ${
                                     active 
                                     ? 'bg-emerald-600 text-white shadow-emerald-500/40 ring-4 ring-emerald-500/10' 
-                                    : 'bg-stone-900 text-emerald-500 shadow-stone-900/40'
+                                    : 'bg-white/5 text-emerald-500 shadow-black/40'
                                 }`}
                             >
                                 <ActiveIcon size={28} strokeWidth={2.5} />
@@ -48,11 +48,11 @@ const BottomNav = () => {
                             <div className="flex flex-col items-center gap-1.5 pt-1 relative">
                                 <motion.div
                                     animate={active ? { y: -2, scale: 1.1 } : { y: 0, scale: 1 }}
-                                    className={active ? 'text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]' : 'text-stone-600'}
+                                    className={active ? 'text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]' : 'text-white/40'}
                                 >
                                     <ActiveIcon size={22} strokeWidth={active ? 2.5 : 2} />
                                 </motion.div>
-                                <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${active ? 'text-white' : 'text-stone-600'}`}>
+                                <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${active ? 'text-white' : 'text-white/40'}`}>
                                     {item.label}
                                 </span>
                                 {active && (

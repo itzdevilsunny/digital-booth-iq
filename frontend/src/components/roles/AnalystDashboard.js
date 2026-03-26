@@ -24,10 +24,10 @@ const MetricCard = ({ label, value, icon: Icon, color, trend, delay }) => (
         
         <div className="relative z-10">
             <div className="flex items-center gap-3 mb-8">
-                <div className="size-10 rounded-xl bg-white/5 flex items-center justify-center text-stone-500 group-hover:text-emerald-500 transition-colors border border-white/5">
+                <div className="size-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 group-hover:text-emerald-500 transition-colors border border-white/5">
                     <Icon size={18} strokeWidth={2.5} />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-[3px] text-stone-600">{label}</p>
+                <p className="text-[10px] font-black uppercase tracking-[3px] text-white/40">{label}</p>
             </div>
             
             <div className="space-y-1">
@@ -112,7 +112,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                     <AlertTriangle size={48} strokeWidth={3} />
                 </div>
                 <h4 className="text-4xl font-black text-white uppercase tracking-tighter mb-4 leading-none">CORE_LINK_FAILURE</h4>
-                <p className="text-stone-600 text-[10px] font-black uppercase tracking-[4px] leading-relaxed">UNABLE_TO_ESTABLISH_HANDSHAKE_WITH_ANALYTICS_NODE. INITIATING_AUTO_RECOVERY...</p>
+                <p className="text-white/40 text-[10px] font-black uppercase tracking-[4px] leading-relaxed">UNABLE_TO_ESTABLISH_HANDSHAKE_WITH_ANALYTICS_NODE. INITIATING_AUTO_RECOVERY...</p>
             </div>
         );
     }
@@ -124,7 +124,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
 
     const SENTIMENT_CONFIG = { 
         positive: { color: 'text-emerald-600', bg: 'bg-emerald-600', label: 'Positive Trajectory', icon: TrendingUp },
-        neutral: { color: 'text-stone-400', bg: 'bg-stone-300', label: 'Static Alignment', icon: Activity },
+        neutral: { color: 'text-white/40', bg: 'bg-white/10', label: 'Static Alignment', icon: Activity },
         negative: { color: 'text-rose-600', bg: 'bg-rose-600', label: 'Negative Variance', icon: TrendingDown }
     };
 
@@ -138,8 +138,8 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                         <h1 className="text-5xl sm:text-6xl font-black text-white tracking-tighter uppercase leading-none">INTEL_MATRIX</h1>
                     </div>
                     <div className="flex items-center gap-4">
-                        <p className="text-stone-600 text-[10px] font-black uppercase tracking-[5px]">RECON_ID: /BOOTH-{boothId}_ALPHA</p>
-                        <span className="size-1 rounded-full bg-stone-800" />
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[5px]">RECON_ID: /BOOTH-{boothId}_ALPHA</p>
+                        <span className="size-1 rounded-full bg-white/10" />
                         <p className="text-emerald-500/50 text-[9px] font-black uppercase tracking-[3px]">STATUS: SYNCED</p>
                     </div>
                 </div>
@@ -147,7 +147,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                 <div className="flex items-center gap-4">
                     <button onClick={loadData} className="group relative px-8 py-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/50 transition-all active:scale-95">
                         <div className="flex items-center gap-3 relative z-10">
-                            <RefreshCw size={16} className={`text-stone-400 group-hover:text-emerald-500 transition-colors ${loading ? 'animate-spin' : ''}`} />
+                            <RefreshCw size={16} className={`text-white/40 group-hover:text-emerald-500 transition-colors ${loading ? 'animate-spin' : ''}`} />
                             <span className="text-[10px] font-black text-white uppercase tracking-[3px]">RESYNC_NODES</span>
                         </div>
                     </button>
@@ -183,7 +183,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                         </div>
                         <div>
                             <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">SOCIAL_TOPOLOGY</h4>
-                            <p className="text-[10px] font-black text-stone-600 uppercase tracking-[4px] mt-2">FAMILY_RELATIONAL_MATRIX_V2.0</p>
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-2">FAMILY_RELATIONAL_MATRIX_V2.0</p>
                         </div>
                     </div>
 
@@ -213,8 +213,8 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                         ) : (
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <div className="text-center space-y-6">
-                                    <BrainCircuit size={64} className="mx-auto text-stone-800 animate-pulse" />
-                                    <p className="text-[10px] font-black text-stone-700 uppercase tracking-[6px]">MAPPING_NEURAL_NODES...</p>
+                                    <BrainCircuit size={64} className="mx-auto text-white/10 animate-pulse" />
+                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[6px]">MAPPING_NEURAL_NODES...</p>
                                 </div>
                             </div>
                         )}
@@ -229,7 +229,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                         </div>
                         <div>
                             <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">SENTIMENT_BIAS</h4>
-                            <p className="text-[10px] font-black text-stone-600 uppercase tracking-[4px] mt-2">DISTRIBUTION_OF_SECTOR_SUPPORT</p>
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-2">DISTRIBUTION_OF_SECTOR_SUPPORT</p>
                         </div>
                     </div>
 
@@ -246,7 +246,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                                         </div>
                                         <div className="text-right">
                                             <span className="text-4xl font-black text-white tracking-tighter leading-none">
-                                                {s.pct}<span className="text-xs text-stone-700 ml-1">%</span>
+                                                {s.pct}<span className="text-xs text-white/20 ml-1">%</span>
                                             </span>
                                         </div>
                                     </div>
@@ -259,8 +259,8 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                                         />
                                     </div>
                                     <div className="flex justify-between items-center mt-3">
-                                        <p className="text-[8px] font-black text-stone-800 uppercase tracking-[2px]">VECTOR_DENSITY</p>
-                                        <p className="text-[9px] font-black text-stone-500 uppercase tracking-[3px]">{s.value}_UNITS</p>
+                                        <p className="text-[8px] font-black text-white/10 uppercase tracking-[2px]">VECTOR_DENSITY</p>
+                                        <p className="text-[9px] font-black text-white/40 uppercase tracking-[3px]">{s.value}_UNITS</p>
                                     </div>
                                 </div>
                             );
@@ -339,15 +339,15 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                         </div>
                         
                         <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none mb-4">REGISTRY_EFFICIENCY</h4>
-                        <p className="text-stone-600 text-[10px] font-black uppercase tracking-[4px] max-w-sm mx-auto mb-12 leading-relaxed">REAL_TIME_RESOLUTION_VELOCITY_BENCHMARKING_SYSTEM</p>
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[4px] max-w-sm mx-auto mb-12 leading-relaxed">REAL_TIME_RESOLUTION_VELOCITY_BENCHMARKING_SYSTEM</p>
                         
                         <div className="grid grid-cols-2 gap-6 w-full max-w-md mx-auto">
                             <div className="p-8 bg-black/40 rounded-[2.5rem] border border-white/5 group-hover:border-emerald-500/30 transition-all">
-                                <p className="text-[10px] font-black text-stone-700 uppercase tracking-[4px] mb-3">ARCHIVED</p>
+                                <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mb-3">ARCHIVED</p>
                                 <p className="text-4xl font-black text-emerald-500 tracking-tighter leading-none">{stats.resolved_issues}</p>
                             </div>
                             <div className="p-8 bg-black/40 rounded-[2.5rem] border border-white/5 group-hover:border-rose-500/30 transition-all">
-                                <p className="text-[10px] font-black text-stone-700 uppercase tracking-[4px] mb-3">BACKLOG</p>
+                                <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mb-3">BACKLOG</p>
                                 <p className="text-4xl font-black text-rose-500 tracking-tighter leading-none">{stats.pending_issues}</p>
                             </div>
                         </div>

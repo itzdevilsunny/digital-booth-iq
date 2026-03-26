@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    Mail, Lock, Fingerprint, ArrowRight, ShieldCheck, 
+    Mail, Lock, Fingerprint, ShieldCheck, 
     Verified, Globe, Cpu, Zap, Radio, 
     ChevronRight, Key, UserCheck, ShieldClose
 } from 'lucide-react';
@@ -33,7 +33,7 @@ const LoginPage = () => {
     return (
         <div className="min-h-screen w-full flex overflow-hidden font-display bg-[#0c0c0c] text-white selection:bg-emerald-500/30 selection:text-white">
             {/* Left Panel - High Fidelity Hero Section */}
-            <div className="hidden lg:flex flex-[0.45] flex-col justify-between p-16 relative overflow-hidden bg-stone-900/50 border-r border-white/5">
+            <div className="hidden lg:flex flex-[0.45] flex-col justify-between p-16 relative overflow-hidden bg-[#0c0c0c]/50 border-r border-white/5">
                 {/* Background Textures */}
                 <div className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay">
                     <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.1),transparent)]" />
@@ -90,7 +90,7 @@ const LoginPage = () => {
                                 transition={{ delay: 0.4 + (i * 0.1) }}
                                 className="flex items-center gap-5 group cursor-default"
                             >
-                                <div className="size-10 rounded-xl flex items-center justify-center transition-all shadow-sm bg-white/5 border border-white/5 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-stone-900 group-hover:scale-110 duration-500">
+                                <div className="size-10 rounded-xl flex items-center justify-center transition-all shadow-sm bg-white/5 border border-white/5 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-black group-hover:scale-110 duration-500">
                                     <item.icon size={20} />
                                 </div>
                                 <div>
@@ -196,7 +196,7 @@ const LoginPage = () => {
                                     ) : (
                                         <div className="flex items-center gap-4 group-hover:translate-x-1 transition-transform duration-500">
                                             <span>INITIALIZE HUB</span>
-                                            <ArrowRight size={20} />
+                                            <ChevronRight size={20} />
                                         </div>
                                     )}
                                 </AnimatePresence>

@@ -8,7 +8,7 @@ import {
   Globe, Activity, LayoutDashboard, Search, 
   AlertTriangle, CheckCircle2, Users, Target,
   Zap, Send, ShieldAlert, BarChart3,
-  ChevronRight, ArrowRight, Filter, MessageSquare,
+  ChevronRight, Filter, MessageSquare,
   PieChart, MapPin, RefreshCw, Layers, BrainCircuit,
   Maximize2, MoreHorizontal, Sparkles
 } from 'lucide-react';
@@ -60,7 +60,7 @@ const BoothCard = ({ booth, onClick }) => (
             </div>
             <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-widest">Control Interface</span>
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </div>
         </div>
     </motion.div>
@@ -349,11 +349,11 @@ export default function CityManagerDashboard({ currentUser }) {
                         <div className="space-y-8">
                             {[
                                 { label: 'Outreach Velocity', value: '84%', trend: '+4%', color: 'text-emerald-600' },
-                                { label: 'Issue Resolution', value: 'L-04', trend: 'OPTIMAL', color: 'text-stone-400' },
+                                { label: 'Issue Resolution', value: 'L-04', trend: 'OPTIMAL', color: 'text-white/40' },
                                 { label: 'Engagement Coeff.', value: 'A++', trend: 'ELITE', color: 'text-black' }
                             ].map((stat, i) => (
                                 <div key={i} className="flex items-center justify-between group">
-                                    <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest group-hover:text-black transition-colors">{stat.label}</span>
+                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest group-hover:text-black transition-colors">{stat.label}</span>
                                     <div className="text-right">
                                         <p className="text-xl font-display font-bold leading-none">{stat.value}</p>
                                         <p className={`text-[8px] font-bold uppercase tracking-widest mt-1 ${stat.color}`}>{stat.trend}</p>
@@ -475,7 +475,7 @@ export default function CityManagerDashboard({ currentUser }) {
                                             <action.icon size={14} className="opacity-40 group-hover:opacity-100 transition-opacity" />
                                             <span className="text-[10px] font-bold uppercase tracking-widest">{action.label}</span>
                                         </div>
-                                        <ArrowRight size={12} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                                        <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                                     </button>
                                 ))}
                             </div>

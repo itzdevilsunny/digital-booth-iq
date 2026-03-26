@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { createGrievance, getGrievances, getAnalytics, getUsersByRole, getSchemes, applyForScheme, getApplications, getVoterServices } from '../../api';
 import { 
-  Send, RefreshCw, User, MapPin, ChevronRight, ArrowRight,
+  Send, RefreshCw, User, MapPin, ChevronRight,
   Calendar, CheckCircle2, Clock, Activity, AlertCircle,
   FileText, Search, PlusCircle, ExternalLink, Info, BadgeCheck,
   Briefcase, Phone, MessageSquare, Shield
@@ -23,12 +23,12 @@ const StatCard = ({ label, value, icon: Icon, color, delay }) => (
             <Icon size={48} />
         </div>
         <div className="flex flex-col gap-1">
-            <p className="text-[10px] font-bold uppercase tracking-[2px] text-stone-500">{label}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[2px] text-white/40">{label}</p>
             <h3 className="text-3xl font-black text-white tracking-tighter">{value}</h3>
         </div>
         <div className="mt-4 flex items-center gap-2">
             <div className={`size-1.5 rounded-full animate-pulse`} style={{ backgroundColor: color }} />
-            <span className="text-[9px] font-bold text-stone-600 uppercase tracking-tighter">Status: Matrix Active</span>
+            <span className="text-[9px] font-bold text-white/20 uppercase tracking-tighter">Status: Matrix Active</span>
         </div>
     </motion.div>
 );
@@ -225,19 +225,19 @@ export default function CitizenDashboard({ currentUser, boothId }) {
     return (
         <div className="space-y-8 animate-fade-in relative z-10">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-stone-200">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-white/5">
                 <div>
-                    <h1 className="text-4xl font-display font-bold text-stone-900 tracking-tight">Public Portal</h1>
-                    <p className="text-stone-500 text-sm mt-1 uppercase tracking-widest font-bold">Booth #{safeBoothId}</p>
+                    <h1 className="text-4xl font-display font-bold text-white tracking-tight uppercase">Public Portal</h1>
+                    <p className="text-white/40 text-sm mt-1 uppercase tracking-widest font-bold">Booth #{safeBoothId}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button onClick={fetchData} className="px-5 py-2.5 rounded-full bg-stone-100 text-stone-600 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex items-center gap-2 border border-stone-200">
+                    <button onClick={fetchData} className="px-5 py-2.5 rounded-full bg-white/5 text-white/40 hover:text-emerald-500 hover:bg-white/10 transition-all flex items-center gap-2 border border-white/5">
                         <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                         <span className="text-[10px] font-bold uppercase tracking-widest">Refresh Feed</span>
                     </button>
-                    <div className="hidden lg:flex items-center gap-3 bg-white px-5 py-2.5 rounded-full border border-stone-200 shadow-sm">
+                    <div className="hidden lg:flex items-center gap-3 bg-white/5 px-5 py-2.5 rounded-full border border-white/5 shadow-sm">
                         <div className="size-2 bg-emerald-500 rounded-full animate-pulse" />
-                        <span className="text-[10px] font-bold text-stone-700 tracking-tighter uppercase whitespace-nowrap">Online</span>
+                        <span className="text-[10px] font-bold text-white tracking-tighter uppercase whitespace-nowrap">Online</span>
                     </div>
                 </div>
             </div>
@@ -263,8 +263,8 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                             {/* Activity Feed */}
                             <div className="space-y-6">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="font-display font-bold text-2xl text-stone-900 tracking-tight">Recent Problems</h3>
-                                    <span className="px-3 py-1 bg-stone-100 rounded-full text-[10px] font-bold text-stone-400">
+                                    <h3 className="font-display font-bold text-2xl text-white tracking-tight uppercase">Recent Problems</h3>
+                                    <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-white/20">
                                         LIVE LIST
                                     </span>
                                 </div>
@@ -284,7 +284,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                                     initial={{ opacity: 0, y: 10 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ delay: idx * 0.05 }}
-                                                    className={`glass-panel p-5 rounded-3xl border border-stone-200 transition-all shadow-sm group hover:border-emerald-500/30 cursor-pointer ${isExpanded ? 'ring-2 ring-emerald-500/20' : ''}`}
+                                                    className={`glass-panel p-5 rounded-3xl border border-white/5 transition-all shadow-sm group hover:border-emerald-500/30 cursor-pointer ${isExpanded ? 'ring-2 ring-emerald-500/20' : ''}`}
                                                     onClick={() => setExpandedId(isExpanded ? null : g.id)}
                                                 >
                                                     <div className="flex items-center gap-6">
@@ -294,22 +294,22 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2 mb-2">
                                                                 <div className={`size-1.5 rounded-full ${config.dot}`} />
-                                                                <span className={`text-[10px] font-bold uppercase tracking-widest ${config.color}`}>
+                                                                 <span className={`text-[10px] font-bold uppercase tracking-widest ${config.color}`}>
                                                                     {config.label}
                                                                 </span>
-                                                                <span className="text-[10px] font-mono text-stone-400 ml-2">ID: #{g.id}</span>
+                                                                <span className="text-[10px] font-mono text-white/20 ml-2">ID: #{g.id}</span>
                                                             </div>
-                                                            <h4 className="text-lg font-bold text-stone-900 truncate tracking-tight">{g.description}</h4>
+                                                            <h4 className="text-lg font-bold text-white truncate tracking-tight">{g.description}</h4>
                                                             <div className="flex items-center gap-4 mt-2">
-                                                                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
+                                                                <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-1.5">
                                                                     <Calendar size={12} className="text-emerald-600" /> {new Date(g.created_at || Date.now()).toLocaleDateString()}
                                                                 </span>
-                                                                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
+                                                                <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-1.5">
                                                                     <MapPin size={12} className="text-emerald-600" /> Area {g.booth_id}
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        <ChevronRight size={20} className={`text-stone-300 group-hover:text-emerald-600 transition-all hidden sm:block ${isExpanded ? 'rotate-90' : ''}`} />
+                                                        <ChevronRight size={20} className={`text-white/20 group-hover:text-emerald-600 transition-all hidden sm:block ${isExpanded ? 'rotate-90' : ''}`} />
                                                     </div>
 
                                                     <AnimatePresence>
@@ -320,25 +320,25 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                                                 exit={{ height: 0, opacity: 0 }}
                                                                 className="overflow-hidden"
                                                             >
-                                                                <div className="pt-6 mt-6 border-t border-stone-100 space-y-4">
+                                                                 <div className="pt-6 mt-6 border-t border-white/5 space-y-4">
                                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                                        <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100">
-                                                                            <p className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Assigned Personnel</p>
-                                                                            <p className="text-sm font-bold text-stone-900 flex items-center gap-2">
+                                                                        <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                                                                            <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1">Assigned Personnel</p>
+                                                                            <p className="text-sm font-bold text-white flex items-center gap-2">
                                                                                 <User size={14} className="text-emerald-600" /> {g.assigned_worker || 'Awaiting assignment'}
                                                                             </p>
                                                                         </div>
-                                                                        <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100">
-                                                                            <p className="text-[9px] font-bold text-stone-400 uppercase tracking-widest mb-1">Resolution Protocol</p>
-                                                                            <p className="text-sm font-bold text-stone-900 flex items-center gap-2">
+                                                                        <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                                                                            <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest mb-1">Resolution Protocol</p>
+                                                                            <p className="text-sm font-bold text-white flex items-center gap-2">
                                                                                 <CheckCircle2 size={14} className="text-emerald-600" /> {g.status === 'resolved' ? 'Operational Success' : 'Matrix Intervention Pending'}
                                                                             </p>
                                                                         </div>
                                                                     </div>
                                                                     {g.resolution_note && (
-                                                                        <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100/50">
-                                                                            <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Field Intelligence Note</p>
-                                                                            <p className="text-sm text-stone-700 font-medium italic">"{g.resolution_note}"</p>
+                                                                        <div className="p-4 bg-emerald-50/10 rounded-2xl border border-emerald-500/20">
+                                                                            <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mb-1">Field Intelligence Note</p>
+                                                                            <p className="text-sm text-emerald-50/70 font-medium italic">"{g.resolution_note}"</p>
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -538,7 +538,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                         <div className="flex items-center justify-between mb-10">
                             <div>
                                 <h3 className="text-xl font-black text-white tracking-tighter uppercase">Matrix Pulse</h3>
-                                <p className="text-[10px] uppercase font-bold text-stone-600 tracking-[2px] mt-1">Real-time Stability</p>
+                                <p className="text-[10px] uppercase font-bold text-white/20 tracking-[2px] mt-1">Real-time Stability</p>
                             </div>
                             <div className="size-12 rounded-2xl bg-emerald-600/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
                                 <Activity size={24} />
@@ -553,7 +553,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                             ].map((stat, i) => (
                                 <div key={i} className="space-y-3">
                                     <div className="flex justify-between text-[10px] font-black uppercase tracking-[3px]">
-                                        <span className="text-stone-500">{stat.label}</span>
+                                        <span className="text-white/40">{stat.label}</span>
                                         <span className="text-emerald-500">{stat.value}%</span>
                                     </div>
                                     <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { getGrievances, updateGrievance, getUsersByRole } from '../../api';
+import { getGrievances, updateGrievance, getUsersByRole, getVoters, updateVoter } from '../../api';
 import { 
   Shield, Users, AlertCircle, CheckCircle, Clock, 
   MapPin, User, Search, Filter, RefreshCw, X,
@@ -46,10 +47,20 @@ const MetricCard = ({ label, value, icon: Icon, color, trend, delay }) => (
     </motion.div>
 );
 
-export default function AdminDashboard({ boothId }) {
+export default function AdminDashboard({ currentUser, boothId }) {
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const getTabFromPath = (path) => {
+        if (path.includes('/voters')) return 'voters';
+        return 'dashboard';
+    };
+
     const [grievances, setGrievances] = useState([]);
     const [workers, setWorkers] = useState([]);
+    const [voters, setVoters] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [tab, setTab] = useState(getTabFromPath(location.pathname));
     const [assignModal, setAssignModal] = useState(null);
     const [selectedWorker, setSelectedWorker] = useState('');
     const [submitting, setSubmitting] = useState(false);
@@ -58,15 +69,27 @@ export default function AdminDashboard({ boothId }) {
 
     const safeBoothId = boothId || 17;
 
+    useEffect(() => {
+        setTab(getTabFromPath(location.pathname));
+    }, [location.pathname]);
+
+    const handleTabChange = (newTab) => {
+        setTab(newTab);
+        if (newTab === 'dashboard') navigate('/admin');
+        else navigate(`/admin/${newTab}`);
+    };
+
     const loadData = useCallback(async () => {
         setLoading(true);
         try {
-            const [gData, wData] = await Promise.all([
+            const [gData, wData, vData] = await Promise.all([
                 getGrievances({ booth_id: safeBoothId }),
-                getUsersByRole('worker')
+                getUsersByRole('worker'),
+                getVoters(safeBoothId)
             ]);
             setGrievances(gData || []);
             setWorkers(wData || []);
+            setVoters(vData || []);
         } catch (e) { console.error(e); }
         setLoading(false);
     }, [safeBoothId]);
@@ -103,14 +126,26 @@ export default function AdminDashboard({ boothId }) {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-8 border-b border-white/5">
                 <div>
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="px-4 py-1.5 rounded-full bg-emerald-500 text-black text-[10px] font-black uppercase tracking-[3px] flex items-center gap-2 shadow-2xl shadow-emerald-500/20">
+                        <button 
+                            onClick={() => handleTabChange('dashboard')}
+                            className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[3px] flex items-center gap-2 transition-all ${
+                                tab === 'dashboard' ? 'bg-emerald-500 text-black shadow-2xl' : 'bg-white/5 text-white/40 hover:text-white'
+                            }`}
+                        >
                             <Shield size={12} strokeWidth={3} /> COMMAND_CENTER
-                        </div>
-                        <div className="px-4 py-1.5 rounded-full bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-[3px] border border-white/5">
-                            BOOTH_ID: {safeBoothId}
-                        </div>
+                        </button>
+                        <button 
+                            onClick={() => handleTabChange('voters')}
+                            className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[3px] flex items-center gap-2 transition-all ${
+                                tab === 'voters' ? 'bg-emerald-500 text-black shadow-2xl' : 'bg-white/5 text-white/40 hover:text-white'
+                            }`}
+                        >
+                            <Users size={12} strokeWidth={3} /> VOTER_REGISTRY
+                        </button>
                     </div>
-                    <h1 className="text-6xl font-black text-white tracking-tighter uppercase leading-none">SYSTEM_OVERVIEW</h1>
+                    <h1 className="text-6xl font-black text-white tracking-tighter uppercase leading-none">
+                        {tab === 'voters' ? 'REGISTRY_SYNC' : 'SYSTEM_OVERVIEW'}
+                    </h1>
                 </div>
                 <div className="flex items-center gap-4">
                     <button onClick={loadData} className="px-8 py-4 rounded-2xl bg-white/5 text-stone-400 hover:text-white hover:bg-white/10 transition-all flex items-center gap-3 border border-white/5 group">
@@ -120,8 +155,10 @@ export default function AdminDashboard({ boothId }) {
                 </div>
             </div>
 
-            {/* Metric Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {tab === 'dashboard' ? (
+                <>
+                    {/* Metric Grid */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard 
                     label="Open Problems" 
                     value={grievances.filter(g => g.status === 'submitted').length} 
@@ -163,7 +200,7 @@ export default function AdminDashboard({ boothId }) {
                             className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[3px] transition-all ${
                                 filter === f 
                                     ? 'bg-emerald-600 text-white shadow-2xl shadow-emerald-600/20' 
-                                    : 'text-stone-500 hover:text-stone-300'
+                                    : 'text-white/40 hover:text-white'
                             }`}
                         >
                             {f === 'open' ? 'NEW_LOGS' : f}
@@ -216,7 +253,7 @@ export default function AdminDashboard({ boothId }) {
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-wrap items-center gap-4 mb-6">
-                                            <span className="px-5 py-1.5 rounded-full bg-white/5 text-stone-500 text-[10px] font-black uppercase tracking-[3px] border border-white/5">
+                                            <span className="px-5 py-1.5 rounded-full bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-[3px] border border-white/5">
                                                 LOG_ID: #{g.id}
                                             </span>
                                             <span className={`px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[3px] border ${config.bg} ${config.color} ${config.border}`}>
@@ -226,9 +263,9 @@ export default function AdminDashboard({ boothId }) {
                                         <h4 className="text-3xl font-black text-white mb-6 uppercase tracking-tighter leading-tight group-hover:text-emerald-400 transition-colors">
                                             {g.description}
                                         </h4>
-                                        <div className="flex flex-wrap items-center gap-8 text-[10px] font-black text-stone-600 uppercase tracking-[4px]">
-                                            <span className="flex items-center gap-3"><User size={14} className="text-stone-700" /> {g.voter_name}</span>
-                                            <span className="flex items-center gap-3"><MapPin size={14} className="text-stone-700" /> SECTOR_{g.booth_id}</span>
+                                        <div className="flex flex-wrap items-center gap-8 text-[10px] font-black text-white/20 uppercase tracking-[4px]">
+                                            <span className="flex items-center gap-3"><User size={14} className="text-white/20" /> {g.voter_name}</span>
+                                            <span className="flex items-center gap-3"><MapPin size={14} className="text-white/20" /> SECTOR_{g.booth_id}</span>
                                             {g.assigned_worker && (
                                                 <span className="flex items-center gap-3 text-emerald-500 bg-emerald-500/10 px-4 py-1.5 rounded-2xl border border-emerald-500/20">
                                                     <Zap size={12} strokeWidth={3} /> UNIT: {g.assigned_worker}
@@ -266,19 +303,19 @@ export default function AdminDashboard({ boothId }) {
                                         >
                                             <div className="pt-10 mt-10 border-t border-white/5 grid grid-cols-1 md:grid-cols-3 gap-8">
                                                 <div className="p-6 bg-black/20 rounded-3xl border border-white/5">
-                                                    <p className="text-[10px] font-black text-stone-600 uppercase tracking-[3px] mb-3">ASSIGNED_PERSONNEL</p>
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">ASSIGNED_PERSONNEL</p>
                                                     <p className="text-lg font-black text-white uppercase tracking-tighter flex items-center gap-3">
                                                         <User size={18} className="text-emerald-500" /> {g.assigned_worker || 'UNASSIGNED'}
                                                     </p>
                                                 </div>
                                                 <div className="p-6 bg-black/20 rounded-3xl border border-white/5">
-                                                    <p className="text-[10px] font-black text-stone-600 uppercase tracking-[3px] mb-3">SYNC_TIMESTAMP</p>
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">SYNC_TIMESTAMP</p>
                                                     <p className="text-lg font-black text-white uppercase tracking-tighter flex items-center gap-3">
                                                         <Clock size={18} className="text-emerald-500" /> {new Date(g.created_at).toLocaleString()}
                                                     </p>
                                                 </div>
                                                 <div className="p-6 bg-black/20 rounded-3xl border border-white/5">
-                                                    <p className="text-[10px] font-black text-stone-600 uppercase tracking-[3px] mb-3">TACTICAL_STATUS</p>
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">TACTICAL_STATUS</p>
                                                     <p className="text-lg font-black text-emerald-500 uppercase tracking-tighter flex items-center gap-3">
                                                         <Shield size={18} /> {g.status.toUpperCase()}
                                                     </p>
@@ -298,6 +335,55 @@ export default function AdminDashboard({ boothId }) {
                     })
                 )}
             </div>
+                </>
+            ) : (
+                <div className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {voters.map((v, i) => (
+                            <motion.div 
+                                key={v.id}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: i * 0.02 }}
+                                className="bg-[#1a1a1a] p-8 rounded-[2.5rem] border border-white/5 group hover:border-emerald-500/30 transition-all relative overflow-hidden"
+                            >
+                                <div className="flex items-center gap-6 mb-8">
+                                    <div className="size-14 rounded-2xl bg-white/5 flex items-center justify-center text-stone-600 group-hover:text-emerald-500 transition-colors border border-white/5">
+                                        <User size={28} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="text-2xl font-black text-white truncate tracking-tighter uppercase leading-none mb-2">{v.name}</h4>
+                                        <p className="text-[10px] font-black text-stone-600 uppercase tracking-[3px]">UID: {v.id}</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-4 mb-8">
+                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[2px]">
+                                        <span className="text-stone-700">SENTIMENT_POLARITY</span>
+                                        <span className={
+                                            v.sentiment === 'positive' ? 'text-emerald-500' : 
+                                            v.sentiment === 'negative' ? 'text-rose-500' : 'text-stone-500'
+                                        }>{v.sentiment || 'NEUTRAL'}</span>
+                                    </div>
+                                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                        <div className={`h-full rounded-full transition-all duration-1000 ${
+                                            v.sentiment === 'positive' ? 'bg-emerald-500 w-full' : 
+                                            v.sentiment === 'negative' ? 'bg-rose-500 w-full' : 'bg-stone-700 w-1/2'
+                                        }`} />
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 pt-6 border-t border-white/5">
+                                    <span className="px-4 py-1.5 rounded-full bg-white/5 text-stone-600 text-[9px] font-black uppercase tracking-[2px] border border-white/5">
+                                        {v.segment || 'GENERAL'}
+                                    </span>
+                                    <span className="px-4 py-1.5 rounded-full bg-white/5 text-stone-600 text-[9px] font-black uppercase tracking-[2px] border border-white/5">
+                                        {v.phone || 'NO_CONTACT'}
+                                    </span>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Deployment Modal */}
             {createPortal(

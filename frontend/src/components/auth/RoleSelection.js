@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
     ShieldCheck, Users, Briefcase, UserCheck, 
-    BarChart3, Globe, ArrowRight, Zap, 
+    BarChart3, Globe, Zap, 
     ChevronRight, Cpu, Radio, Network
 } from 'lucide-react';
 

@@ -47,14 +47,14 @@ const Sidebar = () => {
                     </div>
                     <div>
                         <h1 className="font-bold text-2xl tracking-tighter leading-none group-hover:text-emerald-500 transition-colors">BoothIQ</h1>
-                        <p className="text-[9px] uppercase tracking-[0.4em] text-stone-500 font-bold mt-1">Operational Node</p>
+                        <p className="text-[9px] uppercase tracking-[0.4em] text-white/40 font-bold mt-1">Operational Node</p>
                     </div>
                 </div>
             </div>
 
             {/* Navigation */}
             <nav className="flex-1 p-6 space-y-2 mt-4 relative z-10">
-                <p className="px-5 text-[10px] font-bold text-stone-600 uppercase tracking-[4px] mb-6">Mission Command</p>
+                <p className="px-5 text-[10px] font-bold text-white/20 uppercase tracking-[4px] mb-6">Mission Command</p>
                 {filteredNav.map((item) => {
                     const active = isActive(item.path);
                     const Icon = item.icon;
@@ -65,7 +65,7 @@ const Sidebar = () => {
                             className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-500 group relative overflow-hidden ${
                                 active 
                                 ? 'bg-white/5 text-emerald-500 border border-white/5 shadow-xl shadow-black/20' 
-                                : 'text-stone-500 hover:text-white hover:bg-white/5'
+                                : 'text-white/40 hover:text-white hover:bg-white/5'
                             }`}
                         >
                             <Icon size={20} strokeWidth={active ? 2.5 : 2} className="group-hover:scale-110 transition-transform" />
@@ -81,7 +81,7 @@ const Sidebar = () => {
             </nav>
 
             {/* Bottom Section */}
-            <div className="p-6 border-t border-white/5 bg-stone-900/20 relative z-10">
+            <div className="p-6 border-t border-white/5 bg-black/20 relative z-10">
                 <div className="bg-white/[0.03] rounded-3xl p-5 mb-6 border border-white/5 backdrop-blur-xl group cursor-default">
                     <div className="flex items-center gap-4">
                         <div className="size-11 rounded-2xl bg-emerald-600/10 flex items-center justify-center text-emerald-500 font-black border border-emerald-600/20 shadow-inner">

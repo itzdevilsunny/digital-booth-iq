@@ -6,14 +6,14 @@ import {
   Wrench, CheckCircle2, Clock, AlertCircle, RefreshCw, 
   ChevronRight, Calendar, UserCircle, X, ShieldAlert,
   Zap, BadgeCheck, ClipboardList, Send, MapPin, Users,
-  ArrowRight, Shield, Activity
+  Shield, Activity
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
     submitted: { label: 'NEW_ANOMALY', icon: ShieldAlert, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
     assigned: { label: 'MISSION_QUEUED', icon: ClipboardList, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
     in_progress: { label: 'ACTIVE_INTERVENTION', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-400/20', border: 'border-emerald-400/30' },
-    resolved: { label: 'MISSION_SUCCESS', icon: BadgeCheck, color: 'text-stone-600', bg: 'bg-white/5', border: 'border-white/5' },
+    resolved: { label: 'MISSION_SUCCESS', icon: BadgeCheck, color: 'text-white/40', bg: 'bg-white/5', border: 'border-white/5' },
 };
 
 const MissionCard = ({ task, onStart, onResolve, delay }) => {
@@ -38,12 +38,12 @@ const MissionCard = ({ task, onStart, onResolve, delay }) => {
                     <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[2px] border ${config.bg} ${config.color} ${config.border}`}>
                         {config.label}
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-stone-600 tracking-widest">NODE_ID: #{task.id}</span>
+                    <span className="text-[10px] font-mono font-bold text-white/20 tracking-widest">NODE_ID: #{task.id}</span>
                 </div>
                 <h4 className="text-3xl font-black text-white mb-4 truncate group-hover:text-emerald-500 transition-colors uppercase tracking-tighter leading-tight">
                     {task.description}
                 </h4>
-                <div className="flex flex-wrap items-center gap-6 text-[10px] font-black text-stone-500 uppercase tracking-[3px]">
+                <div className="flex flex-wrap items-center gap-6 text-[10px] font-black text-white/40 uppercase tracking-[3px]">
                     <span className="flex items-center gap-2"><MapPin size={16} className="text-emerald-500" /> SECTOR_{task.booth_id}</span>
                     <span className="flex items-center gap-2"><Clock size={16} className="text-emerald-500" /> SYNC_{new Date(task.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
@@ -129,14 +129,14 @@ export default function WorkerDashboard({ currentUser: initialUser }) {
                             <span className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
                             <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[3px]">ACTIVE_ENCRYPTED_SYNC</p>
                         </div>
-                        <div className="size-1 rounded-full bg-stone-800" />
+                        <div className="size-1 rounded-full bg-white/10" />
                         <p className="text-white/40 text-[10px] font-black uppercase tracking-[3px]">OFFICER_{currentUser?.name}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={loadData} 
-                        className="p-4 rounded-2xl bg-white/5 text-stone-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all border border-white/5 shadow-2xl group active:scale-95"
+                        className="p-4 rounded-2xl bg-white/5 text-white/40 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all border border-white/5 shadow-2xl group active:scale-95"
                     >
                         <RefreshCw size={24} className={loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
                     </button>
@@ -191,7 +191,7 @@ export default function WorkerDashboard({ currentUser: initialUser }) {
                     {loading ? (
                         <div className="p-32 text-center bg-white/5 backdrop-blur-3xl rounded-[4rem] border border-white/5 border-dashed">
                              <RefreshCw className="w-16 h-16 text-emerald-600 animate-spin mx-auto mb-8 shadow-[0_0_30px_rgba(16,185,129,0.2)]" />
-                             <p className="text-[12px] font-black uppercase tracking-[5px] text-stone-600 animate-pulse">Synchronizing Intelligence Stream...</p>
+                             <p className="text-[12px] font-black uppercase tracking-[5px] text-white/40 animate-pulse">Synchronizing Intelligence Stream...</p>
                         </div>
                     ) : activeMissions.length === 0 ? (
                         <motion.div 
@@ -260,9 +260,9 @@ export default function WorkerDashboard({ currentUser: initialUser }) {
                                                 MISSION_DEBRIEF
                                             </div>
                                             <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">MISSION_OUTCOME</h4>
-                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-stone-600 mt-3">TARGET_LOG: #{resolveModal.id}</p>
+                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-white/40 mt-3">TARGET_LOG: #{resolveModal.id}</p>
                                         </div>
-                                        <button onClick={() => setResolveModal(null)} className="size-14 rounded-2xl bg-white/5 flex items-center justify-center text-stone-500 hover:text-white transition-all border border-white/5">
+                                        <button onClick={() => setResolveModal(null)} className="size-14 rounded-2xl bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all border border-white/5">
                                             <X size={28} />
                                         </button>
                                     </div>
@@ -272,8 +272,8 @@ export default function WorkerDashboard({ currentUser: initialUser }) {
                                             <div className="absolute top-6 right-6 text-emerald-500/10">
                                                 <ClipboardList size={64} />
                                             </div>
-                                            <p className="text-[10px] font-black uppercase text-stone-600 tracking-[3px] mb-4">OBJECTIVE_PARAMETERS</p>
-                                            <p className="text-xl font-black text-stone-400 leading-tight uppercase tracking-tighter pr-12">{resolveModal.description}</p>
+                                            <p className="text-[10px] font-black uppercase text-white/20 tracking-[3px] mb-4">OBJECTIVE_PARAMETERS</p>
+                                            <p className="text-xl font-black text-white/60 leading-tight uppercase tracking-tighter pr-12">{resolveModal.description}</p>
                                         </div>
 
                                         <div className="space-y-4">
@@ -282,7 +282,7 @@ export default function WorkerDashboard({ currentUser: initialUser }) {
                                                 value={resolutionNote} 
                                                 onChange={(e) => setResolutionNote(e.target.value)}
                                                 placeholder="Detail technical outcome and field measures..."
-                                                className="w-full p-8 bg-white/5 rounded-[2.5rem] border border-white/5 focus:border-emerald-500/50 outline-none text-white text-lg font-medium transition-all h-40 resize-none placeholder:text-stone-800 uppercase tracking-tighter" 
+                                                className="w-full p-8 bg-white/5 rounded-[2.5rem] border border-white/5 focus:border-emerald-500/50 outline-none text-white text-lg font-medium transition-all h-40 resize-none placeholder:text-white/10 uppercase tracking-tighter" 
                                             />
                                         </div>
 
