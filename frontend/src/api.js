@@ -51,6 +51,15 @@ export const applyForScheme = (data) => api.post('/schemes/apply', data).then(r 
 export const getApplications = (voterId) => api.get(`/schemes/applications?voter_id=${voterId}`).then(r => r.data);
 export const getVoterServices = () => api.get('/voter-services').then(r => r.data);
 
+// AI Chat
+export const aiChat = (data) => api.post('/chat', data).then(r => r.data);
+export const speechToText = (formData) => api.post('/ai/stt', formData, {
+  headers: { 'Content-Type': 'multipart/form-data' }
+}).then(r => r.data);
+export const textToSpeech = (formData) => api.post('/ai/tts', formData, {
+  headers: { 'Content-Type': 'multipart/form-data' }
+}).then(r => r.data);
+
 // Seed
 export const seedData = () => api.post('/seed').then(r => r.data);
 

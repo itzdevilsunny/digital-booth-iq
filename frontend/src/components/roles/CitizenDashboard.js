@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import NotificationBell from '../ui/NotificationBell';
 import { motion, AnimatePresence } from 'framer-motion';
+import AIChatbot from './AIChatbot';
 
 // --- Sub-components (Ported from Booth IQ) ---
 
@@ -629,6 +630,8 @@ export default function CitizenDashboard({ currentUser, boothId }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AIChatbot currentUser={currentUser} boothId={safeBoothId} />
     </div>
   );
 }

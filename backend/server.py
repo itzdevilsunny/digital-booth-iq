@@ -11,8 +11,10 @@ from pathlib import Path
 from pydantic import BaseModel
 from typing import Optional, Union, Any, List
 import uuid
-from datetime import datetime, timezone
-from fastapi import WebSocket, WebSocketDisconnect
+from datetime import datetime, timezone, timedelta
+import time
+from fastapi import WebSocket, WebSocketDisconnect, UploadFile, File, Form
+import base64
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -44,6 +46,29 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 # --- NOTIFICATION INFRASTRUCTURE ---
+
+# Simple Rate Limiter
+class RateLimiter:
+    def __init__(self, requests_limit: int, window_seconds: int):
+        self.limit = requests_limit
+        self.window = window_seconds
+        self.requests = {} # user_id -> [timestamps]
+
+    def is_allowed(self, user_id: str) -> bool:
+        now = time.time()
+        if user_id not in self.requests:
+            self.requests[user_id] = []
+        
+        # Filter timestamps within window
+        self.requests[user_id] = [t for t in self.requests[user_id] if now - t < self.window]
+        
+        if len(self.requests[user_id]) < self.limit:
+            self.requests[user_id].append(now)
+            return True
+        return False
+
+# Limit AI to 5 requests per minute per user to save tokens
+ai_limiter = RateLimiter(requests_limit=5, window_seconds=60)
 
 class ConnectionManager:
     def __init__(self):
@@ -285,6 +310,12 @@ class SchemeApplication(BaseModel):
     voter_id: str
     scheme_id: str
     booth_id: int
+
+class ChatRequest(BaseModel):
+    message: str
+    user_id: str
+    booth_id: int
+    context: Optional[dict] = None
 
 class ManagerUpdate(BaseModel):
     booth_id: Union[int, str]
@@ -1157,6 +1188,117 @@ async def get_voter_services():
         }
     ]
     return services
+
+# --- ROUTES: AI CHATBOT ---
+
+@api_router.post("/chat")
+async def ai_chat(data: ChatRequest):
+    """Context-aware AI Chatbot using Sarvam/OpenAI"""
+    if not ai_limiter.is_allowed(data.user_id):
+        return {"response": "Protocol Limit Reached. Please wait a minute before sending more queries to save institutional energy."}
+    
+    try:
+        # 1. Gather Context
+        user = await db.users.find_one({"id": data.user_id}, {"_id": 0})
+        voter = await db.voters.find_one({"id": f"V{data.user_id}" if data.user_id.isdigit() else data.user_id}, {"_id": 0})
+        grievances = await get_grievances(booth_id=data.booth_id, voter_id=data.user_id)
+        schemes = await get_schemes()
+        
+        context_prompt = f"""
+        You are ESarthi, an intelligent AI assistant for the BoothIQ Governance Platform.
+        User Info: {json.dumps(user)}
+        Voter Registry Info: {json.dumps(voter)}
+        Active Grievances: {json.dumps(grievances)}
+        Available Schemes: {json.dumps(schemes)}
+        
+        Current User Question: {data.message}
+        
+        Guidelines:
+        - Be professional, empathetic, and institutional.
+        - Use the context to provide specific answers (e.g., if they ask about their complaint, reference the ID and status).
+        - If they ask about schemes, suggest ones they might be eligible for.
+        - Keep responses concise and actionable.
+        """
+        
+        # Use OpenAI for high-quality reasoning
+        response = await openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": context_prompt},
+                {"role": "user", "content": data.message}
+            ],
+            max_tokens=500
+        )
+        
+        ai_reply = response.choices[0].message.content
+        return {"response": ai_reply}
+    except Exception as e:
+        logger.error(f"Chat Error: {e}")
+        return {"response": "I am currently undergoing maintenance. Please try again in a moment."}
+
+@api_router.post("/ai/stt")
+async def speech_to_text(file: UploadFile = File(...), language_code: str = Form("hi-IN"), user_id: str = Form("anonymous")):
+    """Sarvam AI Speech-to-Text"""
+    if not ai_limiter.is_allowed(user_id):
+        return {"transcript": "[Limit Reached]"}
+    try:
+        sarvam_key = os.environ.get('SARVAM_API_KEY')
+        if not sarvam_key:
+            raise HTTPException(status_code=500, detail="SARVAM_API_KEY not set")
+            
+        async with httpx.AsyncClient() as client:
+            files = {'file': (file.filename, await file.read(), file.content_type)}
+            data = {'model': 'saaras:v1', 'language_code': language_code}
+            headers = {'api-subscription-key': sarvam_key}
+            
+            response = await client.post(
+                "https://api.sarvam.ai/speech-to-text",
+                files=files,
+                data=data,
+                headers=headers
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"Sarvam STT Error: {response.text}")
+                return {"transcript": ""}
+                
+            return response.json()
+    except Exception as e:
+        logger.error(f"STT Exception: {e}")
+        return {"transcript": ""}
+
+@api_router.post("/ai/tts")
+async def text_to_speech(text: str = Form(...), language_code: str = Form("hi-IN"), user_id: str = Form("anonymous")):
+    """Sarvam AI Text-to-Speech"""
+    if not ai_limiter.is_allowed(user_id):
+        return {"audio_content": ""}
+    try:
+        sarvam_key = os.environ.get('SARVAM_API_KEY')
+        async with httpx.AsyncClient() as client:
+            headers = {
+                'api-subscription-key': sarvam_key,
+                'Content-Type': 'application/json'
+            }
+            payload = {
+                "inputs": [text],
+                "target_language_code": language_code,
+                "speaker_gender": "Female",
+                "model": "bulbul:v1"
+            }
+            
+            response = await client.post(
+                "https://api.sarvam.ai/text-to-speech",
+                json=payload,
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return {"audio_content": data.get("audios", [""])[0]}
+            return {"audio_content": ""}
+    except Exception as e:
+        logger.error(f"TTS Exception: {e}")
+        return {"audio_content": ""}
 
 # --- ROUTES: SEED DATA ---
 
