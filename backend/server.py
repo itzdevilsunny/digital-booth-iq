@@ -575,8 +575,20 @@ async def create_call(data: CallCreate):
 async def get_grievances(booth_id: Optional[Union[int, str]] = None, assigned_to: Optional[str] = None, voter_id: Optional[Union[int, str]] = None):
     """Get grievances with optional filters"""
     real_id = await resolve_booth_id(booth_id) if booth_id else None
-    logger.info(f"Fetching grievances for [Requested:{booth_id} -> Real:{real_id}]")
+    logger.info(f"Fetching grievances for [Requested:{booth_id} -> Real:{real_id}], assigned_to={assigned_to}")
     
+    # If filtered by assigned worker, find those IDs first from MongoDB
+    specific_ids = []
+    if assigned_to:
+        cursor = db.grievance_assignments.find({"worker_id": assigned_to}, {"grievance_id": 1})
+        async for doc in cursor:
+            specific_ids.append(doc["grievance_id"])
+        
+        if not specific_ids:
+            logger.info(f"No assignments found for worker {assigned_to}")
+            return []
+        logger.info(f"Worker {assigned_to} has {len(specific_ids)} assignments: {specific_ids}")
+
     params = {
         "select": "*",
         "order": "created_at.desc"
@@ -586,11 +598,14 @@ async def get_grievances(booth_id: Optional[Union[int, str]] = None, assigned_to
         params["booth_id"] = f"eq.{real_id}"
     if voter_id:
         params["voter_id"] = f"eq.{voter_id}"
+    if specific_ids:
+        # Filter Supabase by these specific IDs
+        params["id"] = f"in.({','.join(specific_ids)})"
     
     data = await supabase_request("GET", "grievances", params=params)
-    logger.info(f"Grievances Data Count: {len(data) if data else 0}")
+    logger.info(f"Supabase returned {len(data) if data else 0} grievances")
     
-    # Get assignments from MongoDB
+    # Get assignments from MongoDB for enrichment
     grievance_ids = [str(g["id"]) for g in (data or [])]
     assignments = {}
     if grievance_ids:
@@ -604,15 +619,11 @@ async def get_grievances(booth_id: Optional[Union[int, str]] = None, assigned_to
     # Merge assignment data with grievances
     result = []
     for item in (data or []):
-        g = dict(item)  # Ensure it is a fresh mutable dict
+        g = dict(item)
         assignment = assignments.get(str(g.get("id")), {})
         g["assigned_worker"] = assignment.get("worker_name", None)
         g["assigned_worker_id"] = assignment.get("worker_id", None)
         result.append(g)
-    
-    # Filter by assigned worker if requested
-    if assigned_to:
-        result = [g for g in result if g.get("assigned_worker_id") == assigned_to]
     
     return result
 
@@ -662,6 +673,7 @@ async def create_grievance(data: GrievanceCreate):
 @api_router.patch("/grievances")
 async def update_grievance(data: GrievanceUpdate):
     """Update grievance - assign worker or resolve"""
+    logger.info(f"Updating grievance {data.id}: status={data.status}, assigned_to={data.assigned_to}")
     try:
         updates = {}
         
@@ -681,7 +693,9 @@ async def update_grievance(data: GrievanceUpdate):
             worker = await db.users.find_one({"id": data.assigned_to}, {"_id": 0})
             worker_name = worker["name"] if worker else (data.assigned_worker or "Assigned Personnel")
             
-            await db.grievance_assignments.update_one(
+            logger.info(f"Assigning grievance {data.id} to {worker_name} ({data.assigned_to})")
+            
+            res = await db.grievance_assignments.update_one(
                 {"grievance_id": str(data.id)},
                 {"$set": {
                     "grievance_id": str(data.id),
@@ -691,6 +705,7 @@ async def update_grievance(data: GrievanceUpdate):
                 }},
                 upsert=True
             )
+            logger.info(f"MongoDB Update Result: matched={res.matched_count}, modified={res.modified_count}, upserted={res.upserted_id}")
             
             # Update status to assigned if not already
             if not data.status or data.status == "submitted":
