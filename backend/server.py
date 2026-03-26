@@ -93,11 +93,14 @@ class ConnectionManager:
         self.active_connections: dict[str, List[WebSocket]] = {}
 
     async def connect(self, user_id: str, websocket: WebSocket):
-        await websocket.accept()
-        if user_id not in self.active_connections:
-            self.active_connections[user_id] = []
-        self.active_connections[user_id].append(websocket)
-        logger.info(f"User {user_id} connected. Active connections: {len(self.active_connections[user_id])}")
+        try:
+            await websocket.accept()
+            if user_id not in self.active_connections:
+                self.active_connections[user_id] = []
+            self.active_connections[user_id].append(websocket)
+            logger.info(f"User {user_id} connected. Active connections: {len(self.active_connections[user_id])}")
+        except Exception as e:
+            logger.error(f"WebSocket accept failed for {user_id}: {e}")
 
     def disconnect(self, user_id: str, websocket: WebSocket):
         if user_id in self.active_connections:
@@ -1072,7 +1075,8 @@ async def create_grievance(data: GrievanceCreate):
             "category": category,
             "booth_id": real_booth_id,
             "status": "submitted",
-            "sentiment": ai_result["sentiment"]
+            "sentiment": ai_result["sentiment"],
+            "priority": ai_result["priority"]
         }
         
         if data.voter_id:
@@ -1081,18 +1085,20 @@ async def create_grievance(data: GrievanceCreate):
         result = await supabase_request("POST", "grievances", json_data=grievance_data)
         
         # --- HYBRID FALLBACK: Also store in MongoDB for demo safety ---
+        mongo_gr = {
+            "id": f"GR-{uuid.uuid4().hex[:6]}",
+            "voter_id": data.voter_id or "anonymous",
+            "voter_name": data.voter_name or "Anonymous Citizen",
+            "description": data.description,
+            "category": category,
+            "status": "submitted",
+            "booth_id": real_booth_id,
+            "sentiment": ai_result["sentiment"],
+            "priority": ai_result["priority"],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
         try:
-            mongo_gr = {
-                "id": f"GR-{uuid.uuid4().hex[:6]}",
-                "voter_id": data.voter_id or "anonymous",
-                "voter_name": data.voter_name or "Anonymous Citizen",
-                "description": data.description,
-                "category": category,
-                "status": "submitted",
-                "booth_id": real_booth_id,
-                "sentiment": ai_result["sentiment"],
-                "created_at": datetime.now(timezone.utc).isoformat()
-            }
             # Add to a relevant voter in MongoDB or a separate collection
             if data.voter_id:
                 await db.voters.update_one(
@@ -1102,38 +1108,37 @@ async def create_grievance(data: GrievanceCreate):
         except Exception as e:
             logger.error(f"MongoDB grievance fallback error: {e}")
 
-        if result:
-            grievance = result[0]
-            grievance["ai_category"] = ai_result["category"]
-            grievance["ai_sentiment"] = ai_result["sentiment"]
-            grievance["ai_priority"] = ai_result["priority"]
-            
-            # --- NOTIFICATION HOOK ---
-            # Notify Booth Staff and Voter
-            try:
-                # Notify the person who filed it
-                await send_notification(
-                    user_id=str(data.voter_id) if data.voter_id else "anonymous",
-                    title="Grievance Filed Successfully",
-                    message=f"Your {category} issue has been logged. Ref ID: {grievance.get('id', 'N/A')}",
-                    n_type="success",
-                    metadata={"phone": data.voter_phone}
-                )
-                
-                # Notify Booth Staff (Admins)
-                await send_notification(
-                    user_id="admin_1",
-                    title="New Grievance Filed",
-                    message=f"A new {category} issue has been reported in Booth {real_booth_id}.",
-                    n_type="warning",
-                    metadata={"grievance_id": str(grievance["id"])}
-                )
-            except Exception as e:
-                logger.error(f"Notification Hook Error: {e}")
-            
-            return grievance
+        # Use result from Supabase if available, otherwise use Mongo record
+        grievance = result[0] if (result and isinstance(result, list) and len(result) > 0) else mongo_gr
         
-        raise HTTPException(status_code=500, detail="Failed to create grievance")
+        grievance["ai_category"] = ai_result["category"]
+        grievance["ai_sentiment"] = ai_result["sentiment"]
+        grievance["ai_priority"] = ai_result["priority"]
+        
+        # --- NOTIFICATION HOOK ---
+        # Notify Booth Staff and Voter
+        try:
+            # Notify the person who filed it
+            await send_notification(
+                user_id=str(data.voter_id) if data.voter_id else "anonymous",
+                title="Grievance Filed Successfully",
+                message=f"Your {category} issue has been logged. Ref ID: {grievance.get('id', 'N/A')}",
+                n_type="success",
+                metadata={"phone": data.voter_phone}
+            )
+            
+            # Notify Booth Staff (Admins)
+            await send_notification(
+                user_id="admin_1",
+                title="New Grievance Filed",
+                message=f"A new {category} issue has been reported in Booth {real_booth_id}.",
+                n_type="warning",
+                metadata={"grievance_id": str(grievance.get("id"))}
+            )
+        except Exception as e:
+            logger.error(f"Notification Hook Error: {e}")
+        
+        return grievance
     except HTTPException:
         raise
     except Exception as e:

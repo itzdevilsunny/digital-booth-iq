@@ -38,6 +38,7 @@ export const NotificationProvider = ({ children, userId }) => {
     fetchHistory();
 
     const wsUrl = process.env.REACT_APP_BACKEND_URL.replace('http', 'ws');
+    console.log('📡 Connecting to Notification Matrix:', `${wsUrl}/ws/notifications/${userId}`);
     const socket = new WebSocket(`${wsUrl}/ws/notifications/${userId}`);
 
     socket.onmessage = (event) => {

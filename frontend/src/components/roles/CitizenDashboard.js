@@ -34,39 +34,39 @@ const StatCard = ({ label, value, icon: Icon, color, delay }) => (
 );
 
 const InsightsBanner = ({ insights, loading }) => (
-    <div className="relative overflow-hidden rounded-[2.5rem] bg-emerald-600 p-8 md:p-12 text-white shadow-2xl shadow-emerald-600/20 group">
-        <div className="absolute inset-0 bg-grid-pattern opacity-10" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 blur-[100px] rounded-full -mr-32 -mt-32" />
+    <div className="relative overflow-hidden rounded-[2.5rem] bg-white p-8 md:p-12 text-stone-900 border border-stone-200 shadow-xl shadow-stone-200/50 group">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 blur-[100px] rounded-full -mr-32 -mt-32" />
         
         <div className="relative z-10 flex flex-col md:flex-row gap-10 items-center">
             <div className="flex-1">
                 <div className="flex items-center gap-3 mb-6">
-                    <span className="px-4 py-1 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-[2px] text-white border border-white/20">
+                    <span className="px-4 py-1 bg-emerald-50 rounded-full text-[10px] font-bold uppercase tracking-[2px] text-emerald-600 border border-emerald-100">
                         AI Insights
                     </span>
-                    <div className="size-1.5 rounded-full bg-white animate-pulse" />
+                    <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 </div>
-                <h2 className="text-4xl md:text-5xl font-black mb-4 leading-[0.9] tracking-tighter">
+                <h2 className="text-4xl md:text-5xl font-black mb-4 leading-[0.9] tracking-tighter text-stone-900">
                     Booth Status <br />Overview
                 </h2>
                 {loading ? (
                     <div className="space-y-3 opacity-20">
-                        <div className="h-2 bg-white rounded w-full animate-pulse" />
-                        <div className="h-2 bg-white rounded w-3/4 animate-pulse" />
+                        <div className="h-2 bg-stone-200 rounded w-full animate-pulse" />
+                        <div className="h-2 bg-stone-200 rounded w-3/4 animate-pulse" />
                     </div>
                 ) : (
-                    <p className="text-emerald-50 text-sm md:text-lg leading-relaxed max-w-xl font-medium">
+                    <p className="text-stone-500 text-sm md:text-lg leading-relaxed max-w-xl font-medium">
                         {insights?.[0] || "Your booth is running smoothly. No major issues detected."}
                     </p>
                 )}
             </div>
             
-            <div className="shrink-0 flex items-center gap-5 bg-black/10 p-8 rounded-[2rem] border border-white/10 backdrop-blur-xl">
+            <div className="shrink-0 flex items-center gap-5 bg-stone-50 p-8 rounded-[2rem] border border-stone-200 shadow-sm">
                 <div className="text-right">
-                    <p className="text-[10px] uppercase tracking-[3px] text-emerald-200 font-bold mb-1">Source</p>
-                    <p className="text-sm font-mono font-black">BoothIQ AI</p>
+                    <p className="text-[10px] uppercase tracking-[3px] text-stone-400 font-bold mb-1">Source</p>
+                    <p className="text-sm font-mono font-black text-stone-900">BoothIQ AI</p>
                 </div>
-                <div className="size-14 rounded-2xl bg-white text-emerald-600 flex items-center justify-center border border-white/20 shadow-xl">
+                <div className="size-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center border border-emerald-500 shadow-xl">
                     <Shield size={28} />
                 </div>
             </div>
@@ -82,7 +82,7 @@ const ServiceGrid = ({ items, onSelect, activeTab }) => (
                 onClick={() => onSelect(item.id)}
                 className={`flex flex-col items-center justify-center p-6 rounded-[2rem] border transition-all gap-4 group hover:scale-[1.02] active:scale-95 ${
                     activeTab === item.id 
-                    ? 'bg-emerald-600 border-emerald-500 text-white shadow-2xl shadow-emerald-500/20' 
+                    ? 'bg-stone-900 border-stone-800 text-white shadow-2xl shadow-stone-900/20' 
                     : 'bg-white border-stone-100 text-stone-500 hover:border-emerald-300 hover:shadow-md shadow-sm'
                 }`}
             >
@@ -177,6 +177,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
             const result = await createGrievance({
                 description,
                 category: category || 'General',
+                voter_id: currentUser?.id || 'anonymous',
                 voter_name: currentUser?.name || `Citizen-${safeBoothId}`,
                 booth_id: safeBoothId
             });
@@ -222,7 +223,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
     return (
         <div className="space-y-8 animate-fade-in relative z-10">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-stone-100">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-stone-200">
                 <div>
                     <h1 className="text-4xl font-display font-bold text-stone-900 tracking-tight">Public Portal</h1>
                     <p className="text-stone-400 text-sm mt-1 uppercase tracking-widest font-bold">Booth #{safeBoothId}</p>
@@ -354,7 +355,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                             <div className="bg-white text-stone-900 rounded-[3rem] p-10 border border-stone-100 shadow-xl relative overflow-hidden group">
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-6 mb-10">
-                                        <div className="size-20 rounded-[2rem] bg-emerald-600 flex items-center justify-center text-white shadow-2xl shadow-emerald-500/20 border border-emerald-400/20 group-hover:scale-110 transition-transform">
+                                        <div className="size-20 rounded-[2rem] bg-stone-900 flex items-center justify-center text-emerald-500 shadow-2xl shadow-stone-900/10 border border-stone-800 group-hover:scale-110 transition-transform">
                                             <Send size={36} />
                                         </div>
                                         <div>
@@ -365,7 +366,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
 
                                     <div className="space-y-8">
                                         <div className="space-y-4">
-                                            <label className="text-[10px] font-bold uppercase tracking-[4px] text-emerald-600 pl-1">Category</label>
+                                            <label className="text-[10px] font-bold uppercase tracking-[4px] text-stone-900 pl-1">Category</label>
                                             <div className="flex flex-wrap gap-2.5">
                                                 {['Infrastructure', 'Health', 'Security', 'Sanitation', 'Utility'].map(cat => (
                                                     <button 
@@ -373,8 +374,8 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                                         onClick={() => setCategory(cat)}
                                                         className={`px-6 py-2.5 rounded-2xl text-[10px] font-bold uppercase tracking-[2px] border transition-all ${
                                                             category === cat 
-                                                            ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-500/20' 
-                                                            : 'bg-stone-50 border-stone-200 text-stone-500 hover:text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50'
+                                                            ? 'bg-stone-900 border-stone-800 text-white shadow-lg shadow-stone-900/10' 
+                                                            : 'bg-stone-50 border-stone-200 text-stone-500 hover:text-stone-900 hover:border-stone-400 hover:bg-stone-100'
                                                         }`}
                                                     >
                                                         {cat}
@@ -384,19 +385,19 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                         </div>
 
                                         <div className="space-y-4">
-                                            <label className="text-[10px] font-bold uppercase tracking-[4px] text-emerald-600 pl-1">Description</label>
+                                            <label className="text-[10px] font-bold uppercase tracking-[4px] text-stone-900 pl-1">Description</label>
                                             <textarea 
                                                 value={description}
                                                 onChange={(e) => setDescription(e.target.value)}
                                                 placeholder="Describe the issue in detail..."
-                                                className="w-full bg-stone-50 border border-stone-200 rounded-[2rem] p-8 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all text-sm font-medium h-44 resize-none placeholder:text-stone-300 text-stone-800"
+                                                className="w-full bg-stone-50 border border-stone-200 rounded-[2rem] p-8 outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-100 transition-all text-sm font-medium h-44 resize-none placeholder:text-stone-300 text-stone-800"
                                             />
                                         </div>
 
                                         <button 
                                             onClick={handleSubmit} 
                                             disabled={!description || submitting}
-                                            className="w-full py-5 bg-emerald-600 text-white rounded-[1.5rem] font-black uppercase tracking-[4px] flex items-center justify-center gap-4 transition-all hover:bg-emerald-500 active:scale-[0.98] disabled:opacity-40 shadow-xl shadow-emerald-500/20"
+                                            className="w-full py-5 bg-stone-900 text-white rounded-[1.5rem] font-black uppercase tracking-[4px] flex items-center justify-center gap-4 transition-all hover:bg-black active:scale-[0.98] disabled:opacity-40 shadow-xl shadow-stone-900/10"
                                         >
                                             {submitting ? <RefreshCw className="animate-spin" size={24} /> : <><span>Submit Report</span> <ChevronRight size={24} /></>}
                                         </button>
@@ -413,9 +414,9 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         transition={{ delay: idx * 0.1 }}
-                                        className="bg-white p-10 rounded-[3rem] border border-stone-100 hover:border-emerald-200 hover:shadow-lg transition-all group shadow-sm"
+                                        className="bg-white p-10 rounded-[3rem] border border-stone-100 hover:border-stone-300 hover:shadow-lg transition-all group shadow-sm"
                                     >
-                                        <div className="size-20 rounded-[2rem] bg-emerald-600 flex items-center justify-center text-white mb-10 group-hover:scale-110 transition-transform shadow-xl shadow-emerald-500/20">
+                                        <div className="size-20 rounded-[2rem] bg-stone-900 flex items-center justify-center text-emerald-500 mb-10 group-hover:scale-110 transition-transform shadow-xl shadow-stone-900/10">
                                             <span className="material-symbols-outlined text-4xl italic">{s.icon}</span>
                                         </div>
                                         <h3 className="text-3xl font-black text-stone-900 mb-4 tracking-tighter leading-tight">{s.name}</h3>
@@ -425,7 +426,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                             className={`px-8 py-4 rounded-2xl border text-[10px] font-black uppercase tracking-[3px] flex items-center gap-3 transition-all ${
                                                 s.official_link === '#' 
                                                 ? 'bg-stone-50 border-stone-200 text-stone-400 cursor-not-allowed' 
-                                                : 'bg-emerald-600 border-transparent text-white hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 active:scale-95'
+                                                : 'bg-stone-900 border-transparent text-white hover:bg-black shadow-lg shadow-stone-900/10 active:scale-95'
                                             }`}
                                         >
                                             {s.official_link === '#' ? 'Coming Soon' : 'Open Portal'} <ExternalLink size={16} />
@@ -445,20 +446,20 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: idx * 0.05 }}
-                                            className="bg-white p-10 rounded-[3rem] border border-stone-100 hover:border-emerald-200 hover:shadow-lg transition-all group flex flex-col justify-between shadow-sm"
+                                            className="bg-white p-10 rounded-[3rem] border border-stone-100 hover:border-stone-300 hover:shadow-lg transition-all group flex flex-col justify-between shadow-sm"
                                         >
                                             <div>
                                                 <div className="flex items-center justify-between mb-10">
-                                                    <span className="px-5 py-2 bg-emerald-50 rounded-full text-[10px] font-black uppercase tracking-[2px] text-emerald-600 border border-emerald-100">
+                                                    <span className="px-5 py-2 bg-stone-100 rounded-full text-[10px] font-black uppercase tracking-[2px] text-stone-600 border border-stone-200">
                                                         {scheme.category}
                                                     </span>
                                                     {isApplied && (
-                                                        <span className="px-5 py-2 bg-stone-50 text-stone-600 rounded-full text-[10px] font-black uppercase tracking-[2px] flex items-center gap-2 border border-stone-100">
+                                                        <span className="px-5 py-2 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-[2px] flex items-center gap-2 border border-emerald-100">
                                                             <CheckCircle2 size={14} className="text-emerald-500" /> Applied
                                                         </span>
                                                     )}
                                                 </div>
-                                                <h3 className="text-2xl font-black text-stone-900 group-hover:text-emerald-600 transition-colors mb-4 tracking-tighter leading-tight">{scheme.name}</h3>
+                                                <h3 className="text-2xl font-black text-stone-900 transition-colors mb-4 tracking-tighter leading-tight group-hover:text-emerald-600">{scheme.name}</h3>
                                                 <p className="text-stone-500 text-sm leading-relaxed mb-10 font-medium">{scheme.desc}</p>
                                             </div>
                                             
@@ -468,14 +469,14 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                                     disabled={isApplied || applying === scheme.id}
                                                     className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[3px] flex items-center justify-center gap-3 transition-all ${
                                                         isApplied 
-                                                        ? 'bg-stone-50 text-stone-400 cursor-not-allowed border border-stone-100' 
-                                                        : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-xl shadow-emerald-500/20'
+                                                        ? 'bg-stone-100 text-stone-400 cursor-not-allowed border border-stone-200' 
+                                                        : 'bg-stone-900 text-white hover:bg-black shadow-xl shadow-stone-900/10'
                                                     }`}
                                                 >
                                                     {applying === scheme.id ? <RefreshCw className="animate-spin" size={18} /> : isApplied ? <BadgeCheck size={20} /> : <ChevronRight size={20} />}
                                                     {isApplied ? 'Already Applied' : 'Apply Now'}
                                                 </button>
-                                                <button className="size-12 rounded-2xl bg-stone-50 text-stone-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all border border-stone-100 flex items-center justify-center">
+                                                <button className="size-12 rounded-2xl bg-stone-50 text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-all border border-stone-100 flex items-center justify-center">
                                                     <Info size={20} />
                                                 </button>
                                             </div>
@@ -490,37 +491,37 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                 {/* Sidebar Info */}
                 <div className="lg:col-span-4 space-y-6">
                     {/* Support Team */}
-                    <div className="bg-emerald-600 text-white rounded-[3rem] p-8 shadow-xl shadow-emerald-500/20 relative overflow-hidden group border border-emerald-500/20">
-                        <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+                    <div className="bg-white text-stone-900 rounded-[3rem] p-8 shadow-xl shadow-stone-200/50 relative overflow-hidden group border border-stone-200">
+                        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
                         <div className="relative z-10">
-                            <h3 className="text-lg font-black mb-8 flex items-center gap-3 tracking-tighter">
-                                <Shield size={20} strokeWidth={3} /> Support Team
+                            <h3 className="text-lg font-black mb-8 flex items-center gap-3 tracking-tighter text-stone-900">
+                                <Shield size={20} strokeWidth={3} className="text-emerald-600" /> Support Team
                             </h3>
                             <div className="space-y-4">
                                 {admin && (
-                                    <div className="bg-white/10 p-4 rounded-2xl border border-white/10 flex items-center gap-4 group/item hover:bg-white/20 transition-all cursor-pointer">
-                                        <div className="size-12 rounded-2xl bg-white text-emerald-600 flex items-center justify-center font-black text-xl shadow-lg">
+                                    <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200 flex items-center gap-4 group/item hover:bg-stone-100 transition-all cursor-pointer">
+                                        <div className="size-12 rounded-2xl bg-stone-900 text-emerald-500 flex items-center justify-center font-black text-xl shadow-lg border border-stone-800">
                                             {admin.name?.[0]}
                                         </div>
                                         <div>
-                                            <p className="font-black text-sm tracking-tight leading-none mb-1">{admin.name}</p>
-                                            <p className="text-[9px] uppercase font-bold text-emerald-200 tracking-[2px]">Administrator</p>
+                                            <p className="font-black text-sm tracking-tight leading-none mb-1 text-stone-900">{admin.name}</p>
+                                            <p className="text-[9px] uppercase font-bold text-stone-400 tracking-[2px]">Administrator</p>
                                         </div>
-                                        <div className="ml-auto size-10 rounded-full bg-white/10 flex items-center justify-center group-hover/item:bg-white group-hover/item:text-emerald-600 transition-all">
+                                        <div className="ml-auto size-10 rounded-full bg-stone-200 flex items-center justify-center text-stone-400 group-hover/item:bg-stone-900 group-hover/item:text-emerald-500 transition-all">
                                             <Phone size={16} />
                                         </div>
                                     </div>
                                 )}
                                 {workers.slice(0, 3).map((w) => (
-                                    <div key={w.id} className="bg-black/10 p-4 rounded-2xl border border-white/5 flex items-center gap-4 group/item hover:bg-white/10 transition-all cursor-pointer">
-                                        <div className="size-10 rounded-2xl bg-white/10 text-white flex items-center justify-center font-black text-lg border border-white/10">
+                                    <div key={w.id} className="bg-white p-4 rounded-2xl border border-stone-100 flex items-center gap-4 group/item hover:bg-stone-50 transition-all cursor-pointer">
+                                        <div className="size-10 rounded-2xl bg-stone-100 text-stone-400 flex items-center justify-center font-black text-lg border border-stone-200 group-hover/item:bg-stone-900 group-hover/item:text-emerald-500 transition-all">
                                             {w.name?.[0]}
                                         </div>
                                         <div>
-                                            <p className="font-black text-sm tracking-tight leading-none mb-1 text-emerald-50">{w.name}</p>
-                                            <p className="text-[9px] uppercase font-bold text-emerald-400/60 tracking-[2px]">Field Worker</p>
+                                            <p className="font-black text-sm tracking-tight leading-none mb-1 text-stone-700 group-hover/item:text-stone-900 transition-colors">{w.name}</p>
+                                            <p className="text-[9px] uppercase font-bold text-stone-300 tracking-[2px]">Field Worker</p>
                                         </div>
-                                        <div className="ml-auto size-10 rounded-full bg-white/5 flex items-center justify-center text-white/40 group-hover/item:bg-white group-hover/item:text-emerald-600 transition-all">
+                                        <div className="ml-auto size-10 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 group-hover/item:bg-stone-900 group-hover/item:text-emerald-500 transition-all">
                                             <MessageSquare size={16} />
                                         </div>
                                     </div>

@@ -95,7 +95,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                         <BrainCircuit size={48} className="animate-pulse" />
                     </div>
                 </div>
-                <h2 className="text-xl font-black text-white uppercase tracking-[8px] mb-4">SYNTHESIZING_PIPELINE</h2>
+                <h2 className="text-xl font-black text-white uppercase tracking-[8px] mb-4">LOADING_DATA</h2>
                 <div className="flex justify-center gap-1">
                     {[1,2,3].map(i => (
                         <motion.div 
@@ -116,8 +116,8 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                 <div className="size-24 rounded-[2.5rem] bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 mx-auto mb-10 shadow-2xl shadow-rose-500/20">
                     <AlertTriangle size={48} strokeWidth={3} />
                 </div>
-                <h4 className="text-4xl font-black text-white uppercase tracking-tighter mb-4 leading-none">CORE_LINK_FAILURE</h4>
-                <p className="text-white/40 text-[10px] font-black uppercase tracking-[4px] leading-relaxed">UNABLE_TO_ESTABLISH_HANDSHAKE_WITH_ANALYTICS_NODE. INITIATING_AUTO_RECOVERY...</p>
+                <h4 className="text-4xl font-black text-white uppercase tracking-tighter mb-4 leading-none">CONNECTION_ERROR</h4>
+                <p className="text-white/40 text-[10px] font-black uppercase tracking-[4px] leading-relaxed">UNABLE_TO_CONNECT_TO_DATABASE. RETRYING_SOON...</p>
             </div>
         );
     }
@@ -128,9 +128,9 @@ export default function AnalystDashboard({ currentUser, boothId }) {
     }));
 
     const SENTIMENT_CONFIG = { 
-        positive: { color: 'text-emerald-600', bg: 'bg-emerald-600', label: 'Positive Trajectory', icon: TrendingUp },
-        neutral: { color: 'text-white/40', bg: 'bg-white/10', label: 'Static Alignment', icon: Activity },
-        negative: { color: 'text-rose-600', bg: 'bg-rose-600', label: 'Negative Variance', icon: TrendingDown }
+        positive: { color: 'text-emerald-600', bg: 'bg-emerald-600', label: 'Positive Trend', icon: TrendingUp },
+        neutral: { color: 'text-white/40', bg: 'bg-white/10', label: 'No Change', icon: Activity },
+        negative: { color: 'text-rose-600', bg: 'bg-rose-600', label: 'Negative Trend', icon: TrendingDown }
     };
 
     return (
@@ -140,12 +140,12 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                 <div className="space-y-2">
                     <div className="flex items-center gap-3">
                         <div className="size-3 rounded-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
-                        <h1 className="text-5xl sm:text-6xl font-black text-white tracking-tighter uppercase leading-none">INTEL_MATRIX</h1>
+                        <h1 className="text-5xl sm:text-6xl font-black text-white tracking-tighter uppercase leading-none">BOOTH_DASHBOARD</h1>
                     </div>
                     <div className="flex items-center gap-4">
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[5px]">RECON_ID: /BOOTH-{boothId}_ALPHA</p>
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[5px]">BOOTH_ID: {boothId}</p>
                         <span className="size-1 rounded-full bg-white/10" />
-                        <p className="text-emerald-500/50 text-[9px] font-black uppercase tracking-[3px]">STATUS: SYNCED</p>
+                        <p className="text-emerald-500/50 text-[9px] font-black uppercase tracking-[3px]">STATUS: UPDATED</p>
                     </div>
                 </div>
                 
@@ -153,7 +153,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                     <button onClick={loadData} className="group relative px-8 py-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/50 transition-all active:scale-95">
                         <div className="flex items-center gap-3 relative z-10">
                             <RefreshCw size={16} className={`text-white/40 group-hover:text-emerald-500 transition-colors ${loading ? 'animate-spin' : ''}`} />
-                            <span className="text-[10px] font-black text-white uppercase tracking-[3px]">RESYNC_NODES</span>
+                            <span className="text-[10px] font-black text-white uppercase tracking-[3px]">REFRESH_DATA</span>
                         </div>
                     </button>
                     
@@ -165,10 +165,10 @@ export default function AnalystDashboard({ currentUser, boothId }) {
 
             {/* Tactical Metrics Group */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <MetricCard label="Total Universe" value={stats.total_voters} icon={Users} color="#1a1a1a" trend="+1.2%" delay={0.1} />
-                <MetricCard label="Vulnerabilities" value={stats.total_issues} icon={AlertTriangle} color="#f59e0b" trend="-4.8%" delay={0.2} />
+                <MetricCard label="Total Voters" value={stats.total_voters} icon={Users} color="#1a1a1a" trend="+1.2%" delay={0.1} />
+                <MetricCard label="Complaints" value={stats.total_issues} icon={AlertTriangle} color="#f59e0b" trend="-4.8%" delay={0.2} />
                 <MetricCard label="Resolution Rate" value={`${Math.round((stats.resolved_issues / (stats.total_issues || 1)) * 100)}%`} icon={ShieldCheck} color="#10b981" delay={0.3} />
-                <MetricCard label="Tactical Comms" value={stats.total_calls} icon={PhoneCall} color="#6366f1" trend="+14%" delay={0.4} />
+                <MetricCard label="Total Calls" value={stats.total_calls} icon={PhoneCall} color="#6366f1" trend="+14%" delay={0.4} />
             </div>
 
             {/* Visual Analytics Grid */}
@@ -178,7 +178,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                     <div className="absolute top-10 right-10 z-20">
                          <div className="flex items-center gap-3 bg-black/40 backdrop-blur-xl px-4 py-2 rounded-full border border-white/5">
                             <span className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-                            <span className="text-[9px] font-black uppercase tracking-[3px] text-emerald-500/80">LIVE_GRIEVANCE_DATA</span>
+                            <span className="text-[9px] font-black uppercase tracking-[3px] text-emerald-500/80">LIVE_DATA</span>
                          </div>
                     </div>
                     
@@ -187,8 +187,8 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                             <BarChart2 size={28} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">GRIEVANCE_BREAKDOWN</h4>
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-2">ISSUES_BY_CATEGORY_AND_STATUS</p>
+                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">ISSUE_BREAKDOWN</h4>
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-2">COMPLAINTS_BY_CATEGORY</p>
                         </div>
                     </div>
 
@@ -250,8 +250,8 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                             <Target size={28} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">SENTIMENT_BIAS</h4>
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-2">DISTRIBUTION_OF_SECTOR_SUPPORT</p>
+                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">PUBLIC_SENTIMENT</h4>
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-2">DISTRIBUTION_OF_SUPPORT</p>
                         </div>
                     </div>
 
@@ -281,8 +281,8 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                                         />
                                     </div>
                                     <div className="flex justify-between items-center mt-3">
-                                        <p className="text-[8px] font-black text-white/10 uppercase tracking-[2px]">VECTOR_DENSITY</p>
-                                        <p className="text-[9px] font-black text-white/40 uppercase tracking-[3px]">{s.value}_UNITS</p>
+                                        <p className="text-[8px] font-black text-white/10 uppercase tracking-[2px]">COUNT</p>
+                                        <p className="text-[9px] font-black text-white/40 uppercase tracking-[3px]">{s.value} PEOPLE</p>
                                     </div>
                                 </div>
                             );
@@ -295,7 +295,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                                 <Zap size={18} strokeWidth={3} />
                              </div>
                              <p className="text-[10px] font-black text-emerald-500/80 leading-relaxed uppercase tracking-[2px]">
-                                SECTOR_ALPHA_STABILIZED. NO_ANOMALOUS_SHIFT_IN_24H_CYCLE.
+                                BOOTH IS STABLE. NO MAJOR CHANGES IN LAST 24H.
                              </p>
                         </div>
                     </div>
@@ -311,7 +311,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                             <div className="size-14 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20 shadow-2xl">
                                 <BrainCircuit size={28} strokeWidth={2.5} />
                             </div>
-                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">TACTICAL_INSIGHTS <span className="text-xs text-emerald-500/40 ml-3 font-mono tracking-[4px]">V4.0</span></h4>
+                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">AI_SUGGESTIONS</h4>
                         </div>
                     </div>
                     
@@ -360,16 +360,16 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                              </div>
                         </div>
                         
-                        <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none mb-4">REGISTRY_EFFICIENCY</h4>
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[4px] max-w-sm mx-auto mb-12 leading-relaxed">REAL_TIME_RESOLUTION_VELOCITY_BENCHMARKING_SYSTEM</p>
+                        <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none mb-4">RESOLUTION_PERFORMANCE</h4>
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[4px] max-w-sm mx-auto mb-12 leading-relaxed">REAL-TIME ISSUE RESOLUTION TRACKING</p>
                         
                         <div className="grid grid-cols-2 gap-6 w-full max-w-md mx-auto">
                             <div className="p-8 bg-black/40 rounded-[2.5rem] border border-white/5 group-hover:border-emerald-500/30 transition-all">
-                                <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mb-3">ARCHIVED</p>
+                                <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mb-3">RESOLVED</p>
                                 <p className="text-4xl font-black text-emerald-500 tracking-tighter leading-none">{stats.resolved_issues}</p>
                             </div>
                             <div className="p-8 bg-black/40 rounded-[2.5rem] border border-white/5 group-hover:border-rose-500/30 transition-all">
-                                <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mb-3">BACKLOG</p>
+                                <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mb-3">PENDING</p>
                                 <p className="text-4xl font-black text-rose-500 tracking-tighter leading-none">{stats.pending_issues}</p>
                             </div>
                         </div>

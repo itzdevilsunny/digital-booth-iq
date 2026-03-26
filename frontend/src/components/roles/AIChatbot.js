@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { 
   MessageSquare, Send, X, Mic, MicOff, 
   Volume2, Sparkles, Loader2
@@ -8,6 +9,10 @@ import { aiChat, speechToText, textToSpeech } from '../../api';
 
 export default function AIChatbot({ currentUser, boothId }) {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const role = location.pathname.split('/')[1] || 'citizen';
+  const isCitizen = role === 'citizen';
+
   const [messages, setMessages] = useState([
     { role: 'bot', content: `Namaste ${currentUser?.name || 'Citizen'}. I am ESarthi, your institutional AI assistant. How can I help you today?` }
   ]);
@@ -42,8 +47,6 @@ export default function AIChatbot({ currentUser, boothId }) {
 
       const botMessage = { role: 'bot', content: response.response };
       setMessages(prev => [...prev, botMessage]);
-      
-      // Auto-TTS for bot reply if needed (optional)
     } catch (e) {
       console.error(e);
       setMessages(prev => [...prev, { role: 'bot', content: "I'm sorry, I encountered a sync error. Please try again." }]);
@@ -115,12 +118,12 @@ export default function AIChatbot({ currentUser, boothId }) {
 
   return (
     <>
-      {/* Chat Toggle Button - above bottom nav on mobile */}
+      {/* Chat Toggle Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed bottom-28 right-5 md:bottom-8 md:right-8 z-[80] size-14 md:size-16 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group overflow-hidden border-2 ${
           isOpen 
-            ? 'bg-slate-900 text-white border-slate-700 shadow-slate-900/30' 
+            ? 'bg-stone-900 text-white border-stone-700 shadow-stone-900/30' 
             : 'bg-emerald-600 text-white border-emerald-500/40 shadow-emerald-500/30'
         }`}
       >
@@ -135,10 +138,10 @@ export default function AIChatbot({ currentUser, boothId }) {
             initial={{ opacity: 0, y: 100, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 100, scale: 0.9 }}
-            className="fixed bottom-0 right-0 md:bottom-28 md:right-8 z-[70] w-full md:w-[400px] h-[75vh] md:h-[560px] bg-white rounded-t-3xl md:rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
+            className={`fixed bottom-0 right-0 md:bottom-28 md:right-8 z-[70] w-full md:w-[400px] h-[75vh] md:h-[560px] bg-white rounded-t-3xl md:rounded-3xl shadow-2xl border ${isCitizen ? 'border-stone-200' : 'border-slate-200'} flex flex-col overflow-hidden transition-all duration-500`}
           >
             {/* Header */}
-            <div className="bg-[#0c0c0c] p-5 flex items-center justify-between text-white relative overflow-hidden">
+            <div className={`p-5 flex items-center justify-between text-white relative overflow-hidden ${isCitizen ? 'bg-stone-900' : 'bg-[#0c0c0c]'}`}>
               <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
               <div className="flex items-center gap-4 relative z-10">
                 <div className="size-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
@@ -160,7 +163,7 @@ export default function AIChatbot({ currentUser, boothId }) {
             {/* Messages */}
             <div 
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-slate-50/50"
+              className={`flex-1 overflow-y-auto p-4 md:p-6 space-y-6 ${isCitizen ? 'bg-stone-50/50' : 'bg-slate-50/50'}`}
             >
               {messages.map((m, i) => (
                 <motion.div 
@@ -171,13 +174,13 @@ export default function AIChatbot({ currentUser, boothId }) {
                 >
                   <div className={`max-w-[85%] flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-[8px] font-mono font-black text-slate-400 uppercase tracking-widest">
+                      <span className={`text-[8px] font-mono font-black ${isCitizen ? 'text-stone-400' : 'text-slate-400'} uppercase tracking-widest`}>
                         {m.role === 'user' ? currentUser?.name || 'CITIZEN' : 'SYSTEM COMMAND'}
                       </span>
                       {m.role === 'bot' && (
                         <button 
                           onClick={() => handleTTS(m.content)}
-                          className={`p-1 rounded-md hover:bg-slate-200 transition-colors ${isSpeaking ? 'text-emerald-500' : 'text-slate-400'}`}
+                          className={`p-1 rounded-md hover:bg-stone-200 transition-colors ${isSpeaking ? 'text-emerald-500' : (isCitizen ? 'text-stone-300' : 'text-slate-400')}`}
                         >
                           <Volume2 size={10} />
                         </button>
@@ -185,8 +188,8 @@ export default function AIChatbot({ currentUser, boothId }) {
                     </div>
                     <div className={`p-4 rounded-2xl text-xs font-medium leading-relaxed shadow-sm ${
                       m.role === 'user' 
-                        ? 'bg-[#0c0c0c] text-white rounded-tr-none' 
-                        : 'bg-white border border-slate-200 text-slate-700 rounded-tl-none'
+                        ? (isCitizen ? 'bg-stone-900 text-white rounded-tr-none shadow-stone-200' : 'bg-[#0c0c0c] text-white rounded-tr-none')
+                        : 'bg-white border text-stone-700 rounded-tl-none ' + (isCitizen ? 'border-stone-200' : 'border-slate-200')
                     }`}>
                       {m.content}
                     </div>
@@ -195,16 +198,16 @@ export default function AIChatbot({ currentUser, boothId }) {
               ))}
               {loading && (
                 <div className="flex justify-start">
-                  <div className="bg-white border border-slate-200 p-4 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-2">
+                  <div className={`bg-white border p-4 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-2 ${isCitizen ? 'border-stone-200' : 'border-slate-200'}`}>
                     <Loader2 size={14} className="animate-spin text-emerald-500" />
-                    <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Processing...</span>
+                    <span className={`text-[10px] font-mono font-bold ${isCitizen ? 'text-stone-400' : 'text-slate-400'} uppercase tracking-widest`}>Processing...</span>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Input Area */}
-            <div className="p-4 md:p-6 bg-white border-t border-slate-100">
+            <div className={`p-4 md:p-6 bg-white border-t ${isCitizen ? 'border-stone-100' : 'border-slate-100'}`}>
               <div className="flex items-center gap-3">
                 <div className="flex-1 relative">
                   <input 
@@ -213,13 +216,13 @@ export default function AIChatbot({ currentUser, boothId }) {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                     placeholder="Inquire with ESarthi..."
-                    className="w-full pl-4 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                    className={`w-full pl-4 pr-12 py-4 rounded-2xl text-xs font-bold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all ${isCitizen ? 'bg-stone-50 border-stone-200 text-stone-800 placeholder:text-stone-400' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'}`}
                   />
                   <button 
                     onMouseDown={startRecording}
                     onMouseUp={stopRecording}
                     onMouseLeave={stopRecording}
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'text-slate-400 hover:text-emerald-500 hover:bg-slate-100'}`}
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : (isCitizen ? 'text-stone-400 hover:text-emerald-600 hover:bg-stone-100' : 'text-slate-400 hover:text-emerald-500 hover:bg-slate-100')}`}
                   >
                     {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
                   </button>
@@ -227,12 +230,12 @@ export default function AIChatbot({ currentUser, boothId }) {
                 <button 
                   onClick={() => handleSend()}
                   disabled={!input.trim() || loading}
-                  className="p-4 bg-[#0c0c0c] text-emerald-400 rounded-2xl shadow-lg hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
+                  className={`p-4 rounded-2xl shadow-lg hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all ${isCitizen ? 'bg-stone-900 text-emerald-500' : 'bg-[#0c0c0c] text-emerald-400'}`}
                 >
                   <Send size={20} />
                 </button>
               </div>
-              <p className="text-center mt-4 text-[8px] font-mono font-bold text-slate-400 uppercase tracking-widest">
+              <p className={`text-center mt-4 text-[8px] font-mono font-black ${isCitizen ? 'text-stone-300' : 'text-slate-400'} uppercase tracking-widest`}>
                 Institutional AI Oversight Protocol v4.0.2
               </p>
             </div>
