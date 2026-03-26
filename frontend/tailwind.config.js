@@ -87,6 +87,10 @@ module.exports = {
           '0%': { transform: 'scale(0.8)', opacity: '0' },
           '60%': { transform: 'scale(1.05)' },
           '100%': { transform: 'scale(1)', opacity: '1' }
+        },
+        'fade-up': {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' }
         }
       },
       animation: {
@@ -94,7 +98,8 @@ module.exports = {
         'accordion-up': 'accordion-up 0.2s ease-out',
         ticker: 'ticker 40s linear infinite',
         shimmer: 'shimmer 3s linear infinite',
-        pop: 'pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both'
+        pop: 'pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'fade-up': 'fade-up 0.5s ease-out forwards'
       }
     }
   },

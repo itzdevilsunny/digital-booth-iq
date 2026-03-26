@@ -1,24 +1,182 @@
 import { useState, useEffect, useCallback } from 'react';
-import { createGrievance, getGrievances } from '../../api';
+import { createGrievance, getGrievances, getAnalytics, getUsersByRole } from '../../api';
 import { 
-  Send, Clock, CheckCircle2, AlertCircle, RefreshCw, 
-  User, MapPin, ChevronRight, Activity, Calendar, X
+  Send, RefreshCw, User, MapPin, ChevronRight, 
+  Calendar, CheckCircle2, Clock, Activity, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const STATUS_CONFIG = {
-  submitted: { label: 'Registered', icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-  assigned: { label: 'Deployed', icon: User, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-  in_progress: { label: 'Active', icon: Activity, color: 'text-primary', bg: 'bg-primary/10' },
-  resolved: { label: 'Resolved', icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+// --- Sub-components (Ported from Booth IQ) ---
+
+const QuickStats = ({ stats, loading, boothId }) => {
+  const statItems = [
+    { value: boothId || "—", label: "BOOTH ID", icon: "hub", color: "var(--gold)" },
+    { value: loading ? "…" : String(stats?.pending_issues || 0), label: "OPEN GRIEVANCES", icon: "emergency_home", color: "#d64045" },
+    { value: loading ? "…" : String(stats?.total_calls || 0), label: "TOTAL CALLS", icon: "call", color: "var(--gold)" },
+    { value: loading ? "…" : String(stats?.resolved_issues || 0), label: "RESOLVED", icon: "verified_user", color: "#10b981" },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-4 mb-10">
+      {statItems.map((s, i) => (
+        <motion.div 
+          key={s.label} 
+          initial={{ opacity: 0, y: 10 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: i * 0.1 }}
+          className="bg-white shadow-sm border border-slate-200 rounded p-4 relative overflow-hidden group"
+        >
+          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: `linear-gradient(90deg, ${s.color}, transparent)` }} />
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="font-mono text-[10px] tracking-[2px] uppercase text-slate-700/60 mb-2">{s.label}</p>
+              <p className="font-serif text-2xl font-bold text-slate-700 leading-none">{s.value}</p>
+            </div>
+            <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: s.color + "18", border: `1px solid ${s.color}30` }}>
+              <span className="material-symbols-outlined text-sm text-[#1e293b]">{s.icon}</span>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
 };
+
+const AIGovernanceFeed = ({ insights, loading }) => {
+  return (
+    <div className="bg-white shadow-sm border border-slate-200 rounded p-8 relative overflow-hidden group mb-10">
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary to-transparent" />
+      <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
+        <span className="material-symbols-outlined text-9xl text-navy">account_balance</span>
+      </div>
+      
+      <div className="relative z-10">
+        <div className="flex items-center gap-3 mb-6">
+          <span className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-700/60">Official Governance Report</span>
+          <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
+        </div>
+        
+        <h3 className="font-serif text-2xl font-bold text-slate-700 mb-4 tracking-tight uppercase">Institutional Operations Analysis</h3>
+        
+        {loading ? (
+          <div className="space-y-3 py-2">
+            <div className="h-3 bg-slate-50 rounded-sm w-full animate-pulse" />
+            <div className="h-3 bg-slate-50 rounded-sm w-3/4 animate-pulse" />
+          </div>
+        ) : (
+          <p className="text-sm text-slate-600 leading-relaxed font-medium">
+            {insights?.[0] || "Institutional analysis confirms that targeted infrastructure interventions have achieved measurable improvements in localized service delivery."}
+          </p>
+        )}
+        
+        <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <p className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-700/60">VERIFIED SOURCE</p>
+            <span className="material-symbols-outlined text-emerald-500 text-sm">verified_user</span>
+          </div>
+          <p className="font-mono text-[10px] tracking-[1px] text-slate-500">BOOTH_ENCRYPTED_PROTOCOL_V1</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const YourBoothTeam = ({ workers, admin }) => {
+  const team = admin ? [admin, ...workers] : workers;
+  
+  return (
+    <div className="mb-10">
+      <div className="flex items-center justify-between mb-4 px-1">
+        <h3 className="font-serif text-lg font-bold text-slate-700 uppercase tracking-tight">Support Personnel</h3>
+        <p className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-700/60">Verification Officers</p>
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {team.length === 0 ? (
+          <div className="col-span-full bg-slate-50 rounded border border-dashed border-slate-200 p-8 text-center text-slate-400">
+             <p className="font-mono text-[10px] uppercase tracking-widest">Awaiting Officer Assignment</p>
+          </div>
+        ) : team.slice(0, 4).map((w, i) => (
+          <div key={w.id || i} className="bg-white rounded border border-slate-200 p-4 shadow-sm flex items-center gap-4 transition-all hover:border-[#c9a84c]/30 group">
+            <div className="size-10 rounded bg-[#1e293b] flex items-center justify-center text-[#c9a84c] text-sm font-serif font-black shadow-sm shrink-0">
+              {w.name?.[0] || 'U'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-bold text-slate-700 text-sm tracking-tight truncate uppercase">{w.name || 'Booth Officer'}</h4>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest leading-none">{w.role?.replace(/_/g, ' ') || 'Personnel'}</p>
+                <div className="size-1 rounded-full bg-emerald-500" />
+              </div>
+            </div>
+            <div className="size-8 rounded bg-slate-50 text-slate-600 flex items-center justify-center border border-slate-100 group-hover:bg-[#1e293b] group-hover:text-[#c9a84c] transition-all">
+              <span className="material-symbols-outlined text-sm font-bold">call</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const BoothHealthScore = ({ stats, boothId }) => {
+  const resolutionRate = stats?.total_issues > 0 ? Math.round((stats.resolved_issues / stats.total_issues) * 100) : 0;
+  
+  const bars = [
+    { label: "SERVICE DELIVERY INDEX", value: resolutionRate, color: "var(--gold)" },
+    { label: "INSTITUTIONAL PRECISION", value: resolutionRate > 0 ? 92 : 0, color: "var(--navy)" },
+    { label: "SCHEME SATURATION RATE", value: resolutionRate > 0 ? 72 : 0, color: "#10b981" },
+  ];
+
+  return (
+    <div className="bg-white shadow-sm border border-slate-200 rounded p-8 relative overflow-hidden h-full">
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#c9a84c] to-transparent" />
+      <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
+        <span className="material-symbols-outlined text-9xl text-[#1e293b]">analytics</span>
+      </div>
+      
+      <div className="flex items-center justify-between mb-8 relative z-10">
+        <div>
+          <h3 className="font-serif text-xl font-bold text-slate-700 uppercase tracking-tight">Performance Metrics</h3>
+          <p className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-700/60 mt-1">Operational Sector #{boothId}</p>
+        </div>
+        <div className="size-10 rounded flex items-center justify-center bg-slate-50 text-navy border border-slate-100">
+          <span className="material-symbols-outlined text-sm">monitoring</span>
+        </div>
+      </div>
+      
+      <div className="space-y-6 relative z-10">
+        {bars.map(b => (
+          <div key={b.label}>
+            <div className="flex justify-between font-mono text-[9px] tracking-[1.5px] uppercase mb-2">
+              <span className="text-slate-600 underline decoration-slate-200 decoration-dotted underline-offset-4">{b.label}</span>
+              <span className="text-slate-700 font-bold">{b.value}%</span>
+            </div>
+            <div className="h-[4px] bg-slate-50 rounded-sm overflow-hidden border border-slate-100">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${b.value}%` }}
+                transition={{ duration: 1.5, ease: [0.23, 1, 0.32, 1] }}
+                className="h-full rounded-sm"
+                style={{ backgroundColor: b.color }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// --- Main Dashboard Component ---
 
 export default function CitizenDashboard({ currentUser, boothId }) {
   const [tab, setTab] = useState('dashboard');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
-  const [voterName, setVoterName] = useState('');
   const [grievances, setGrievances] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
+  const [workers, setWorkers] = useState([]);
+  const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(null);
@@ -29,9 +187,20 @@ export default function CitizenDashboard({ currentUser, boothId }) {
     if (!safeBoothId) return;
     setLoading(true);
     try {
-      const data = await getGrievances({ booth_id: safeBoothId });
-      setGrievances(data || []);
-    } catch (e) { console.error("Sync error:", e); }
+      const gData = await getGrievances({ booth_id: safeBoothId });
+      setGrievances(gData || []);
+      
+      const aData = await getAnalytics(safeBoothId);
+      setAnalytics(aData);
+      
+      const wData = await getUsersByRole('worker');
+      setWorkers(wData?.filter(w => w.booth_id === safeBoothId) || []);
+      
+      const admData = await getUsersByRole('admin');
+      setAdmin(admData?.find(a => a.booth_id === safeBoothId) || null);
+    } catch (e) { 
+      console.error("Sync error:", e); 
+    }
     setLoading(false);
   }, [safeBoothId]);
 
@@ -46,7 +215,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
       const result = await createGrievance({
         description,
         category: category || 'General',
-        voter_name: voterName || currentUser?.name || `Citizen-${safeBoothId}`,
+        voter_name: currentUser?.name || `Citizen-${safeBoothId}`,
         booth_id: safeBoothId
       });
       setSubmitted(result);
@@ -57,152 +226,254 @@ export default function CitizenDashboard({ currentUser, boothId }) {
     setSubmitting(false);
   };
 
+  const STATUS_CONFIG = {
+    submitted: { label: 'Registered', icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-100 border-amber-200' },
+    assigned: { label: 'Personnel Deployed', icon: User, color: 'text-blue-600', bg: 'bg-blue-100 border-blue-200' },
+    in_progress: { label: 'Active Intervention', icon: Activity, color: 'text-[#c9a84c]', bg: 'bg-orange-50 border-orange-200' },
+    resolved: { label: 'Mission Accomplished', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-100 border-emerald-200' },
+  };
+
   return (
-    <div className="min-h-screen bg-[#f0ece3] bg-grid-pattern pb-24">
-      <header className="glass-panel sticky top-0 z-40 border-b border-[#c9a84c]/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary rounded-xl shadow-lg">
-                <User size={20} className="text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-navy tracking-tight">Citizen Portal</h1>
-                <p className="text-[9px] uppercase tracking-[0.2em] text-primary font-bold">Booth #{safeBoothId} Services</p>
-              </div>
-            </div>
-            <button onClick={fetchData} className="p-2 hover:bg-black/5 rounded-full transition-colors relative">
-               <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
-            </button>
+    <div className="min-h-screen bg-[#f8f9fa] bg-grid-slate-100/[0.1] relative">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-serif font-black text-slate-900 tracking-tight leading-none mb-1">Citizen Portal</h1>
+            <p className="font-mono text-[10px] tracking-[3px] uppercase text-slate-500">Authorized Access: {currentUser?.name || "Citizen"}</p>
+          </div>
+          <div className="flex items-center gap-4">
+             <button onClick={fetchData} className="size-10 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600 hover:text-primary transition-all">
+                <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+             </button>
+             <div className="bg-white px-4 py-2 rounded border border-slate-200 shadow-sm flex items-center gap-3">
+                <div className="size-2 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="font-mono text-[10px] font-bold text-slate-700 tracking-tighter">BOOTH #{safeBoothId} ONLINE</span>
+             </div>
           </div>
         </div>
       </header>
 
-      <main className="page-container p-4">
-        <div className="flex p-1 bg-white/50 rounded-2xl border border-gold/10 mb-8 max-w-sm">
-          {[
-            { id: 'dashboard', label: 'Monitor', icon: Clock },
-            { id: 'report', label: 'Report', icon: Send },
-          ].map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-mono font-black uppercase tracking-widest transition-all ${
-                tab === t.id ? 'bg-primary text-white shadow-lg' : 'text-navy/40 hover:text-navy'
-              }`}>
-              <t.icon size={14} /> {t.label}
-            </button>
-          ))}
-        </div>
-
-        {tab === 'dashboard' ? (
-          <div className="space-y-6">
-            <div className="dashboard-grid">
-              <div className="glass-panel p-5 rounded-2xl">
-                <p className="text-[10px] font-mono font-black uppercase tracking-widest text-navy/40 mb-1">Your Submissions</p>
-                <p className="text-2xl font-serif font-black text-navy">{grievances.length}</p>
-              </div>
-              <div className="glass-panel p-5 rounded-2xl">
-                <p className="text-[10px] font-mono font-black uppercase tracking-widest text-navy/40 mb-1">Active Resolution</p>
-                <p className="text-2xl font-serif font-black text-primary">{grievances.filter(g => g.status !== 'resolved').length}</p>
-              </div>
-            </div>
-
-            <h3 className="text-xl font-serif font-black text-navy mt-10 mb-4">Registry Feed</h3>
-            <div className="space-y-4">
-              {grievances.length === 0 ? (
-                <div className="py-20 text-center glass-panel rounded-3xl border-dashed">
-                  <p className="text-[10px] font-mono font-black uppercase tracking-widest text-navy/20">No reports found for this sector</p>
-                </div>
-              ) : grievances.map((g, idx) => {
-                const config = STATUS_CONFIG[g.status] || STATUS_CONFIG.submitted;
-                return (
-                  <motion.div key={g.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
-                    className="glass-panel p-5 rounded-2xl flex items-center gap-5 group hover:border-primary/40 transition-all">
-                    <div className={`p-4 rounded-xl ${config.bg} ${config.color} shrink-0`}>
-                      <config.icon size={20} />
+      <main className="max-w-7xl mx-auto p-6 md:p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          
+          {/* Main Content Areas */}
+          <div className="lg:col-span-8 space-y-10">
+            {tab === 'dashboard' ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
+                <AIGovernanceFeed insights={analytics?.insights} loading={loading} />
+                
+                <YourBoothTeam workers={workers} admin={admin} />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <BoothHealthScore stats={analytics} boothId={safeBoothId} />
+                  
+                  {/* Milestone Tracker (Static for now) */}
+                  <div className="bg-white shadow-sm border border-slate-200 rounded p-8 relative overflow-hidden h-full">
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary to-transparent" />
+                    <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
+                      <span className="material-symbols-outlined text-9xl text-navy">architecture</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                         <span className="text-[8px] font-mono font-black uppercase tracking-widest px-2 py-0.5 bg-white border border-gold/10 rounded-md">
-                           #{g.id}
-                         </span>
-                         <span className={`text-[8px] font-mono font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${config.bg} ${config.color}`}>
-                           {config.label}
-                         </span>
+                    <div className="flex items-center justify-between mb-8 relative z-10">
+                      <div>
+                        <h3 className="font-serif text-lg font-bold text-slate-700 uppercase tracking-tight">Milestone Tracker</h3>
+                        <p className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-700/60 mt-1">Infrastructure Verification</p>
                       </div>
-                      <h4 className="text-base font-serif font-bold text-navy truncate">{g.description}</h4>
-                      <p className="text-[9px] font-mono font-bold text-navy/40 uppercase tracking-wider flex items-center gap-4">
-                        <span className="flex items-center gap-1"><MapPin size={10} /> Sector {g.booth_id}</span>
-                        <span className="flex items-center gap-1"><Calendar size={10} /> {new Date(g.created_at || Date.now()).toLocaleDateString()}</span>
-                      </p>
+                      <div className="size-10 rounded flex items-center justify-center bg-slate-50 text-navy border border-slate-100">
+                        <span className="material-symbols-outlined text-sm">verified</span>
+                      </div>
                     </div>
-                    <ChevronRight size={18} className="text-navy/20 group-hover:text-primary transition-colors hidden sm:block" />
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        ) : (
-          <div className="max-w-2xl mx-auto">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              className="glass-panel p-8 rounded-3xl bg-white/70">
-              <div className="text-center mb-10">
-                <div className="size-16 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
-                  <Send size={28} className="text-primary" />
-                </div>
-                <h2 className="text-3xl font-serif font-black text-navy mb-2">Report Incident</h2>
-                <p className="text-sm text-navy/50 font-medium tracking-tight">Direct line to Booth Command and Field Staff</p>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="text-[10px] font-mono font-black uppercase text-primary mb-3 block">Sector Category</label>
-                  <div className="flex flex-wrap gap-2">
-                    {['Water', 'Electricity', 'Infrastructure', 'Medical', 'Other'].map(cat => (
-                      <button key={cat} onClick={() => setCategory(cat)}
-                        className={`px-4 py-2 rounded-xl text-[10px] font-mono font-black uppercase tracking-tight transition-all border ${
-                          category === cat ? 'bg-primary border-primary text-white shadow-lg' : 'bg-white border-gold/10 text-navy/40 hover:border-primary/40'
-                        }`}>
-                        {cat}
-                      </button>
-                    ))}
+                    <div className="space-y-5 relative z-10">
+                      {[
+                        { label: "Community Lighting", progress: 85, status: "Active" },
+                        { label: "Water Filtration Unit", progress: 100, status: "Completed" },
+                        { label: "Sector Road Renovation", progress: 40, status: "In Progress" },
+                      ].map((p, i) => (
+                        <div key={i}>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-mono text-[10px] font-bold text-slate-700 uppercase tracking-tight">{p.label}</span>
+                            <span className={`text-[8px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-widest border ${p.status === 'Completed' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
+                              {p.status}
+                            </span>
+                          </div>
+                          <div className="h-1 bg-slate-50 rounded-full overflow-hidden">
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${p.progress}%` }} className={`h-full ${p.status === 'Completed' ? 'bg-emerald-500' : 'bg-primary'}`} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-mono font-black uppercase text-primary mb-3 block">Operational Detail</label>
-                  <textarea value={description} onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Provide precise location and incident parameters..."
-                    className="w-full p-4 bg-white rounded-2xl border-2 border-gold/10 focus:border-primary outline-none text-sm font-medium transition-all h-32 resize-none" />
+                {/* Registry Feed */}
+                <div className="mt-16">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-serif text-2xl font-bold text-slate-900 tracking-tight uppercase">Registry Feed</h3>
+                    <p className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-500">{grievances.length} INCIDENTS LOGGED</p>
+                  </div>
+                  <div className="space-y-4">
+                    {grievances.length === 0 ? (
+                      <div className="py-20 text-center border border-dashed border-slate-200 rounded-2xl">
+                        <p className="font-mono text-[10px] uppercase tracking-widest text-slate-400">No active incidents detected in this sector</p>
+                      </div>
+                    ) : grievances.map((g, idx) => {
+                      const config = STATUS_CONFIG[g.status] || STATUS_CONFIG.submitted;
+                      return (
+                        <motion.div key={g.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
+                          className="bg-white border border-slate-200 p-5 rounded-xl flex items-center gap-5 group hover:border-primary/40 transition-all shadow-sm">
+                          <div className={`size-12 rounded-xl flex items-center justify-center shrink-0 ${config.bg} ${config.color}`}>
+                            <config.icon size={22} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1.5">
+                               <span className="text-[10px] font-mono font-bold uppercase tracking-tight px-2 py-0.5 bg-slate-50 border border-slate-200 rounded text-slate-500">
+                                 REF: #{g.id}
+                               </span>
+                               <span className={`text-[9px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded ${config.bg} ${config.color}`}>
+                                 {config.label}
+                               </span>
+                            </div>
+                            <h4 className="text-base font-bold text-slate-900 truncate uppercase tracking-tight mb-1">{g.description}</h4>
+                            <div className="flex items-center gap-4">
+                               <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                  <MapPin size={12} className="text-primary" /> SECTOR {g.booth_id}
+                               </p>
+                               <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                  <Calendar size={12} className="text-primary" /> {new Date(g.created_at || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                               </p>
+                            </div>
+                          </div>
+                          <ChevronRight size={18} className="text-slate-200 group-hover:text-primary transition-colors" />
+                        </motion.div>
+                      );
+                    })}
+                  </div>
                 </div>
+              </motion.div>
+            ) : (
+              <div className="max-w-2xl">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                  className="bg-white border border-slate-200 p-10 rounded-2xl shadow-xl relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-[4px] bg-primary" />
+                  <div className="text-center mb-10">
+                    <div className="size-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center mx-auto mb-6 shadow-sm">
+                      <Send size={28} className="text-primary" />
+                    </div>
+                    <h2 className="text-3xl font-serif font-black text-slate-900 mb-2 uppercase tracking-tight">Report Incident</h2>
+                    <p className="text-sm text-slate-500 font-medium tracking-tight">Direct institutional uplink to Booth Command and Field Staff</p>
+                  </div>
 
-                <button onClick={handleSubmit} disabled={!description || submitting}
-                  className="w-full py-4 bg-primary text-white rounded-2xl font-mono font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3">
-                  {submitting ? (
-                    <RefreshCw className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <><Send size={18} /> Transmit Report</>
-                  )}
-                </button>
+                  <div className="space-y-8">
+                    <div>
+                      <label className="text-[10px] font-mono font-black uppercase text-primary mb-4 block tracking-widest underline decoration-2 underline-offset-4">Sector Category</label>
+                      <div className="flex flex-wrap gap-2">
+                        {['Water', 'Road', 'Electricity', 'Sanitation', 'Healthcare', 'Other'].map(cat => (
+                          <button key={cat} onClick={() => setCategory(cat)}
+                            className={`px-5 py-2.5 rounded border text-[10px] font-mono font-bold uppercase tracking-widest transition-all ${
+                              category === cat ? 'bg-navy border-navy text-primary shadow-lg' : 'bg-white border-slate-200 text-slate-400 hover:border-primary/40'
+                            }`}>
+                            {cat}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-mono font-black uppercase text-primary mb-4 block tracking-widest underline decoration-2 underline-offset-4">Operational Detail</label>
+                      <textarea value={description} onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Provide precise location coordinates and incident parameters..."
+                        className="w-full p-5 bg-slate-50 rounded-xl border border-slate-200 focus:border-primary outline-none text-sm font-medium transition-all h-40 resize-none font-sans" />
+                    </div>
+
+                    <button onClick={handleSubmit} disabled={!description || submitting}
+                      className="w-full py-5 bg-navy text-primary rounded-xl font-mono font-black uppercase tracking-[0.2em] shadow-xl hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-4">
+                      {submitting ? (
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <><Send size={18} /> TRANSMIT TO COMMAND</>
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
               </div>
-            </motion.div>
+            )}
           </div>
-        )}
+
+          {/* Sidebar / Quick Actions */}
+          <div className="lg:col-span-4 space-y-10">
+            <QuickStats stats={analytics} loading={loading} boothId={safeBoothId} />
+            
+            <div className="bg-white rounded border border-slate-200 p-8 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-[0.02]">
+                    <span className="material-symbols-outlined text-8xl text-navy">terminal</span>
+                </div>
+                <h3 className="font-serif text-lg font-bold text-slate-700 uppercase tracking-tight mb-8">Service Terminals</h3>
+                <div className="grid grid-cols-1 gap-4 relative z-10">
+                    {[
+                        { label: "Executive Monitor", id: 'dashboard', icon: "monitoring" },
+                        { label: "Incident Reporter", id: 'report', icon: "report_problem" },
+                        { label: "Voter Services", href: "#", icon: "assignment" },
+                        { label: "Verified Schemes", href: "#", icon: "description" },
+                    ].map((a) => (
+                        <button
+                            key={a.label}
+                            onClick={() => a.id && setTab(a.id)}
+                            className={`flex items-center gap-4 p-4 rounded border transition-all hover:bg-navy hover:text-primary group ${tab === a.id ? 'bg-navy border-navy text-primary' : 'bg-slate-50 border-slate-100 text-slate-700'}`}
+                        >
+                            <div className="size-10 rounded bg-white/10 flex items-center justify-center group-hover:bg-primary/20">
+                                <span className="material-symbols-outlined text-xl">{a.icon}</span>
+                            </div>
+                            <span className="font-mono text-[10px] font-bold uppercase tracking-widest">{a.label}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Upcoming Events (Static Port) */}
+            <div className="animate-fade-up">
+                <div className="flex items-center justify-between mb-4 px-1">
+                    <h3 className="font-serif text-lg font-bold text-slate-700 uppercase tracking-tight">Outreach Schedule</h3>
+                    <p className="font-mono text-[10px] tracking-[2.5px] uppercase text-slate-700/60">Institutional Agenda</p>
+                </div>
+                <div className="space-y-4">
+                    {[
+                        { name: "Public Grievance Meet", date: "28 MAR", icon: "campaign", type: "High Priority" },
+                        { name: "Scheme Awareness Drive", date: "02 APR", icon: "event", type: "Community" }
+                    ].map((e, i) => (
+                        <div key={i} className="bg-white rounded border border-slate-200 p-4 shadow-sm flex items-center gap-4 transition-all cursor-pointer hover:border-primary/30 group">
+                            <div className="shrink-0 text-center bg-slate-50 rounded p-2 w-14 group-hover:bg-navy transition-colors border border-slate-100">
+                                <p className="text-[10px] font-mono font-bold text-slate-500 uppercase leading-none mb-1 group-hover:text-slate-300">{e.date.split(' ')[1]}</p>
+                                <p className="text-lg font-serif font-black text-navy leading-tight group-hover:text-primary">{e.date.split(' ')[0]}</p>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-bold text-sm text-slate-700 truncate group-hover:text-slate-900 transition-colors uppercase tracking-tight">{e.name}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest leading-none">SECTOR #{safeBoothId}</p>
+                                    <div className="size-1 rounded-full bg-emerald-500" />
+                                </div>
+                            </div>
+                            <span className="material-symbols-outlined text-slate-200 text-sm group-hover:text-primary">arrow_forward</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+          </div>
+        </div>
       </main>
 
       <AnimatePresence>
         {submitted && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-navy/40 backdrop-blur-md">
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              className="bg-white rounded-3xl p-10 max-w-sm w-full text-center border-t-8 border-emerald-500 shadow-2xl">
-              <div className="size-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
+              className="bg-white rounded-3xl p-10 max-w-sm w-full text-center border-t-8 border-[#10b981] shadow-2xl">
+              <div className="size-20 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-6">
                 <CheckCircle2 size={40} className="text-emerald-600" />
               </div>
-              <h3 className="text-2xl font-serif font-black text-navy mb-2 uppercase tracking-tight">Mission Logged</h3>
-              <p className="text-sm text-navy/50 font-medium mb-8 leading-relaxed">Report successfully recorded in Central Command. Personnel deployment initiated.</p>
+              <h3 className="text-2xl font-serif font-black text-slate-900 mb-2 uppercase tracking-tight">Mission Logged</h3>
+              <p className="text-sm text-slate-500 font-medium mb-8 leading-relaxed">Report successfully recorded in Central Command. Personnel deployment sequence initiated.</p>
               <button onClick={() => { setSubmitted(null); setTab('dashboard'); }}
-                className="w-full py-4 bg-navy text-white rounded-2xl font-mono font-black uppercase tracking-widest shadow-lg hover:bg-emerald-600 transition-all">
-                Dismiss Portal
+                className="w-full py-4 bg-navy text-primary rounded-xl font-mono font-black uppercase tracking-widest shadow-lg hover:brightness-110 transition-all">
+                DISMISS PROTOCOL
               </button>
             </motion.div>
           </motion.div>

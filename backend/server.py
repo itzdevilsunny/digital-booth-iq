@@ -9,7 +9,7 @@ import logging
 import httpx
 from pathlib import Path
 from pydantic import BaseModel
-from typing import Optional, Union, Any
+from typing import Optional, Union, Any, List
 import uuid
 from datetime import datetime, timezone
 
@@ -213,6 +213,15 @@ class CallCreate(BaseModel):
     voter_name: str
     status: str = "pending"
     notes: str = ""
+    booth_id: Union[int, str]
+
+class ManagerUpdate(BaseModel):
+    booth_id: Union[int, str]
+    voter_ids: List[Union[int, str]]
+    message: str
+    action_type: str  # 'broadcast', 'targeted', 'governance'
+
+class ManagerAnalyze(BaseModel):
     booth_id: Union[int, str]
 
 # --- KNOWLEDGE GRAPH UTILITIES ---
@@ -790,6 +799,107 @@ async def get_analytics(booth_id: Union[int, str]):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.get("/manager/booths-summary")
+async def get_booths_summary():
+    """Get aggregated stats for all booths for the manager view"""
+    try:
+        # Get all booths from Supabase
+        booths = await supabase_request("GET", "booths")
+        if not booths:
+            return []
+            
+        # Get all grievances to calculate stats
+        grievances = await supabase_request("GET", "grievances", params={"select": "id,status,booth_id"})
+        
+        # Calculate stats per booth
+        summary = []
+        for booth in (booths or []):
+            booth_id = booth["id"]
+            booth_grievances = [g for g in (grievances or []) if g["booth_id"] == booth_id]
+            
+            total_issues = len(booth_grievances)
+            pending_issues = sum(1 for g in booth_grievances if g["status"] != "resolved")
+            
+            # Synthetic turnout for demo
+            turnout = 45 + (booth_id % 20) 
+            
+            # Simple sentiment score based on pending issues (lower is better for sentiment)
+            sentiment_score = max(0, 100 - (pending_issues * 5))
+            
+            summary.append({
+                "id": booth_id,
+                "name": booth["name"],
+                "booth_number": booth["booth_number"],
+                "turnout": turnout,
+                "issue_count": total_issues,
+                "pending_count": pending_issues,
+                "sentiment_score": sentiment_score,
+                "status": "critical" if pending_issues > 5 else "stable"
+            })
+            
+        return summary
+    except Exception as e:
+        logger.error(f"Error in booths summary: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/manager/analyze")
+async def manager_analyze(data: ManagerAnalyze):
+    """Trigger AI analysis for a booth to group issues and target voters"""
+    try:
+        real_id = await resolve_booth_id(data.booth_id)
+        
+        # Get grievances for this booth
+        grievances = await supabase_request("GET", "grievances", params={
+            "select": "*",
+            "booth_id": f"eq.{real_id}"
+        })
+        
+        if not grievances:
+            return {"status": "no_data", "message": "No issues found in this sector to analyze."}
+            
+        # AI Logic: Group by description/category
+        categories = {}
+        for g in grievances:
+            cat = g.get("category", "other")
+            categories[cat] = categories.get(cat, [])
+            categories[cat].append(g["id"])
+            
+        # Find top issue
+        top_cat = max(categories, key=lambda k: len(categories[k]))
+        
+        return {
+            "status": "success",
+            "top_priority": top_cat,
+            "affected_count": len(categories[top_cat]),
+            "recommendation": f"Sector {data.booth_id} has a high concentration of {top_cat} issues. Immediate governance response triggered for {len(categories[top_cat])} affected voters."
+        }
+    except Exception as e:
+        logger.error(f"Manager analysis error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/manager/send-update")
+async def manager_send_update(data: ManagerUpdate):
+    """Send targeted communication to specific voters"""
+    try:
+        # In a real app, this would trigger SMS/WhatsApp/Email
+        # Here we log it to a new collection
+        update_log = {
+            "id": str(uuid.uuid4()),
+            "booth_id": data.booth_id,
+            "voter_count": len(data.voter_ids),
+            "message": data.message,
+            "action_type": data.action_type,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Store in MongoDB (we'll use a general 'communications' collection)
+        await db.communications.insert_one(update_log)
+        
+        return {"status": "sent", "voters_reached": len(data.voter_ids)}
+    except Exception as e:
+        logger.error(f"Manager update error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # --- ROUTES: SEED DATA ---
 
 @api_router.post("/seed")
@@ -813,7 +923,13 @@ async def seed_data():
             {"id": "panna-2", "name": "Rajkumar Singh", "role": "panna", "booth_id": 18},
             {"id": "admin-1", "name": "Ramesh Gupta", "role": "admin", "booth_id": 17},
             {"id": "admin-2", "name": "Anita Verma", "role": "admin", "booth_id": 18},
-            {"id": "city_manager-1", "name": "Rajesh Khanna", "role": "city_manager", "booth_id": 0},
+            {
+                "id": "city_manager-1", 
+                "name": "Rajesh Khanna", 
+                "role": "city_manager", 
+                "city_id": "DELHI-01",
+                "assigned_booths": [1, 17, 18, 19, 20]
+            },
             {"id": "worker-1", "name": "Sunil Kumar", "role": "worker", "booth_id": 17},
             {"id": "worker-2", "name": "Priya Yadav", "role": "worker", "booth_id": 17},
             {"id": "worker-3", "name": "Ajay Tiwari", "role": "worker", "booth_id": 18},
