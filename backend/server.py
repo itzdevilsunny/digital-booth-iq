@@ -1489,22 +1489,31 @@ async def ai_chat(data: ChatRequest):
     try:
         # 1. Gather Context
         user = await db.users.find_one({"id": data.user_id}, {"_id": 0})
-        # Try both formats for voter ID
+        
+        # Try both formats for voter ID (Voter table uses V1001 while ECI uses 1001)
         voter_id = data.user_id
+        voter = await db.voters.find_one({"id": voter_id}, {"_id": 0})
+        if not voter and str(voter_id).isdigit():
+            voter = await db.voters.find_one({"id": f"V{voter_id}"}, {"_id": 0})
+
         # Filter large fields from voter to save tokens
         if voter and "connections" in voter:
             del voter["connections"]
         
-        # Limit grievances to most relevant ones
-        system_grievances = grievances[:3]
+        # Fetch actual grievances for this booth
+        grievances = await get_grievances(booth_id=data.booth_id)
+        system_grievances = grievances[:3] if grievances else []
+        
+        # Fetch available schemes
+        schemes = await get_schemes()
         
         context_prompt = f"""
         You are ESarthi, an intelligent AI assistant for the BoothIQ Governance Platform.
         User Identity: {user.get('name', 'Citizen') if user else 'Citizen'} (Role: {user.get('role', 'Voter') if user else 'Voter'})
         Voter Context: {json.dumps(voter) if voter else 'No direct registry match, but assisting as a local resident.'}
         Platform Data:
-        - Active Grievances: {json.dumps(system_grievances)} (Total: {len(grievances)})
-        - Available Schemes: {json.dumps([s['name'] for s in schemes])}
+        - Active Grievances: {json.dumps(system_grievances)} (Total: {len(grievances) if grievances else 0})
+        - Available Schemes: {json.dumps([s['name'] for s in schemes]) if schemes else '[]'}
         
         Current Query: {data.message}
         

@@ -26,35 +26,15 @@ const RoleRoute = ({ children, role, title, user }) => {
 
 function App() {
     const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
 
+    // Fetch users silently in the background — do NOT block render on this.
+    // The backend (Render free tier) can take 30-60s to cold-start; we fall
+    // back to dummy users in getRoleUser() if the list is empty.
     useEffect(() => {
-        const init = async () => {
-            try {
-                const u = await getUsers();
-                setUsers(u || []);
-            } catch (e) {
-                console.error('App init error:', e);
-            } finally {
-                setLoading(false);
-            }
-        };
-        init();
+        getUsers()
+            .then(u => setUsers(u || []))
+            .catch(e => console.error('App init error (non-blocking):', e));
     }, []);
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-stone-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="relative size-16 mx-auto mb-6">
-                        <div className="absolute inset-0 border-4 border-stone-100 rounded-full" />
-                        <div className="absolute inset-0 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-                    </div>
-                    <p className="text-[10px] font-mono font-black uppercase tracking-[0.4em] text-stone-400">Loading BoothIQ...</p>
-                </div>
-            </div>
-        );
-    }
 
     // Helper to get dummy user for a role
     const getRoleUser = (role) => users.find(u => u.role === role) || { id: `dummy-${role}`, role, name: `Demo ${role}`, booth_id: 17 };
