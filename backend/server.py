@@ -19,9 +19,14 @@ import base64
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection (with 5s timeout to prevent hangs)
+# MongoDB connection (with 5s timeout and SSL robustness)
 mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
+client = AsyncIOMotorClient(
+    mongo_url, 
+    serverSelectionTimeoutMS=5000,
+    tls=True,
+    tlsAllowInvalidCertificates=True
+)
 db = client[os.environ['DB_NAME']]
 
 # Supabase config
@@ -913,7 +918,6 @@ async def create_grievance(data: GrievanceCreate):
         category = data.category.lower() if data.category and data.category.lower() in valid_categories else ai_result["category"]
         
         grievance_data = {
-            "voter_name": data.voter_name or "Anonymous Citizen",
             "description": data.description,
             "category": category,
             "booth_id": real_booth_id,
