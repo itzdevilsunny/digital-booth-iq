@@ -49,6 +49,7 @@ export const sendTargetedUpdate = (data) => api.post('/manager/send-update', dat
 export const getSchemes = () => api.get('/schemes').then(r => r.data);
 export const applyForScheme = (data) => api.post('/schemes/apply', data).then(r => r.data);
 export const getApplications = (voterId) => api.get(`/schemes/applications?voter_id=${voterId}`).then(r => r.data);
+export const getVoterServices = () => api.get('/voter-services').then(r => r.data);
 
 // Seed
 export const seedData = () => api.post('/seed').then(r => r.data);

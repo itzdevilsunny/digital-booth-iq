@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { createGrievance, getGrievances, getAnalytics, getUsersByRole, getSchemes, applyForScheme, getApplications } from '../../api';
+import { createGrievance, getGrievances, getAnalytics, getUsersByRole, getSchemes, applyForScheme, getApplications, getVoterServices } from '../../api';
 import { 
   Send, RefreshCw, User, MapPin, ChevronRight, 
   Calendar, CheckCircle2, Clock, Activity, AlertCircle,
@@ -180,6 +180,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
   const [workers, setWorkers] = useState([]);
   const [admin, setAdmin] = useState(null);
   const [schemes, setSchemes] = useState([]);
+  const [voterServices, setVoterServices] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -192,13 +193,14 @@ export default function CitizenDashboard({ currentUser, boothId }) {
     if (!safeBoothId) return;
     setLoading(true);
     try {
-      const [gData, aData, wData, admData, sData, appData] = await Promise.all([
+      const [gData, aData, wData, admData, sData, appData, vsData] = await Promise.all([
         getGrievances({ booth_id: safeBoothId }),
         getAnalytics(safeBoothId),
         getUsersByRole('worker'),
         getUsersByRole('admin'),
         getSchemes(),
-        currentUser?.id ? getApplications(currentUser.id) : Promise.resolve([])
+        currentUser?.id ? getApplications(currentUser.id) : Promise.resolve([]),
+        getVoterServices()
       ]);
       
       setGrievances(gData || []);
@@ -207,6 +209,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
       setAdmin(admData?.find(a => a.booth_id === safeBoothId) || null);
       setSchemes(sData || []);
       setApplications(appData || []);
+      setVoterServices(vsData || []);
     } catch (e) { 
       console.error("Sync error:", e); 
     }
@@ -237,6 +240,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
 
     const handleApplyScheme = async (schemeId) => {
       if (!currentUser?.id) return;
+      const scheme = schemes.find(s => s.id === schemeId);
       setApplying(schemeId);
       try {
         await applyForScheme({
@@ -245,6 +249,13 @@ export default function CitizenDashboard({ currentUser, boothId }) {
           booth_id: safeBoothId
         });
         fetchData();
+        
+        // After successful application, provide choice to go to official portal
+        if (scheme?.official_link && scheme.official_link !== '#') {
+          if (window.confirm(`Application logged in BoothIQ. Would you like to complete the final steps on the official ${scheme.name} portal?`)) {
+            window.open(scheme.official_link, '_blank');
+          }
+        }
       } catch (e) {
         console.error("Application error:", e);
       }
@@ -429,20 +440,20 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {[
-                    { name: "Digital ID Request", desc: "Request a digital copy of your institutional verification card.", icon: "fingerprint" },
-                    { name: "Address Certification", desc: "Official verification of local residency for scheme eligibility.", icon: "home_pin" },
-                    { name: "Family Tree Sync", desc: "Verify and update your family unit nodes in the Knowledge Graph.", icon: "account_tree" },
-                    { name: "Election Day Alert", desc: "Configure institutional notification protocols for upcoming cycles.", icon: "notifications_active" },
-                  ].map((s) => (
-                    <div key={s.name} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:border-primary/40 transition-all group">
+                  {voterServices.map((s) => (
+                    <div key={s.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:border-primary/40 transition-all group">
                       <div className="size-12 rounded-xl bg-slate-50 flex items-center justify-center text-navy mb-6 group-hover:bg-navy group-hover:text-primary transition-all">
                         <span className="material-symbols-outlined">{s.icon}</span>
                       </div>
                       <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight mb-2">{s.name}</h3>
-                      <p className="text-xs text-slate-500 leading-relaxed mb-6 font-medium">{s.desc}</p>
-                      <button className="text-[10px] font-mono font-black uppercase tracking-widest text-primary flex items-center gap-2 hover:underline">
-                        Initialize Protocol <ChevronRight size={14} />
+                      <p className="text-xs text-slate-500 leading-relaxed mb-4 font-medium">{s.desc}</p>
+                      <p className="text-[10px] text-slate-400 italic mb-6">{s.more_info}</p>
+                      
+                      <button 
+                        onClick={() => s.official_link !== '#' && window.open(s.official_link, '_blank')}
+                        className={`text-[10px] font-mono font-black uppercase tracking-widest flex items-center gap-2 hover:underline ${s.official_link === '#' ? 'text-slate-300 cursor-not-allowed' : 'text-primary'}`}
+                      >
+                        {s.official_link === '#' ? 'Service Pending' : 'Initialize Protocol'} <ExternalLink size={14} />
                       </button>
                     </div>
                   ))}

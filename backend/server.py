@@ -1044,12 +1044,44 @@ async def manager_send_update(data: ManagerUpdate):
 
 @api_router.get("/schemes")
 async def get_schemes():
-    """Get list of available government schemes"""
+    """Get list of available government schemes with official links"""
     schemes = [
-        {"id": "SCH-001", "name": "Pradhan Mantri Awas Yojana", "category": "Housing", "desc": "Housing for all by 2022 scheme for urban areas.", "eligibility": "Low income families"},
-        {"id": "SCH-002", "name": "Ayushman Bharat", "category": "Healthcare", "desc": "Free health coverage up to 5 lakhs per family.", "eligibility": "SECC 2011 listed families"},
-        {"id": "SCH-003", "name": "PM Kisan Samman Nidhi", "category": "Welfare", "desc": "Income support of 6000 per year to farmers.", "eligibility": "Small and marginal farmers"},
-        {"id": "SCH-004", "name": "Ujjwala Yojana", "category": "Energy", "desc": "Free LPG connection to women of BPL households.", "eligibility": "BPL households"}
+        {
+            "id": "SCH-001", 
+            "name": "Pradhan Mantri Awas Yojana", 
+            "category": "Housing", 
+            "desc": "Housing for all by 2022 scheme for urban areas.", 
+            "eligibility": "Low income families",
+            "official_link": "https://pmay-urban.gov.in/",
+            "steps": ["Apply on Portal", "Document Verification", "Site Inspection", "Grant Disbursement"]
+        },
+        {
+            "id": "SCH-002", 
+            "name": "Ayushman Bharat", 
+            "category": "Healthcare", 
+            "desc": "Free health coverage up to 5 lakhs per family.", 
+            "eligibility": "SECC 2011 listed families",
+            "official_link": "https://pmjay.gov.in/",
+            "steps": ["Check Eligibility", "Get Golden Card", "Visit Empaneled Hospital", "Cashless Treatment"]
+        },
+        {
+            "id": "SCH-003", 
+            "name": "PM Kisan Samman Nidhi", 
+            "category": "Welfare", 
+            "desc": "Income support of 6000 per year to farmers.", 
+            "eligibility": "Small and marginal farmers",
+            "official_link": "https://pmkisan.gov.in/",
+            "steps": ["Farmer Registration", "Bank Account Linking", "Land Record Verification", "Direct Benefit Transfer"]
+        },
+        {
+            "id": "SCH-004", 
+            "name": "Ujjwala Yojana", 
+            "category": "Energy", 
+            "desc": "Free LPG connection to women of BPL households.", 
+            "eligibility": "BPL households",
+            "official_link": "https://www.pmuy.gov.in/",
+            "steps": ["Submit Application", "KYC Completion", "Security Deposit Waiver", "Stove & Cylinder Issuance"]
+        }
     ]
     return schemes
 
@@ -1086,6 +1118,45 @@ async def get_applications(voter_id: str):
     cursor = db.scheme_applications.find({"voter_id": voter_id}, {"_id": 0})
     apps = await cursor.to_list(length=100)
     return apps
+
+@api_router.get("/voter-services")
+async def get_voter_services():
+    """Get list of available voter services with official links"""
+    services = [
+        {
+            "id": "VS-001",
+            "name": "Digital ID Request", 
+            "desc": "Request a digital copy of your institutional verification card.", 
+            "icon": "fingerprint",
+            "official_link": "https://voters.eci.gov.in/",
+            "more_info": "Your digital ID serves as a secondary verification token for local governance access."
+        },
+        {
+            "id": "VS-002",
+            "name": "Address Certification", 
+            "desc": "Official verification of local residency for scheme eligibility.", 
+            "icon": "home_pin",
+            "official_link": "https://uidai.gov.in/",
+            "more_info": "Institutional certification ensures you meet the residency requirements for localized welfare programs."
+        },
+        {
+            "id": "VS-003",
+            "name": "Family Tree Sync", 
+            "desc": "Verify and update your family unit nodes in the Knowledge Graph.", 
+            "icon": "account_tree",
+            "official_link": "#",
+            "more_info": "Syncing your family tree helps in identifying shared welfare eligibility and community mapping."
+        },
+        {
+            "id": "VS-004",
+            "name": "Election Day Alert", 
+            "desc": "Configure institutional notification protocols for upcoming cycles.", 
+            "icon": "notifications_active",
+            "official_link": "https://eci.gov.in/",
+            "more_info": "Stay informed about your local booth status, queue times, and official announcements on election day."
+        }
+    ]
+    return services
 
 # --- ROUTES: SEED DATA ---
 
