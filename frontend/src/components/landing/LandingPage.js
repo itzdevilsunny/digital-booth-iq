@@ -8,6 +8,7 @@ import { Roles } from './Roles';
 import { SecurityEthics } from './SecurityEthics';
 import { MultilingualSupport } from './MultilingualSupport';
 import { CTASection } from './CTA_Section';
+import { KnowledgeGraph } from './KnowledgeGraph';
 import { Footer } from './Footer';
 
 const LandingPage = () => {
@@ -28,6 +29,8 @@ const LandingPage = () => {
                 </section>
 
                 <PlatformCapabilities />
+                
+                <KnowledgeGraph />
                 
                 <section className="py-32 bg-stone-950 text-white relative overflow-hidden border-y border-white/5">
                     <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />

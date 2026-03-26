@@ -1912,7 +1912,7 @@ async def seed_data():
         users = [
             {"id": "panna-1", "name": "Meena Devi", "role": "panna", "booth_id": 17, "email": "meena@boothiq.ai", "phone": "9876543201"},
             {"id": "panna-2", "name": "Rajkumar Singh", "role": "panna", "booth_id": 18, "email": "rajkumar@boothiq.ai", "phone": "9876543202"},
-            {"id": "admin-1", "name": "Ramesh Gupta", "role": "admin", "booth_id": 17, "email": "ramesh@boothiq.ai", "phone": "9876543203"},
+            {"id": "admin-1", "name": "Ramesh Gupta", "role": "admin", "booth_id": 17, "email": "ramesh@boothiq.ai", "phone": "+917974185707"},
             {"id": "admin-2", "name": "Anita Verma", "role": "admin", "booth_id": 18, "email": "anita@boothiq.ai", "phone": "9876543204"},
             {
                 "id": "city_manager-1", 
@@ -1927,7 +1927,7 @@ async def seed_data():
             {"id": "worker-2", "name": "Priya Yadav", "role": "worker", "booth_id": 17, "email": "priya@boothiq.ai", "phone": "9876543207"},
             {"id": "worker-3", "name": "Ajay Tiwari", "role": "worker", "booth_id": 18, "email": "ajay@boothiq.ai", "phone": "9876543208"},
             {"id": "analyst-1", "name": "Deepak Sharma", "role": "analyst", "booth_id": 17, "email": "deepak@boothiq.ai", "phone": "9876543209"},
-            {"id": "citizen-1", "name": "Vikram Singh", "role": "citizen", "booth_id": 17, "email": "vikram@example.com", "phone": "9876543210"},
+            {"id": "citizen-1", "name": "Vikram Singh", "role": "citizen", "booth_id": 17, "email": "vikram@example.com", "phone": "+917974185707"},
             {"id": "citizen-2", "name": "Lata Maurya", "role": "citizen", "booth_id": 18, "email": "lata@example.com", "phone": "9876543211"},
         ]
         
