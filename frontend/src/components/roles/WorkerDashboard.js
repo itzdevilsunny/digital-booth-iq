@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { getGrievances, updateGrievance, getUsersByRole } from '../../api';
+import { getGrievances, updateGrievance } from '../../api';
 import { 
-  Wrench, CheckCircle2, Clock, AlertCircle, RefreshCw, 
-  ChevronRight, Calendar, UserCircle, X, ShieldAlert,
-  Zap, BadgeCheck, ClipboardList, Send, MapPin, Users,
+  CheckCircle2, RefreshCw, 
+  ChevronRight, Clock, ShieldAlert,
+  Zap, BadgeCheck, ClipboardList, Send, MapPin,
   Shield, Activity
 } from 'lucide-react';
 

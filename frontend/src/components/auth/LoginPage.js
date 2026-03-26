@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Mail, Lock, Fingerprint, ShieldCheck, 
-    Verified, Globe, Cpu, Zap, Radio, 
-    ChevronRight, Key, UserCheck, ShieldClose
+import {
+    Mail, Lock, Fingerprint, ShieldCheck,
+    Verified, Globe, Cpu, Zap, Radio,
+    ChevronRight, Key, UserCheck, ShieldClose,
+    ArrowRight, AtSign, Shield
 } from 'lucide-react';
 
 const LoginPage = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const roleKey = searchParams.get('role') || 'citizen';
-    
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -55,8 +56,8 @@ const LoginPage = () => {
                             <p className="text-[10px] font-bold uppercase tracking-[4px] opacity-40">Intelligence Hub</p>
                         </div>
                     </motion.div>
-                    
-                    <motion.h1 
+
+                    <motion.h1
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
@@ -65,8 +66,8 @@ const LoginPage = () => {
                         SECURE <br />
                         <span className="text-emerald-500">PORTAL</span>
                     </motion.h1>
-                    
-                    <motion.p 
+
+                    <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
@@ -83,8 +84,8 @@ const LoginPage = () => {
                             { icon: Radio, text: 'Encrypted Node Connection', sub: 'Lat: 0.8ms / Secure' },
                             { icon: Verified, text: 'E-Sarthi Governance Node', sub: 'V5.0 Matrix Compliance' }
                         ].map((item, i) => (
-                            <motion.div 
-                                key={i} 
+                            <motion.div
+                                key={i}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.4 + (i * 0.1) }}

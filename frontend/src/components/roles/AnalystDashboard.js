@@ -1,13 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { getAnalytics, getGraphData } from '../../api';
 import { 
-  BarChart3, Users, AlertTriangle, CheckCircle2, 
-  PhoneCall, Lightbulb, RefreshCw, TrendingUp, 
-  TrendingDown, Zap, ShieldCheck, Activity,
-  Target, BrainCircuit, Network, Info,
-  ArrowUpRight, Database, Search, Filter,
-  Maximize2
+  Users, AlertTriangle, PhoneCall, RefreshCw, 
+  TrendingUp, TrendingDown, ShieldCheck, Activity,
+  BrainCircuit, Network
 } from 'lucide-react';
 import ForceGraph2D from 'react-force-graph-2d';
 

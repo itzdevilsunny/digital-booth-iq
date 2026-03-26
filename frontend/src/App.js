@@ -12,7 +12,6 @@ import AnalystDashboard from './components/roles/AnalystDashboard';
 import CityManagerDashboard from './components/roles/CityManagerDashboard';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { getUsers } from './api';
-import { RefreshCw } from 'lucide-react';
 
 const RoleRoute = ({ children, role, title, user }) => {
     if (!user) return <Navigate to="/select-role" />;

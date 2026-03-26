@@ -1,15 +1,13 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-    Home, ClipboardList, Map, AlertCircle, 
-    User, LogOut, LayoutDashboard, ChevronRight,
-    Zap, ShieldCheck, Target, Activity, Users
+import {
+    LayoutDashboard, AlertCircle, Users, Activity, Target, Zap, LogOut, ChevronRight
 } from 'lucide-react';
 
 const Sidebar = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    
+
     const pathSegments = location.pathname.split('/');
     const role = pathSegments[1] || 'citizen';
     

@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MessageSquare, Send, X, Mic, MicOff, 
-  Volume2, VolumeX, Sparkles, User, Bot,
-  RefreshCw, Loader2
+  Volume2, Sparkles, Loader2
 } from 'lucide-react';
 import { aiChat, speechToText, textToSpeech } from '../../api';
 
@@ -16,7 +15,6 @@ export default function AIChatbot({ currentUser, boothId }) {
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [audioUrl, setAudioUrl] = useState(null);
   const scrollRef = useRef(null);
   const mediaRecorder = useRef(null);
   const audioChunks = useRef([]);

@@ -5,12 +5,12 @@ import {
   getVoters, getManagerAlerts, managerAutoResolve
 } from '../../api';
 import { 
-  Globe, Activity, LayoutDashboard, Search, 
-  AlertTriangle, CheckCircle2, Users, Target,
-  Zap, Send, ShieldAlert, BarChart3,
-  ChevronRight, Filter, MessageSquare,
-  PieChart, MapPin, RefreshCw, Layers, BrainCircuit,
-  Maximize2, MoreHorizontal, Sparkles
+  Globe, Search, 
+  AlertTriangle, CheckCircle2,
+  Zap,
+  ChevronRight,
+  MapPin, RefreshCw, Layers,
+  Sparkles
 } from 'lucide-react';
 
 const BoothCard = ({ booth, onClick }) => (

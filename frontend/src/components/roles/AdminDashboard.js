@@ -2,13 +2,21 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { getGrievances, updateGrievance, getUsersByRole, getVoters, updateVoter } from '../../api';
+import { getGrievances, updateGrievance, getUsersByRole, getVoters, getBooths } from '../../api';
 import { 
-  Shield, Users, AlertCircle, CheckCircle, Clock, 
-  MapPin, User, Search, Filter, RefreshCw, X,
-  ChevronRight, Activity, TrendingUp, Info,
-  ArrowUpRight, LayoutDashboard, Database, 
-  Zap, MoreHorizontal
+    Users, 
+    ChevronRight,
+    MapPin,
+    Target,
+    Activity,
+    CheckCircle,
+    Clock,
+    TrendingUp,
+    AlertCircle,
+    LayoutDashboard,
+    X,
+    ClipboardList,
+    Shield
 } from 'lucide-react';
 
 const STATUS_CONFIG = {

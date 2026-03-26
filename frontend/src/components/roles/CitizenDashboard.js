@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { createGrievance, getGrievances, getAnalytics, getUsersByRole, getSchemes, applyForScheme, getApplications, getVoterServices } from '../../api';
 import { 
   Send, RefreshCw, User, MapPin, ChevronRight,
-  Calendar, CheckCircle2, Clock, Activity, AlertCircle,
-  FileText, Search, PlusCircle, ExternalLink, Info, BadgeCheck,
+  Calendar, CheckCircle2, Activity, AlertCircle,
+  FileText, ExternalLink, BadgeCheck,
   Briefcase, Phone, MessageSquare, Shield
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -129,8 +129,6 @@ export default function CitizenDashboard({ currentUser, boothId }) {
     const [category, setCategory] = useState('');
     const [grievances, setGrievances] = useState([]);
     const [analytics, setAnalytics] = useState(null);
-    const [workers, setWorkers] = useState([]);
-    const [admin, setAdmin] = useState(null);
     const [schemes, setSchemes] = useState([]);
     const [voterServices, setVoterServices] = useState([]);
     const [applications, setApplications] = useState([]);
