@@ -16,7 +16,7 @@ const STATUS_CONFIG = {
     resolved: { label: 'Issue Resolved', icon: BadgeCheck, color: 'text-white/40', bg: 'bg-white/5', border: 'border-white/5' },
 };
 
-const MissionCard = ({ task, onStart, onResolve, delay }) => {
+const TaskCard = ({ task, onStart, onResolve, delay }) => {
     const config = STATUS_CONFIG[task.status] || STATUS_CONFIG.assigned;
     const isResolved = task.status === 'resolved';
 
@@ -38,7 +38,7 @@ const MissionCard = ({ task, onStart, onResolve, delay }) => {
                     <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[2px] border ${config.bg} ${config.color} ${config.border}`}>
                         {config.label}
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-white/20 tracking-widest">ISSUE_ID: #{task.id}</span>
+                    <span className="text-[10px] font-mono font-bold text-white/20 tracking-widest">TASK_ID: #{task.id}</span>
                 </div>
                 <h4 className="text-3xl font-black text-white mb-4 truncate group-hover:text-emerald-500 transition-colors uppercase tracking-tighter leading-tight">
                     {task.description}
@@ -56,14 +56,14 @@ const MissionCard = ({ task, onStart, onResolve, delay }) => {
                             onClick={() => onStart(task.id)}
                             className="w-full md:w-56 py-5 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-[4px] text-[10px] hover:bg-emerald-500 transition-all shadow-2xl shadow-emerald-600/20 active:scale-95 flex items-center justify-center gap-3 border border-white/10"
                         >
-                            <span>START WORK</span> <ChevronRight size={18} />
+                            <span>START TASK</span> <ChevronRight size={18} />
                         </button>
                     ) : (
                         <button 
                             onClick={() => onResolve(task)}
                             className="w-full md:w-56 py-5 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-[4px] text-[10px] hover:bg-emerald-500 transition-all shadow-2xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-3 border border-white/10"
                         >
-                            <span>MARK AS RESOLVED</span> <CheckCircle2 size={18} />
+                            <span>COMPLETE TASK</span> <CheckCircle2 size={18} />
                         </button>
                     )}
                 </div>
@@ -114,22 +114,22 @@ export default function WorkerDashboard({ currentUser }) {
         setSubmitting(false);
     };
 
-    const activeMissions = tasks.filter(t => t.status !== 'resolved');
-    const completedMissions = tasks.filter(t => t.status === 'resolved');
+    const activeTasks = tasks.filter(t => t.status !== 'resolved');
+    const completedTasks = tasks.filter(t => t.status === 'resolved');
 
     return (
         <div className="space-y-12 animate-fade-in relative z-10 px-4 sm:px-0">
             {/* Header Info */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 pb-8 border-b border-white/5">
                 <div>
-                    <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">FIELD_WORK<br/>DASHBOARD</h1>
+                    <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">GROUND_OP<br/>DASHBOARD</h1>
                     <div className="flex items-center gap-4 mt-6">
                         <div className="flex items-center gap-2">
                             <span className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                            <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[3px]">STATUS: LIVE_SYNC</p>
+                            <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[3px]">STATUS: ACTIVE</p>
                         </div>
                         <div className="size-1 rounded-full bg-white/10" />
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[3px]">WORKER: {currentUser?.name}</p>
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[3px]">USER: {currentUser?.name}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -140,7 +140,7 @@ export default function WorkerDashboard({ currentUser }) {
                         <RefreshCw size={24} className={loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
                     </button>
                     <div className="px-6 py-4 bg-emerald-600/10 border border-emerald-500/20 rounded-2xl">
-                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[2px]">NETWORK_SPEED</p>
+                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[2px]">SYNC_DELAY</p>
                         <p className="text-xl font-black text-white">24ms</p>
                     </div>
                 </div>
@@ -149,9 +149,9 @@ export default function WorkerDashboard({ currentUser }) {
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'Pending Tasks', val: activeMissions.length, icon: Zap, color: '#10b981' },
-                    { label: 'Completed Tasks', val: completedMissions.length, icon: BadgeCheck, color: '#10b981' },
-                    { label: 'Work Status', val: 'Active', icon: Shield, color: '#10b981' },
+                    { label: 'Pending Tasks', val: activeTasks.length, icon: Zap, color: '#10b981' },
+                    { label: 'Completed Tasks', val: completedTasks.length, icon: BadgeCheck, color: '#10b981' },
+                    { label: 'System Status', val: 'Online', icon: Shield, color: '#10b981' },
                     { label: 'Efficiency', val: '98%', icon: Activity, color: '#10b981' }
                 ].map((s, i) => (
                     <motion.div 
@@ -179,10 +179,10 @@ export default function WorkerDashboard({ currentUser }) {
                         <div className="size-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-2xl shadow-emerald-500/20">
                             <Send size={20} strokeWidth={3} />
                         </div>
-                        <h3 className="text-3xl font-black text-white tracking-tighter uppercase">TASK_LIST</h3>
+                        <h3 className="text-3xl font-black text-white tracking-tighter uppercase">ASSIGNMENTS</h3>
                     </div>
                     <span className="px-5 py-2 bg-emerald-500/10 rounded-full text-[10px] font-black text-emerald-400 border border-emerald-500/20 tracking-[3px]">
-                        OFFICIAL_ACCESS
+                        RESTRICTED
                     </span>
                 </div>
 
@@ -190,9 +190,9 @@ export default function WorkerDashboard({ currentUser }) {
                     {loading ? (
                         <div className="p-32 text-center bg-white/5 backdrop-blur-3xl rounded-[4rem] border border-white/5 border-dashed">
                              <RefreshCw className="w-16 h-16 text-emerald-600 animate-spin mx-auto mb-8 shadow-[0_0_30px_rgba(16,185,129,0.2)]" />
-                             <p className="text-[12px] font-black uppercase tracking-[5px] text-white/40 animate-pulse">Fetching data...</p>
+                             <p className="text-[12px] font-black uppercase tracking-[5px] text-white/40 animate-pulse">Updating...</p>
                         </div>
-                    ) : activeMissions.length === 0 ? (
+                    ) : activeTasks.length === 0 ? (
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -201,12 +201,12 @@ export default function WorkerDashboard({ currentUser }) {
                              <div className="size-24 rounded-[2rem] bg-emerald-600 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-emerald-500/20 border border-white/10">
                                 <Shield className="text-white" size={48} strokeWidth={2.5} />
                              </div>
-                             <h4 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-none">ALL_ISSUES_RESOLVED</h4>
-                             <p className="text-white/40 text-sm max-w-sm mx-auto uppercase tracking-tighter font-medium leading-relaxed">Everything is normal. All reported issues have been resolved.</p>
+                             <h4 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-none">NO_PENDING_ISSUES</h4>
+                             <p className="text-white/40 text-sm max-w-sm mx-auto uppercase tracking-tighter font-medium leading-relaxed">System clear. All reported issues have been addressed.</p>
                         </motion.div>
                     ) : (
-                        activeMissions.map((task, idx) => (
-                            <MissionCard 
+                        activeTasks.map((task, idx) => (
+                            <TaskCard 
                                 key={task.id} 
                                 task={task} 
                                 onStart={handleStartWork} 
@@ -216,16 +216,16 @@ export default function WorkerDashboard({ currentUser }) {
                         ))
                     )}
 
-                    {completedMissions.length > 0 && (
+                    {completedTasks.length > 0 && (
                         <div className="mt-24 space-y-8">
                             <div className="flex items-center gap-4 px-2">
                                 <div className="h-px flex-1 bg-white/5" />
-                                <h4 className="text-[10px] font-black uppercase tracking-[5px] text-stone-700">PREVIOUS_WORK</h4>
+                                <h4 className="text-[10px] font-black uppercase tracking-[5px] text-stone-700">COMPLETED_WORKS</h4>
                                 <div className="h-px flex-1 bg-white/5" />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {completedMissions.map((task, idx) => (
-                                    <MissionCard key={task.id} task={task} delay={idx * 0.05} />
+                                {completedTasks.map((task, idx) => (
+                                    <TaskCard key={task.id} task={task} delay={idx * 0.05} />
                                 ))}
                             </div>
                         </div>
@@ -256,9 +256,9 @@ export default function WorkerDashboard({ currentUser }) {
                                     <div className="flex justify-between items-start mb-12">
                                         <div>
                                             <div className="px-5 py-2 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-[3px] border border-emerald-500/20 mb-6 inline-block">
-                                                CLOSING_SUMMARY
+                                                RESOLUTION_STEP
                                             </div>
-                                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">TASK_OUTCOME</h4>
+                                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">SUBMIT_FIX</h4>
                                             <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-white/40 mt-3">ISSUE #: {resolveModal.id}</p>
                                         </div>
                                         <button onClick={() => setResolveModal(null)} className="size-14 rounded-2xl bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all border border-white/5">
@@ -276,11 +276,11 @@ export default function WorkerDashboard({ currentUser }) {
                                         </div>
 
                                         <div className="space-y-4">
-                                            <label className="text-[10px] font-black uppercase tracking-[5px] text-emerald-500 pl-2">DESCRIBE_WORK_DONE</label>
+                                            <label className="text-[10px] font-black uppercase tracking-[5px] text-emerald-500 pl-2">RESOLUTION_DETAILS</label>
                                             <textarea 
                                                 value={resolutionNote} 
                                                 onChange={(e) => setResolutionNote(e.target.value)}
-                                                placeholder="Write a brief note on how you fixed this..."
+                                                placeholder="Briefly describe how you resolved this issue..."
                                                 className="w-full p-8 bg-white/5 rounded-[2.5rem] border border-white/5 focus:border-emerald-500/50 outline-none text-white text-lg font-medium transition-all h-40 resize-none placeholder:text-white/10 uppercase tracking-tighter" 
                                             />
                                         </div>
@@ -293,7 +293,7 @@ export default function WorkerDashboard({ currentUser }) {
                                             {submitting ? (
                                                 <RefreshCw className="size-6 animate-spin" />
                                             ) : (
-                                                <><BadgeCheck size={24} strokeWidth={3} /> SUBMIT_FINAL_REPORT</>
+                                                <><BadgeCheck size={24} strokeWidth={3} /> CONFIRM_RESOLUTION</>
                                             )}
                                         </button>
                                     </div>

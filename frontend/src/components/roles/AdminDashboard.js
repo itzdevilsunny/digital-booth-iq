@@ -142,7 +142,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                 tab === 'dashboard' ? 'bg-emerald-500 text-black shadow-2xl' : 'bg-white/5 text-white/40 hover:text-white'
                             }`}
                         >
-                            <Shield size={12} strokeWidth={3} /> COMMAND_CENTER
+                            <Shield size={12} strokeWidth={3} /> ADMIN_DASHBOARD
                         </button>
                         <button 
                             onClick={() => handleTabChange('voters')}
@@ -150,17 +150,17 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                 tab === 'voters' ? 'bg-emerald-500 text-black shadow-2xl' : 'bg-white/5 text-white/40 hover:text-white'
                             }`}
                         >
-                            <Users size={12} strokeWidth={3} /> VOTER_REGISTRY
+                            <Users size={12} strokeWidth={3} /> VOTER_LIST
                         </button>
                     </div>
                     <h1 className="text-6xl font-black text-white tracking-tighter uppercase leading-none">
-                        {tab === 'voters' ? 'REGISTRY_SYNC' : 'SYSTEM_OVERVIEW'}
+                        {tab === 'voters' ? 'VOTER_DATABASE' : 'ADMIN_OVERVIEW'}
                     </h1>
                 </div>
                 <div className="flex items-center gap-4">
                     <button onClick={loadData} className="px-8 py-4 rounded-2xl bg-white/5 text-stone-400 hover:text-white hover:bg-white/10 transition-all flex items-center gap-3 border border-white/5 group">
                         <RefreshCw size={18} className={`${loading ? 'animate-spin' : ''} group-hover:rotate-180 transition-transform duration-500`} />
-                        <span className="text-[10px] font-black uppercase tracking-[4px]">REFRESH_FEED</span>
+                        <span className="text-[10px] font-black uppercase tracking-[4px]">REFRESH</span>
                     </button>
                 </div>
             </div>
@@ -170,7 +170,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                     {/* Metric Grid */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard 
-                    label="Open Problems" 
+                    label="Active Issues" 
                     value={grievances.filter(g => g.status === 'submitted').length} 
                     icon={AlertCircle} 
                     color="#f59e0b"
@@ -192,7 +192,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                     delay={0.3}
                 />
                 <MetricCard 
-                    label="Staff Available" 
+                    label="Workers Online" 
                     value={workers.length} 
                     icon={Users} 
                     color="#3b82f6"
@@ -213,7 +213,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                     : 'text-white/40 hover:text-white'
                             }`}
                         >
-                            {f === 'open' ? 'NEW_LOGS' : f}
+                            {f === 'open' ? 'NEW_ISSUES' : f}
                         </button>
                     ))}
                 </div>
@@ -221,7 +221,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                 <div className="flex items-center gap-4">
                     <div className="px-6 py-3 rounded-full bg-emerald-500/5 border border-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-[4px] flex items-center gap-3">
                         <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                        LIVE_TELEMETRY
+                        LIVE_UPDATES
                     </div>
                 </div>
             </div>
@@ -231,15 +231,15 @@ export default function AdminDashboard({ currentUser, boothId }) {
                 {loading ? (
                     <div className="p-32 text-center bg-[#1a1a1a] rounded-[4rem] border border-white/5 border-dashed">
                         <RefreshCw className="w-16 h-16 text-emerald-500/20 animate-spin mx-auto mb-8" />
-                        <p className="text-[11px] font-black uppercase tracking-[5px] text-white/20">SYNCHRONIZING_DATA_STREAM...</p>
+                        <p className="text-[11px] font-black uppercase tracking-[5px] text-white/20">FETCHING_DATA...</p>
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="p-24 text-center bg-[#1a1a1a] rounded-[4rem] border border-white/5">
                         <div className="size-24 rounded-[2.5rem] bg-white/5 flex items-center justify-center mx-auto mb-10 border border-white/5">
                             <LayoutDashboard className="text-stone-700" size={48} />
                         </div>
-                        <h4 className="text-4xl font-black text-white mb-4 uppercase tracking-tighter">ALL_SYSTEMS_GO</h4>
-                        <p className="text-stone-600 text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">Zero anomalies detected in the sector. Operational status: PLATINUM.</p>
+                        <h4 className="text-4xl font-black text-white mb-4 uppercase tracking-tighter">ALL_CLEAR</h4>
+                        <p className="text-stone-600 text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">No issues reported in this booth. Status: Normal.</p>
                     </div>
                 ) : (
                     filtered.map((g, idx) => {
@@ -264,7 +264,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-wrap items-center gap-4 mb-6">
                                             <span className="px-5 py-1.5 rounded-full bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-[3px] border border-white/5">
-                                                LOG_ID: #{g.id}
+                                                ISSUE_ID: #{g.id}
                                             </span>
                                             <span className={`px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[3px] border ${config.bg} ${config.color} ${config.border}`}>
                                                 {config.label.toUpperCase()}
@@ -275,10 +275,10 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                         </h4>
                                         <div className="flex flex-wrap items-center gap-8 text-[10px] font-black text-white/20 uppercase tracking-[4px]">
                                             <span className="flex items-center gap-3"><User size={14} className="text-white/20" /> {g.voter_name}</span>
-                                            <span className="flex items-center gap-3"><MapPin size={14} className="text-white/20" /> SECTOR_{g.booth_id}</span>
+                                            <span className="flex items-center gap-3"><MapPin size={14} className="text-white/20" /> BOOTH_{g.booth_id}</span>
                                             {g.assigned_worker && (
                                                 <span className="flex items-center gap-3 text-emerald-500 bg-emerald-500/10 px-4 py-1.5 rounded-2xl border border-emerald-500/20">
-                                                    <Zap size={12} strokeWidth={3} /> UNIT: {g.assigned_worker}
+                                                    <Zap size={12} strokeWidth={3} /> WORKER: {g.assigned_worker}
                                                 </span>
                                             )}
                                         </div>
@@ -290,11 +290,11 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                                 onClick={() => setAssignModal(g)}
                                                 className="w-full xl:w-72 py-6 bg-white text-black rounded-2xl font-black uppercase tracking-[4px] text-[11px] hover:bg-emerald-500 hover:text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-4"
                                             >
-                                                <Shield size={20} strokeWidth={3} /> DEPLOY_RESOURCES
+                                                <Shield size={20} strokeWidth={3} /> ASSIGN_WORKER
                                             </button>
                                         ) : (
                                             <div className="w-full xl:w-72 py-6 bg-white/5 border border-white/5 text-stone-500 rounded-2xl font-black uppercase tracking-[4px] text-[11px] flex items-center justify-center gap-4">
-                                                <CheckCircle size={20} /> MISSION_ACTIVE
+                                                <CheckCircle size={20} /> WORK_IN_PROGRESS
                                             </div>
                                         )}
                                     </div>
@@ -313,26 +313,26 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                         >
                                             <div className="pt-10 mt-10 border-t border-white/5 grid grid-cols-1 md:grid-cols-3 gap-8">
                                                 <div className="p-6 bg-black/20 rounded-3xl border border-white/5">
-                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">ASSIGNED_PERSONNEL</p>
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">ASSIGNED_TO</p>
                                                     <p className="text-lg font-black text-white uppercase tracking-tighter flex items-center gap-3">
-                                                        <User size={18} className="text-emerald-500" /> {g.assigned_worker || 'UNASSIGNED'}
+                                                        <User size={18} className="text-emerald-500" /> {g.assigned_worker || 'NOT ASSIGNED'}
                                                     </p>
                                                 </div>
                                                 <div className="p-6 bg-black/20 rounded-3xl border border-white/5">
-                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">SYNC_TIMESTAMP</p>
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">REPORTED_AT</p>
                                                     <p className="text-lg font-black text-white uppercase tracking-tighter flex items-center gap-3">
                                                         <Clock size={18} className="text-emerald-500" /> {new Date(g.created_at).toLocaleString()}
                                                     </p>
                                                 </div>
                                                 <div className="p-6 bg-black/20 rounded-3xl border border-white/5">
-                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">TACTICAL_STATUS</p>
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">CURRENT_STATUS</p>
                                                     <p className="text-lg font-black text-emerald-500 uppercase tracking-tighter flex items-center gap-3">
                                                         <Shield size={18} /> {g.status.toUpperCase()}
                                                     </p>
                                                 </div>
                                                 {g.resolution_note && (
                                                     <div className="md:col-span-3 p-8 bg-emerald-500/5 rounded-[2rem] border border-emerald-500/10">
-                                                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[4px] mb-4">RESOLUTION_INTELLIGENCE</p>
+                                                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[4px] mb-4">WORKER_NOTE</p>
                                                         <p className="text-xl font-black text-stone-300 leading-tight uppercase tracking-tighter italic">"{g.resolution_note}"</p>
                                                     </div>
                                                 )}
@@ -368,7 +368,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                 </div>
                                 <div className="space-y-4 mb-8">
                                     <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[2px]">
-                                        <span className="text-stone-700">SENTIMENT_POLARITY</span>
+                                        <span className="text-stone-700">VOTER_MOOD</span>
                                         <span className={
                                             v.sentiment === 'positive' ? 'text-emerald-500' : 
                                             v.sentiment === 'negative' ? 'text-rose-500' : 'text-stone-500'
@@ -418,10 +418,10 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                     <div className="flex justify-between items-start mb-12">
                                         <div>
                                             <div className="px-5 py-2 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-[4px] border border-emerald-500/20 mb-6 inline-block">
-                                                TACTICAL_AUTHORIZATION
+                                                ASSIGN_TASK
                                             </div>
-                                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">PERSONNEL_DEPLOYMENT</h4>
-                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-stone-600 mt-3">INCIDENT_REF: #{assignModal.id}</p>
+                                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">SELECT_WORKER</h4>
+                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-stone-600 mt-3">ISSUE #: {assignModal.id}</p>
                                         </div>
                                         <button onClick={() => setAssignModal(null)} className="size-14 rounded-2xl bg-white/5 flex items-center justify-center text-stone-500 hover:text-white transition-all border border-white/5">
                                             <X size={28} />
@@ -433,21 +433,21 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                             <div className="absolute top-6 right-6 text-emerald-500/5">
                                                 <Info size={64} />
                                             </div>
-                                            <p className="text-[10px] font-black uppercase text-stone-600 tracking-[3px] mb-4">FIELD_REPORT</p>
+                                            <p className="text-[10px] font-black uppercase text-stone-600 tracking-[3px] mb-4">ISSUE_DETAILS</p>
                                             <p className="text-xl font-black text-stone-400 leading-tight uppercase tracking-tighter pr-12">{assignModal.description}</p>
                                         </div>
 
                                         <div className="space-y-4">
-                                            <label className="text-[10px] font-black uppercase tracking-[5px] text-emerald-500 pl-2">TARGET_PERSONNEL</label>
+                                            <label className="text-[10px] font-black uppercase tracking-[5px] text-emerald-500 pl-2">SELECT_WORKER</label>
                                             <div className="relative">
                                                 <select 
                                                     value={selectedWorker} 
                                                     onChange={(e) => setSelectedWorker(e.target.value)}
                                                     className="w-full p-6 bg-white/5 rounded-2xl border border-white/5 focus:border-emerald-500/50 outline-none text-white text-lg font-black uppercase tracking-tighter appearance-none cursor-pointer pr-16"
                                                 >
-                                                    <option value="" className="bg-[#1a1a1a]">CHOOSE_DEPLOYMENT_UNIT...</option>
+                                                    <option value="" className="bg-[#1a1a1a]">SELECT_A_WORKER...</option>
                                                     {workers.map(w => (
-                                                        <option key={w.id} value={w.id} className="bg-[#1a1a1a]">{w.name} (UNIT_{w.id})</option>
+                                                        <option key={w.id} value={w.id} className="bg-[#1a1a1a]">{w.name} (ID: {w.id})</option>
                                                     ))}
                                                 </select>
                                                 <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-emerald-500">
@@ -464,7 +464,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                             {submitting ? (
                                                 <RefreshCw className="size-6 animate-spin" />
                                             ) : (
-                                                <><Shield size={24} strokeWidth={3} /> AUTHORIZE_TACTICAL_ORDER</>
+                                                <><Shield size={24} strokeWidth={3} /> CONFIRM_ASSIGNMENT</>
                                             )}
                                         </button>
                                     </div>

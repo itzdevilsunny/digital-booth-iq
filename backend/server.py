@@ -399,7 +399,8 @@ async def supabase_request(method: str, endpoint: str, params: dict = None, json
             )
             if response.status_code >= 400:
                 logger.error(f"Supabase error: {response.status_code} {response.text}")
-                return None
+                # Log detailed error for debugging
+                return {"error": response.text, "status_code": response.status_code}
             
             if response.text and response.status_code != 204:
                 try:
@@ -409,7 +410,7 @@ async def supabase_request(method: str, endpoint: str, params: dict = None, json
             return []
         except Exception as e:
             logger.error(f"Supabase Request Exception: {e}")
-            return None
+            return {"error": str(e), "status_code": 500}
 
 async def resolve_booth_id(booth_id: Union[int, str]) -> int:
     """Redirect demo booth 17 to first available booth to handle locked DBs"""
@@ -1109,8 +1110,18 @@ async def create_grievance(data: GrievanceCreate):
             logger.error(f"MongoDB grievance fallback error: {e}")
 
         # Use result from Supabase if available, otherwise use Mongo record
-        grievance = result[0] if (result and isinstance(result, list) and len(result) > 0) else mongo_gr
+        grievance = mongo_gr # Default to local copy
+        if result and isinstance(result, list) and len(result) > 0:
+            grievance = result[0]
+        elif result and isinstance(result, dict) and "error" in result:
+            logger.warning(f"Supabase sync failed (Code {result.get('status_code')}): {result.get('error')}. Falling back to MongoDB only.")
         
+        # Ensure grievance is a dictionary and has required fields for the AI logic below
+        if not isinstance(grievance, dict):
+            logger.error(f"Grievance object is not a dict: {type(grievance)}")
+            grievance = mongo_gr
+
+        # Attach AI enrichment metadata for the frontend
         grievance["ai_category"] = ai_result["category"]
         grievance["ai_sentiment"] = ai_result["sentiment"]
         grievance["ai_priority"] = ai_result["priority"]

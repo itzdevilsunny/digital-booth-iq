@@ -30,7 +30,7 @@ const RoleCard = ({ role, title, desc, icon: Icon, color, onClick, delay }) => (
             </p>
             
             <div className="mt-12 flex items-center justify-between text-white/20 group-hover:text-white transition-all duration-500">
-                <span className="text-[10px] font-black uppercase tracking-[5px] group-hover:tracking-[6px] transition-all">Initialize Protocol</span>
+                <span className="text-[10px] font-black uppercase tracking-[5px] group-hover:tracking-[6px] transition-all">Login Now</span>
                 <div className="size-10 rounded-full bg-white/5 border border-white/5 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-all duration-500">
                     <ChevronRight size={20} />
                 </div>
@@ -76,7 +76,7 @@ const RoleSelectionPage = () => {
                             <div className="size-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">
                                 <Zap size={24} />
                             </div>
-                            <span className="text-[11px] font-black uppercase tracking-[8px] text-white/20">BoothIQ_Core_Node</span>
+                            <span className="text-[11px] font-black uppercase tracking-[8px] text-white/20">BoothIQ_System</span>
                         </motion.div>
                         <motion.h1 
                             initial={{ opacity: 0, y: 20 }}
@@ -85,7 +85,7 @@ const RoleSelectionPage = () => {
                             className="text-6xl md:text-8xl font-black tracking-tighter text-white leading-[0.85] uppercase"
                         >
                             CHOOSE YOUR <br />
-                            <span className="text-emerald-500">COMMAND PORTAL</span>
+                            <span className="text-emerald-500">LOGIN ROLE</span>
                         </motion.h1>
                     </div>
                     
@@ -100,9 +100,9 @@ const RoleSelectionPage = () => {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
                                 <span className="relative inline-flex rounded-full size-2 bg-emerald-500" />
                             </span>
-                            <span className="text-[10px] font-bold uppercase tracking-[4px] text-emerald-500">System: Operational</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[4px] text-emerald-500">System: Online</span>
                         </div>
-                        <span className="text-[9px] font-bold text-white/10 uppercase tracking-[5px] text-right">Matrix_v5.2_Sync</span>
+                        <span className="text-[9px] font-bold text-white/10 uppercase tracking-[5px] text-right">Data_Sync_v5.2</span>
                     </motion.div>
                 </header>
 
@@ -117,31 +117,31 @@ const RoleSelectionPage = () => {
                         { 
                             id: 'worker', 
                             title: 'Field Officer', 
-                            desc: 'Tactical reconnaissance and on-ground mission management for assigned sectors.', 
+                            desc: 'On-ground task management and area monitoring for assigned booths.', 
                             icon: Briefcase, 
                         },
                         { 
                             id: 'panna', 
                             title: 'Voter Guide', 
-                            desc: 'Registry intelligence and localized voter engagement orchestration hub.', 
+                            desc: 'Voter registry insights and localized community engagement management.', 
                             icon: UserCheck, 
                         },
                         { 
                             id: 'admin', 
                             title: 'Booth Manager', 
-                            desc: 'Command center oversight for high-level resource deployment and operational audits.', 
+                            desc: 'Management dashboard for resource oversight and operational audits.', 
                             icon: ShieldCheck, 
                         },
                         { 
                             id: 'analyst', 
                             title: 'Data Analyst', 
-                            desc: 'Deep data synthesis and predictive intelligence for state-wide policy alignment.', 
+                            desc: 'Data analysis and strategy insights for constituency-wide planning.', 
                             icon: BarChart3, 
                         },
                         { 
                             id: 'city_manager', 
                             title: 'City Admin', 
-                            desc: 'Regional strategy command and multi-sector intervention synchronization.', 
+                            desc: 'Regional administration and multi-zone coordination.', 
                             icon: Globe, 
                         }
                     ].map((role, idx) => (
@@ -156,11 +156,11 @@ const RoleSelectionPage = () => {
 
                 {/* Footer Info */}
                 <footer className="mt-32 pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
-                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[6px]">Access Restricted &bull; Tactical Authorization Required</p>
+                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[6px]">Official Access Only &bull; Authorization Required</p>
                     <div className="flex items-center gap-6">
                          <div className="flex items-center gap-3">
                              <div className="size-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
-                             <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">E-Sarthi v5.2 Deployment</span>
+                             <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">BoothIQ v5.2 Deployment</span>
                          </div>
                     </div>
                 </footer>

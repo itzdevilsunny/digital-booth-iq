@@ -47,14 +47,14 @@ const Sidebar = () => {
                     </div>
                     <div>
                         <h1 className={`font-bold text-2xl tracking-tighter leading-none ${isCitizen ? 'text-stone-900' : 'text-white'} group-hover:text-emerald-500 transition-colors`}>BoothIQ</h1>
-                        <p className={`text-[9px] uppercase tracking-[0.4em] ${isCitizen ? 'text-stone-400' : 'text-white/40'} font-bold mt-1`}>Operational Node</p>
+                        <p className={`text-[9px] uppercase tracking-[0.4em] ${isCitizen ? 'text-stone-400' : 'text-white/40'} font-bold mt-1`}>Booth Management</p>
                     </div>
                 </div>
             </div>
 
             {/* Navigation */}
             <nav className="flex-1 p-6 space-y-2 mt-4 relative z-10">
-                <p className={`px-5 text-[10px] font-bold ${isCitizen ? 'text-stone-300' : 'text-white/20'} uppercase tracking-[4px] mb-6`}>Mission Command</p>
+                <p className={`px-5 text-[10px] font-bold ${isCitizen ? 'text-stone-300' : 'text-white/20'} uppercase tracking-[4px] mb-6`}>Main Menu</p>
                 {filteredNav.map((item) => {
                     const active = isActive(item.path);
                     const Icon = item.icon;
@@ -104,7 +104,7 @@ const Sidebar = () => {
                     >
                         <div className="flex items-center gap-3">
                             <Activity size={16} />
-                            <span className="text-[10px] font-bold uppercase tracking-[2px]">Switch Interface</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[2px]">Change Role</span>
                         </div>
                         <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                     </button>
@@ -114,7 +114,7 @@ const Sidebar = () => {
                         className={`w-full flex items-center gap-3 px-5 py-3 rounded-xl ${isCitizen ? 'text-stone-300 hover:text-rose-600' : 'text-white/20 hover:text-rose-500'} transition-colors group`}
                     >
                         <LogOut size={16} />
-                        <span className="text-[10px] font-bold uppercase tracking-[3px]">Terminate Session</span>
+                        <span className="text-[10px] font-bold uppercase tracking-[3px]">Logout</span>
                     </button>
                 </div>
             </div>

@@ -63,7 +63,7 @@ const LoginPage = () => {
                         className="text-6xl font-black leading-[0.9] tracking-tighter mb-8 text-balance uppercase"
                     >
                         SECURE <br />
-                        <span className="text-emerald-500">PORTAL</span>
+                        <span className="text-emerald-500">LOGIN</span>
                     </motion.h1>
 
                     <motion.p
@@ -72,16 +72,16 @@ const LoginPage = () => {
                         transition={{ delay: 0.3 }}
                         className="text-lg mb-12 max-w-sm font-medium leading-relaxed text-white/40 uppercase tracking-tight italic"
                     >
-                        Access mission-critical tactical deployment tools and intelligence reconnaissance in real-time.
+                        Access booth management tools and voter insights in real-time.
                     </motion.p>
                 </div>
 
                 <div className="relative z-10">
                     <div className="space-y-8">
                         {[
-                            { icon: Fingerprint, text: 'Biometric Handshake Active', sub: 'AES-256 Protocol' },
-                            { icon: Radio, text: 'Encrypted Node Connection', sub: 'Lat: 0.8ms / Secure' },
-                            { icon: Verified, text: 'E-Sarthi Governance Node', sub: 'V5.0 Matrix Compliance' }
+                            { icon: Fingerprint, text: 'Secure Authentication Active', sub: 'AES-256 Encryption' },
+                            { icon: Radio, text: 'Stable Network Connection', sub: 'Lat: 0.8ms / Verified' },
+                            { icon: Verified, text: 'BoothIQ Governance System', sub: 'Compliance Verified' }
                         ].map((item, i) => (
                             <motion.div
                                 key={i}
@@ -103,12 +103,12 @@ const LoginPage = () => {
                 </div>
 
                 <div className="relative z-10 flex items-center justify-between text-[10px] font-bold uppercase tracking-[4px] opacity-20">
-                    <span>Alpha_Build_v5.2</span>
+                    <span>Build_v5.2</span>
                     <span>© 2026 BoothIQ System</span>
                 </div>
             </div>
 
-            {/* Right Panel - Stunning Form Interface */}
+            {/* Right Panel - Form Interface */}
             <div className="flex-1 flex flex-col items-center justify-center p-8 relative bg-[#0c0c0c]">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.02),transparent)] pointer-events-none" />
                 
@@ -135,10 +135,10 @@ const LoginPage = () => {
                         </motion.div>
                         
                         <h2 className="text-4xl font-black tracking-tighter mb-2 text-white uppercase">
-                            Access Request
+                            User Login
                         </h2>
                         <p className="text-[11px] font-bold text-white/40 uppercase tracking-[0.3em]">
-                            Synchronizing with tactical <span className="text-emerald-500">{roleKey}</span> core.
+                            Logging into <span className="text-emerald-500">{roleKey.replace('_', ' ')}</span> dashboard.
                         </p>
                     </div>
 
@@ -146,7 +146,7 @@ const LoginPage = () => {
                         <div className="space-y-3">
                             <div className="flex justify-between items-center px-2">
                                 <label className="text-[10px] font-bold uppercase tracking-[4px] text-white/40">
-                                    Strategic Identifier
+                                    User ID / Email
                                 </label>
                             </div>
                             <div className="relative group">
@@ -164,7 +164,7 @@ const LoginPage = () => {
                         <div className="space-y-3">
                             <div className="flex justify-between items-center px-2">
                                 <label className="text-[10px] font-bold uppercase tracking-[4px] text-white/40">
-                                    Access Key
+                                    Password
                                 </label>
                             </div>
                             <div className="relative group">
@@ -173,7 +173,7 @@ const LoginPage = () => {
                                     type="password" 
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="Enter secure key"
+                                    placeholder="Enter secure password"
                                     className="w-full pl-16 pr-6 py-6 rounded-[2rem] border bg-white/5 border-white/5 focus:border-emerald-500/50 text-white placeholder:text-white/10 focus:ring-8 focus:ring-emerald-500/5 transition-all outline-none font-bold text-sm tracking-widest uppercase"
                                 />
                             </div>
@@ -189,13 +189,13 @@ const LoginPage = () => {
                                     {showSuccess ? (
                                         <motion.div initial={{ y: 20 }} animate={{ y: 0 }} className="flex items-center gap-2">
                                             <ShieldCheck size={20} />
-                                            <span>ACCESS GRANTED</span>
+                                            <span>LOGIN SUCCESSFUL</span>
                                         </motion.div>
                                     ) : loading ? (
                                         <div className="size-6 rounded-full border-2 border-current border-t-transparent animate-spin" />
                                     ) : (
                                         <div className="flex items-center gap-4 group-hover:translate-x-1 transition-transform duration-500">
-                                            <span>INITIALIZE HUB</span>
+                                            <span>LOGIN NOW</span>
                                             <ChevronRight size={20} />
                                         </div>
                                     )}
@@ -208,11 +208,11 @@ const LoginPage = () => {
                     <div className="mt-16 flex items-center justify-center gap-10 py-10 border-t border-white/5">
                         <div className="flex items-center gap-3 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-crosshair">
                             <Radio size={14} className="text-emerald-500" />
-                            <span className="text-[10px] font-black uppercase tracking-[3px]">Global Sec.</span>
+                            <span className="text-[10px] font-black uppercase tracking-[3px]">System Sec.</span>
                         </div>
                         <div className="flex items-center gap-3 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-crosshair">
                             <ShieldClose size={14} className="text-rose-500" />
-                            <span className="text-[10px] font-black uppercase tracking-[3px]">Threat Matrix</span>
+                            <span className="text-[10px] font-black uppercase tracking-[3px]">Security Monitor</span>
                         </div>
                     </div>
                 </motion.div>

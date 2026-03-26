@@ -11,9 +11,9 @@ import {
 } from 'lucide-react';
 
 const SENTIMENT_STYLES = {
-    positive: { label: 'STRONG_SUPPORT', color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: ArrowUpCircle },
-    neutral: { label: 'UNDECIDED_UNIT', color: 'text-stone-600', bg: 'bg-white/5', border: 'border-white/5', icon: MinusCircle },
-    negative: { label: 'RISK_FACTOR', color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20', icon: ArrowDownCircle },
+    positive: { label: 'Strong Supporter', color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: ArrowUpCircle },
+    neutral: { label: 'Undecided', color: 'text-stone-600', bg: 'bg-white/5', border: 'border-white/5', icon: MinusCircle },
+    negative: { label: 'Risk/Opposition', color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20', icon: ArrowDownCircle },
 };
 
 const CALL_STATUS_ICONS = { 
@@ -129,18 +129,18 @@ export default function PannaDashboard({ currentUser, boothId }) {
                 <div>
                     <div className="flex items-center gap-4 mb-4">
                         <div className="px-4 py-1.5 rounded-full bg-emerald-500 text-black text-[10px] font-black uppercase tracking-[3px] flex items-center gap-2 shadow-2xl shadow-emerald-500/20">
-                            <Activity size={12} strokeWidth={3} /> FIELD_INTELLIGENCE
+                            <Activity size={12} strokeWidth={3} /> Voter Support
                         </div>
                         <div className="px-4 py-1.5 rounded-full bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-[3px] border border-white/5">
-                            SECTOR_CONTROL: {boothId}
+                            Booth ID: {boothId}
                         </div>
                     </div>
-                    <h1 className="text-6xl font-black text-white tracking-tighter uppercase leading-none">PANNA_STRATEGY_HUB</h1>
+                    <h1 className="text-6xl font-black text-white tracking-tighter uppercase leading-none">Voter Management</h1>
                 </div>
                 <div className="flex items-center gap-4">
                     <button onClick={loadData} className="px-8 py-4 rounded-2xl bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all flex items-center gap-3 border border-white/5 group">
                         <RefreshCw size={18} className={`${loading ? 'animate-spin' : ''} group-hover:rotate-180 transition-transform duration-500`} />
-                        <span className="text-[10px] font-black uppercase tracking-[4px]">UPDATE_REGISTRY</span>
+                        <span className="text-[10px] font-black uppercase tracking-[4px]">Refresh List</span>
                     </button>
                 </div>
             </div>
@@ -148,10 +148,10 @@ export default function PannaDashboard({ currentUser, boothId }) {
             {/* Tactical Metrics */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'ASSIGNED_VOTERS', val: stats.total, icon: Users, color: 'text-white' },
-                    { label: 'STRONG_SUPPORT', val: stats.positive, icon: ArrowUpCircle, color: 'text-emerald-500' },
-                    { label: 'COMMUNICATIONS', val: stats.callsThisWeek, icon: PhoneForwarded, color: 'text-amber-500' },
-                    { label: 'ENGAGEMENT_RATE', val: `${stats.responseRate}%`, icon: BarChart3, color: 'text-indigo-500' }
+                    { label: 'Total Voters', val: stats.total, icon: Users, color: 'text-white' },
+                    { label: 'Strong Supporters', val: stats.positive, icon: ArrowUpCircle, color: 'text-emerald-500' },
+                    { label: 'Calls Made', val: stats.callsThisWeek, icon: PhoneForwarded, color: 'text-amber-500' },
+                    { label: 'Success Rate', val: `${stats.responseRate}%`, icon: BarChart3, color: 'text-indigo-500' }
                 ].map((s, i) => (
                     <motion.div 
                         key={i} 
@@ -192,7 +192,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                     <input 
                         value={search} 
                         onChange={e => setSearch(e.target.value)}
-                        placeholder="SEARCH_REGISTRY..."
+                        placeholder="Search Voter List..."
                         className="pl-16 pr-8 py-5 rounded-2xl bg-white/5 border border-white/5 text-sm font-black text-white focus:border-emerald-500/50 outline-none w-full sm:w-[400px] transition-all placeholder:text-white/10 placeholder:font-black placeholder:uppercase placeholder:tracking-[4px] placeholder:text-[10px] uppercase tracking-tighter" 
                     />
                 </div>
@@ -204,15 +204,15 @@ export default function PannaDashboard({ currentUser, boothId }) {
                     {loading ? (
                         <div className="col-span-full p-32 text-center bg-[#1a1a1a] rounded-[4rem] border border-white/5 border-dashed">
                             <RefreshCw className="w-16 h-16 text-emerald-500/20 animate-spin mx-auto mb-8" />
-                            <p className="text-[11px] font-black uppercase tracking-[5px] text-white/20">DOWNLOADING_TACTICAL_DATA...</p>
+                            <p className="text-[11px] font-black uppercase tracking-[5px] text-white/20">Loading Voter List...</p>
                         </div>
                     ) : filtered.length === 0 ? (
                         <div className="col-span-full p-24 text-center bg-[#1a1a1a] rounded-[4rem] border border-white/5">
                             <div className="size-24 rounded-[3rem] bg-white/5 flex items-center justify-center mx-auto mb-10 border border-white/5">
                                 <Users className="text-white/20" size={48} />
                             </div>
-                            <h4 className="text-4xl font-black text-white mb-4 uppercase tracking-tighter">REGISTRY_EMPTY</h4>
-                            <p className="text-white/40 text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">No localized records match your tactical search parameters. Verify SECTOR_ID configuration.</p>
+                            <h4 className="text-4xl font-black text-white mb-4 uppercase tracking-tighter">No Voters Found</h4>
+                            <p className="text-white/40 text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">No voters match your search criteria. Please check the Booth ID or search term.</p>
                         </div>
                     ) : (
                         filtered.map((v, idx) => {
@@ -233,7 +233,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                             </div>
                                             <div>
                                                 <h4 className="font-black text-3xl text-white tracking-tighter uppercase leading-none group-hover:text-emerald-400 transition-colors">{v.name}</h4>
-                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-4">{v.phone} · {v.segment}</p>
+                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-4">{v.phone} · {v.segment || 'Voter'}</p>
                                             </div>
                                         </div>
                                         <div className={`flex items-center gap-3 px-5 py-2 rounded-full border ${s.bg} ${s.border} ${s.color}`}>
@@ -286,8 +286,8 @@ export default function PannaDashboard({ currentUser, boothId }) {
                     {calls.length === 0 ? (
                         <div className="p-32 text-center bg-[#1a1a1a] rounded-[4rem] border border-white/5 border-dashed">
                             <PhoneOff className="w-20 h-20 text-emerald-500/10 mx-auto mb-10" />
-                            <h4 className="text-4xl font-black text-white uppercase tracking-tighter">NO_COMMS_TRAFFIC</h4>
-                            <p className="text-white/40 text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">Sector intelligence feeds are silent. Initiate V_CALL protocols to populate registry.</p>
+                            <h4 className="text-4xl font-black text-white uppercase tracking-tighter">No Recent Calls</h4>
+                            <p className="text-white/40 text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">No call records found for this booth. Start calling voters to see the log.</p>
                         </div>
                     ) : (
                         calls.map((c, idx) => {
@@ -309,11 +309,11 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between mb-4">
                                             <h4 className="font-black text-3xl text-white tracking-tighter uppercase leading-none group-hover:text-emerald-400 transition-colors">{c.voter_name}</h4>
-                                            <span className="text-[10px] font-black text-white/20 uppercase tracking-[4px]">DELTA_{new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                            <span className="text-[10px] font-black text-white/20 uppercase tracking-[4px]">{new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
                                         <div className="flex items-center gap-6">
                                             <div className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isAnswered ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'}`}>
-                                                SEC_{c.status.toUpperCase()}
+                                                Status: {c.status.toUpperCase()}
                                             </div>
                                             {c.sentiment && (
                                                 <div className={`flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${s.color}`}>
@@ -361,10 +361,10 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                             <div className="flex justify-between items-start">
                                                 <div>
                                                     <div className="px-4 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-[10px] font-black uppercase tracking-[3px] border border-emerald-500/20 mb-6 inline-block">
-                                                        INTELLIGENCE_LOG
+                                                        Call Summary
                                                     </div>
-                                                    <h4 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">V_CALL_DEBRIEFING</h4>
-                                                    <p className="text-[10px] font-black uppercase tracking-[4px] text-white/40 mt-6">TARGET: {callModal.name} · {callModal.phone}</p>
+                                                    <h4 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">Call Record</h4>
+                                                    <p className="text-[10px] font-black uppercase tracking-[4px] text-white/40 mt-6">Voter: {callModal.name} · {callModal.phone}</p>
                                                 </div>
                                                 <button onClick={() => setCallModal(null)} className="size-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all">
                                                     <X size={24} />
@@ -373,7 +373,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
 
                                             <div className="space-y-10">
                                                 <div className="space-y-4">
-                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-white/40 pl-1">OPERATIONAL_OUTCOME</label>
+                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-white/40 pl-1">Call Result</label>
                                                     <div className="flex gap-4">
                                                         {['answered', 'no_answer'].map(s => (
                                                             <button 
@@ -385,18 +385,18 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                                         : 'bg-white/5 border-white/5 text-white/20 hover:border-white/10'
                                                                 }`}
                                                             >
-                                                                SEC_{s.toUpperCase()}
+                                                                {s.toUpperCase()}
                                                             </button>
                                                         ))}
                                                     </div>
                                                 </div>
 
                                                 <div className="space-y-4">
-                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-white/40 pl-1">FIELD_OBSERVATIONS</label>
+                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-white/40 pl-1">Notes</label>
                                                     <textarea 
                                                         value={callNotes} 
                                                         onChange={e => setCallNotes(e.target.value)}
-                                                        placeholder="TRANSCRIBE_TACTICAL_FINDINGS..."
+                                                        placeholder="Enter call details..."
                                                         className="w-full p-8 bg-black/40 rounded-[2.5rem] border border-white/5 focus:border-emerald-500 outline-none text-lg font-black text-white uppercase tracking-tighter resize-none h-40 placeholder:text-white/10" 
                                                     />
                                                 </div>
@@ -406,7 +406,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                     disabled={submitting}
                                                     className="w-full py-8 bg-white text-black rounded-[2rem] font-black uppercase tracking-[4px] shadow-2xl hover:bg-emerald-500 hover:text-white active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-4 text-[11px]"
                                                 >
-                                                    {submitting ? <RefreshCw className="size-6 animate-spin" /> : <><PhoneCall size={20} strokeWidth={3} /> TRANSMIT_INTEL</>}
+                                                    {submitting ? <RefreshCw className="size-6 animate-spin" /> : <><PhoneCall size={20} strokeWidth={3} /> Save Record</>}
                                                 </button>
                                             </div>
                                         </div>
@@ -420,8 +420,8 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                         <AlertTriangle size={40} strokeWidth={3} />
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">SECTOR_VULNERABILITY</h4>
-                                                        <p className="text-[10px] font-black uppercase tracking-[4px] text-white/40 mt-4">VECTOR_ID: {grievanceModal.name}</p>
+                                                        <h4 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">Register Complaint</h4>
+                                                        <p className="text-[10px] font-black uppercase tracking-[4px] text-white/40 mt-4">Voter: {grievanceModal.name}</p>
                                                     </div>
                                                 </div>
                                                 <button onClick={() => setGrievanceModal(null)} className="size-14 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all">
@@ -431,14 +431,14 @@ export default function PannaDashboard({ currentUser, boothId }) {
 
                                             <div className="space-y-10">
                                                 <div className="space-y-4">
-                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-white/40 pl-1">VECTOR_CATEGORY</label>
+                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-white/40 pl-1">Issue Category</label>
                                                     <div className="relative">
                                                         <select 
                                                             value={grievanceCat} 
                                                             onChange={e => setGrievanceCat(e.target.value)}
                                                             className="w-full p-8 bg-black/40 rounded-[2rem] border border-white/5 focus:border-rose-500 outline-none text-lg font-black text-white uppercase tracking-tighter transition-all appearance-none cursor-pointer pr-12"
                                                         >
-                                                            <option value="" className="bg-[#141414]">MATRIX_OPTIMIZATION</option>
+                                                            <option value="" className="bg-[#141414]">General Support</option>
                                                             {['infrastructure', 'utilities', 'healthcare', 'security', 'logistics', 'education'].map(cat => (
                                                                 <option key={cat} value={cat} className="bg-[#141414]">{cat.toUpperCase()}</option>
                                                             ))}
@@ -450,11 +450,11 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                 </div>
 
                                                 <div className="space-y-4">
-                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-white/40 pl-1">SITUATION_BRIEFING</label>
+                                                    <label className="text-[10px] font-black uppercase tracking-[4px] text-white/40 pl-1">Problem Description</label>
                                                     <textarea 
                                                         value={grievanceDesc} 
                                                         onChange={e => setGrievanceDesc(e.target.value)}
-                                                        placeholder="CLASSIFY_FAILURE_PARAMETERS..."
+                                                        placeholder="Describe the issue..."
                                                         className="w-full p-8 bg-black/40 rounded-[2.5rem] border border-white/5 focus:border-rose-500 outline-none text-lg font-black text-white uppercase tracking-tighter resize-none h-40 placeholder:text-white/10" 
                                                     />
                                                 </div>
@@ -464,7 +464,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                     disabled={submitting || !grievanceDesc.trim()}
                                                     className="w-full py-8 bg-rose-600 text-white rounded-[2rem] font-black uppercase tracking-[4px] shadow-2xl shadow-rose-500/40 hover:bg-rose-500 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-4 text-[11px]"
                                                 >
-                                                    {submitting ? <RefreshCw className="size-6 animate-spin" /> : <><Shield size={20} strokeWidth={3} /> REGISTER_VULNERABILITY</>}
+                                                    {submitting ? <RefreshCw className="size-6 animate-spin" /> : <><Shield size={20} strokeWidth={3} /> Submit Complaint</>}
                                                 </button>
                                             </div>
                                         </div>
