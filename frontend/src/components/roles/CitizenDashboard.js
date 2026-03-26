@@ -421,6 +421,33 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                   </div>
                 </motion.div>
               </div>
+            ) : tab === 'voter-services' ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
+                <div>
+                  <h2 className="text-3xl font-serif font-black text-slate-900 uppercase tracking-tight">Voter Services</h2>
+                  <p className="text-sm text-slate-500 font-medium">Official documentation and certification portal</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[
+                    { name: "Digital ID Request", desc: "Request a digital copy of your institutional verification card.", icon: "fingerprint" },
+                    { name: "Address Certification", desc: "Official verification of local residency for scheme eligibility.", icon: "home_pin" },
+                    { name: "Family Tree Sync", desc: "Verify and update your family unit nodes in the Knowledge Graph.", icon: "account_tree" },
+                    { name: "Election Day Alert", desc: "Configure institutional notification protocols for upcoming cycles.", icon: "notifications_active" },
+                  ].map((s) => (
+                    <div key={s.name} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:border-primary/40 transition-all group">
+                      <div className="size-12 rounded-xl bg-slate-50 flex items-center justify-center text-navy mb-6 group-hover:bg-navy group-hover:text-primary transition-all">
+                        <span className="material-symbols-outlined">{s.icon}</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight mb-2">{s.name}</h3>
+                      <p className="text-xs text-slate-500 leading-relaxed mb-6 font-medium">{s.desc}</p>
+                      <button className="text-[10px] font-mono font-black uppercase tracking-widest text-primary flex items-center gap-2 hover:underline">
+                        Initialize Protocol <ChevronRight size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
             ) : (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
                 <div className="flex items-center justify-between mb-8">
@@ -523,12 +550,12 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                     {[
                         { label: "Executive Monitor", id: 'dashboard', icon: "monitoring" },
                         { label: "Incident Reporter", id: 'report', icon: "report_problem" },
-                        { label: "Voter Services", href: "#", icon: "assignment" },
-                        { label: "Verified Schemes", href: "#", icon: "description" },
+                        { label: "Voter Services", id: 'voter-services', icon: "assignment" },
+                        { label: "Verified Schemes", id: 'schemes', icon: "description" },
                     ].map((a) => (
                         <button
                             key={a.label}
-                            onClick={() => a.id && setTab(a.id)}
+                            onClick={() => setTab(a.id)}
                             className={`flex items-center gap-4 p-4 rounded border transition-all hover:bg-navy hover:text-primary group ${tab === a.id ? 'bg-navy border-navy text-primary' : 'bg-slate-50 border-slate-100 text-slate-700'}`}
                         >
                             <div className="size-10 rounded bg-white/10 flex items-center justify-center group-hover:bg-primary/20">
