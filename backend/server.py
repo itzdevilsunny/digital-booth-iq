@@ -19,13 +19,21 @@ import base64
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection (with 5s timeout and SSL robustness)
+import ssl as _ssl
+
+# MongoDB connection — explicit SSL context for Python 3.14 compatibility
+# Python 3.14 changed TLS defaults which breaks implicit Atlas SSL negotiation
+_ssl_ctx = _ssl.create_default_context()
+_ssl_ctx.check_hostname = False
+_ssl_ctx.verify_mode = _ssl.CERT_NONE
+
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(
-    mongo_url, 
+    mongo_url,
     serverSelectionTimeoutMS=5000,
     tls=True,
-    tlsAllowInvalidCertificates=True
+    tlsAllowInvalidCertificates=True,
+    ssl_context=_ssl_ctx,
 )
 db = client[os.environ['DB_NAME']]
 
