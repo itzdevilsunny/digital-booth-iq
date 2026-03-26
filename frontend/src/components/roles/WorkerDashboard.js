@@ -10,10 +10,10 @@ import {
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
-    submitted: { label: 'NEW_ANOMALY', icon: ShieldAlert, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-    assigned: { label: 'MISSION_QUEUED', icon: ClipboardList, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-    in_progress: { label: 'ACTIVE_INTERVENTION', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-400/20', border: 'border-emerald-400/30' },
-    resolved: { label: 'MISSION_SUCCESS', icon: BadgeCheck, color: 'text-white/40', bg: 'bg-white/5', border: 'border-white/5' },
+    submitted: { label: 'New Issue', icon: ShieldAlert, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+    assigned: { label: 'Task Assigned', icon: ClipboardList, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+    in_progress: { label: 'Working on it', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-400/20', border: 'border-emerald-400/30' },
+    resolved: { label: 'Issue Resolved', icon: BadgeCheck, color: 'text-white/40', bg: 'bg-white/5', border: 'border-white/5' },
 };
 
 const MissionCard = ({ task, onStart, onResolve, delay }) => {
@@ -38,14 +38,14 @@ const MissionCard = ({ task, onStart, onResolve, delay }) => {
                     <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[2px] border ${config.bg} ${config.color} ${config.border}`}>
                         {config.label}
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-white/20 tracking-widest">NODE_ID: #{task.id}</span>
+                    <span className="text-[10px] font-mono font-bold text-white/20 tracking-widest">ISSUE_ID: #{task.id}</span>
                 </div>
                 <h4 className="text-3xl font-black text-white mb-4 truncate group-hover:text-emerald-500 transition-colors uppercase tracking-tighter leading-tight">
                     {task.description}
                 </h4>
                 <div className="flex flex-wrap items-center gap-6 text-[10px] font-black text-white/40 uppercase tracking-[3px]">
-                    <span className="flex items-center gap-2"><MapPin size={16} className="text-emerald-500" /> SECTOR_{task.booth_id}</span>
-                    <span className="flex items-center gap-2"><Clock size={16} className="text-emerald-500" /> SYNC_{new Date(task.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="flex items-center gap-2"><MapPin size={16} className="text-emerald-500" /> BOOTH_{task.booth_id}</span>
+                    <span className="flex items-center gap-2"><Clock size={16} className="text-emerald-500" /> AT_{new Date(task.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
             </div>
 
@@ -56,14 +56,14 @@ const MissionCard = ({ task, onStart, onResolve, delay }) => {
                             onClick={() => onStart(task.id)}
                             className="w-full md:w-56 py-5 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-[4px] text-[10px] hover:bg-emerald-500 transition-all shadow-2xl shadow-emerald-600/20 active:scale-95 flex items-center justify-center gap-3 border border-white/10"
                         >
-                            <span>ENGAGE MISSION</span> <ChevronRight size={18} />
+                            <span>START WORK</span> <ChevronRight size={18} />
                         </button>
                     ) : (
                         <button 
                             onClick={() => onResolve(task)}
                             className="w-full md:w-56 py-5 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-[4px] text-[10px] hover:bg-emerald-500 transition-all shadow-2xl shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-3 border border-white/10"
                         >
-                            <span>CONFIRM SOLVE</span> <CheckCircle2 size={18} />
+                            <span>MARK AS RESOLVED</span> <CheckCircle2 size={18} />
                         </button>
                     )}
                 </div>
@@ -105,7 +105,7 @@ export default function WorkerDashboard({ currentUser }) {
             await updateGrievance({
                 id: String(resolveModal.id),
                 status: 'resolved',
-                resolution_note: resolutionNote || 'Mission verified by field unit.'
+                resolution_note: resolutionNote || 'Issue resolved and verified.'
             });
             setResolveModal(null);
             setResolutionNote('');
@@ -122,14 +122,14 @@ export default function WorkerDashboard({ currentUser }) {
             {/* Header Info */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 pb-8 border-b border-white/5">
                 <div>
-                    <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">FIELD_UNIT<br/>OPERATIONS</h1>
+                    <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">FIELD_WORK<br/>DASHBOARD</h1>
                     <div className="flex items-center gap-4 mt-6">
                         <div className="flex items-center gap-2">
                             <span className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                            <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[3px]">ACTIVE_ENCRYPTED_SYNC</p>
+                            <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[3px]">STATUS: LIVE_SYNC</p>
                         </div>
                         <div className="size-1 rounded-full bg-white/10" />
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[3px]">OFFICER_{currentUser?.name}</p>
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[3px]">WORKER: {currentUser?.name}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -140,7 +140,7 @@ export default function WorkerDashboard({ currentUser }) {
                         <RefreshCw size={24} className={loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
                     </button>
                     <div className="px-6 py-4 bg-emerald-600/10 border border-emerald-500/20 rounded-2xl">
-                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[2px]">FIELD_LATENCY</p>
+                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[2px]">NETWORK_SPEED</p>
                         <p className="text-xl font-black text-white">24ms</p>
                     </div>
                 </div>
@@ -149,10 +149,10 @@ export default function WorkerDashboard({ currentUser }) {
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'Pending Missions', val: activeMissions.length, icon: Zap, color: '#10b981' },
-                    { label: 'Finalized Nodes', val: completedMissions.length, icon: BadgeCheck, color: '#10b981' },
-                    { label: 'Combat Status', val: 'Tactical', icon: Shield, color: '#10b981' },
-                    { label: 'Field Efficiency', val: '98%', icon: Activity, color: '#10b981' }
+                    { label: 'Pending Tasks', val: activeMissions.length, icon: Zap, color: '#10b981' },
+                    { label: 'Completed Tasks', val: completedMissions.length, icon: BadgeCheck, color: '#10b981' },
+                    { label: 'Work Status', val: 'Active', icon: Shield, color: '#10b981' },
+                    { label: 'Efficiency', val: '98%', icon: Activity, color: '#10b981' }
                 ].map((s, i) => (
                     <motion.div 
                         key={i} 
@@ -179,10 +179,10 @@ export default function WorkerDashboard({ currentUser }) {
                         <div className="size-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-2xl shadow-emerald-500/20">
                             <Send size={20} strokeWidth={3} />
                         </div>
-                        <h3 className="text-3xl font-black text-white tracking-tighter uppercase">MISSION_QUEUE</h3>
+                        <h3 className="text-3xl font-black text-white tracking-tighter uppercase">TASK_LIST</h3>
                     </div>
                     <span className="px-5 py-2 bg-emerald-500/10 rounded-full text-[10px] font-black text-emerald-400 border border-emerald-500/20 tracking-[3px]">
-                        LEVEL_4_SECURITY
+                        OFFICIAL_ACCESS
                     </span>
                 </div>
 
@@ -190,7 +190,7 @@ export default function WorkerDashboard({ currentUser }) {
                     {loading ? (
                         <div className="p-32 text-center bg-white/5 backdrop-blur-3xl rounded-[4rem] border border-white/5 border-dashed">
                              <RefreshCw className="w-16 h-16 text-emerald-600 animate-spin mx-auto mb-8 shadow-[0_0_30px_rgba(16,185,129,0.2)]" />
-                             <p className="text-[12px] font-black uppercase tracking-[5px] text-white/40 animate-pulse">Synchronizing Intelligence Stream...</p>
+                             <p className="text-[12px] font-black uppercase tracking-[5px] text-white/40 animate-pulse">Fetching data...</p>
                         </div>
                     ) : activeMissions.length === 0 ? (
                         <motion.div 
@@ -201,8 +201,8 @@ export default function WorkerDashboard({ currentUser }) {
                              <div className="size-24 rounded-[2rem] bg-emerald-600 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-emerald-500/20 border border-white/10">
                                 <Shield className="text-white" size={48} strokeWidth={2.5} />
                              </div>
-                             <h4 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-none">ALL_TARGETS_NEUTRALIZED</h4>
-                             <p className="text-white/40 text-sm max-w-sm mx-auto uppercase tracking-tighter font-medium leading-relaxed">The sector is currently stabilized. All reported anomalies have been resolved and indexed.</p>
+                             <h4 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-none">ALL_ISSUES_RESOLVED</h4>
+                             <p className="text-white/40 text-sm max-w-sm mx-auto uppercase tracking-tighter font-medium leading-relaxed">Everything is normal. All reported issues have been resolved.</p>
                         </motion.div>
                     ) : (
                         activeMissions.map((task, idx) => (
@@ -220,7 +220,7 @@ export default function WorkerDashboard({ currentUser }) {
                         <div className="mt-24 space-y-8">
                             <div className="flex items-center gap-4 px-2">
                                 <div className="h-px flex-1 bg-white/5" />
-                                <h4 className="text-[10px] font-black uppercase tracking-[5px] text-stone-700">HISTORICAL_LOGS</h4>
+                                <h4 className="text-[10px] font-black uppercase tracking-[5px] text-stone-700">PREVIOUS_WORK</h4>
                                 <div className="h-px flex-1 bg-white/5" />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -256,10 +256,10 @@ export default function WorkerDashboard({ currentUser }) {
                                     <div className="flex justify-between items-start mb-12">
                                         <div>
                                             <div className="px-5 py-2 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-[3px] border border-emerald-500/20 mb-6 inline-block">
-                                                MISSION_DEBRIEF
+                                                CLOSING_SUMMARY
                                             </div>
-                                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">MISSION_OUTCOME</h4>
-                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-white/40 mt-3">TARGET_LOG: #{resolveModal.id}</p>
+                                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">TASK_OUTCOME</h4>
+                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-white/40 mt-3">ISSUE #: {resolveModal.id}</p>
                                         </div>
                                         <button onClick={() => setResolveModal(null)} className="size-14 rounded-2xl bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all border border-white/5">
                                             <X size={28} />
@@ -271,16 +271,16 @@ export default function WorkerDashboard({ currentUser }) {
                                             <div className="absolute top-6 right-6 text-emerald-500/10">
                                                 <ClipboardList size={64} />
                                             </div>
-                                            <p className="text-[10px] font-black uppercase text-white/20 tracking-[3px] mb-4">OBJECTIVE_PARAMETERS</p>
+                                            <p className="text-[10px] font-black uppercase text-white/20 tracking-[3px] mb-4">ISSUE_DESCRIPTION</p>
                                             <p className="text-xl font-black text-white/60 leading-tight uppercase tracking-tighter pr-12">{resolveModal.description}</p>
                                         </div>
 
                                         <div className="space-y-4">
-                                            <label className="text-[10px] font-black uppercase tracking-[5px] text-emerald-500 pl-2">RESOLUTION_REGISTRY</label>
+                                            <label className="text-[10px] font-black uppercase tracking-[5px] text-emerald-500 pl-2">DESCRIBE_WORK_DONE</label>
                                             <textarea 
                                                 value={resolutionNote} 
                                                 onChange={(e) => setResolutionNote(e.target.value)}
-                                                placeholder="Detail technical outcome and field measures..."
+                                                placeholder="Write a brief note on how you fixed this..."
                                                 className="w-full p-8 bg-white/5 rounded-[2.5rem] border border-white/5 focus:border-emerald-500/50 outline-none text-white text-lg font-medium transition-all h-40 resize-none placeholder:text-white/10 uppercase tracking-tighter" 
                                             />
                                         </div>
@@ -293,7 +293,7 @@ export default function WorkerDashboard({ currentUser }) {
                                             {submitting ? (
                                                 <RefreshCw className="size-6 animate-spin" />
                                             ) : (
-                                                <><BadgeCheck size={24} strokeWidth={3} /> TRANSMIT_MISSION_SUCCESS</>
+                                                <><BadgeCheck size={24} strokeWidth={3} /> SUBMIT_FINAL_REPORT</>
                                             )}
                                         </button>
                                     </div>
