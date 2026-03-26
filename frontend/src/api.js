@@ -33,6 +33,13 @@ export const updateGrievance = (data) => api.patch('/grievances', data).then(r =
 // Analytics
 export const getAnalytics = (boothId) => api.get(`/analytics?booth_id=${boothId}`).then(r => r.data);
 
+// Knowledge Graph
+export const getGraphData = () => api.get('/graph-data').then(r => r.data);
+export const filterVoters = (params) => {
+  const query = new URLSearchParams(params).toString();
+  return api.get(`/filter-voters?${query}`).then(r => r.data);
+};
+
 // Seed
 export const seedData = () => api.post('/seed').then(r => r.data);
 

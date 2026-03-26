@@ -1,22 +1,28 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { getAnalytics } from '../../api';
+import { getAnalytics, getGraphData } from '../../api';
 import { 
   BarChart3, Users, AlertTriangle, CheckCircle2, 
   PhoneCall, Lightbulb, RefreshCw, TrendingUp, 
   TrendingDown, Zap, ShieldCheck, Activity,
-  Target, BrainCircuit
+  Target, BrainCircuit, Network, Info
 } from 'lucide-react';
+import ForceGraph2D from 'react-force-graph-2d';
 
 export default function AnalystDashboard({ currentUser, boothId }) {
   const [stats, setStats] = useState(null);
+  const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getAnalytics(boothId);
-      setStats(data);
+      const [analytics, graph] = await Promise.all([
+        getAnalytics(boothId),
+        getGraphData()
+      ]);
+      setStats(analytics);
+      setGraphData(graph);
     } catch (e) { console.error(e); }
     setLoading(false);
   }, [boothId]);
@@ -98,7 +104,69 @@ export default function AnalystDashboard({ currentUser, boothId }) {
         ))}
       </div>
 
-      {/* Data Visualization Grid */}
+      {/* Knowledge Graph Visualization */}
+      <div className="bg-white p-8 rounded-3xl border border-gold/10 shadow-sm mb-10 overflow-hidden" data-testid="knowledge-graph">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <Network size={22} className="text-primary" />
+            <div>
+              <h4 className="text-lg font-serif font-bold text-navy uppercase tracking-tight text-left">Sector Knowledge Graph</h4>
+              <p className="text-[9px] font-mono font-black text-navy/40 uppercase tracking-widest text-left">Autonomous Relationship Discovery / Social Fabric</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 text-[9px] font-mono font-black uppercase tracking-widest">
+            <div className="flex items-center gap-2"><div className="size-2 rounded-full bg-emerald-500" /> Positive</div>
+            <div className="flex items-center gap-2"><div className="size-2 rounded-full bg-blue-400" /> Neutral</div>
+            <div className="flex items-center gap-2"><div className="size-2 rounded-full bg-rose-500" /> Negative</div>
+          </div>
+        </div>
+        
+        <div className="h-[500px] w-full bg-gold/5 rounded-2xl border border-gold/10 relative cursor-crosshair">
+          {graphData.nodes.length > 0 ? (
+            <ForceGraph2D
+              graphData={graphData}
+              nodeLabel={node => `
+                <div class="p-2 font-mono text-[10px]">
+                  <div class="font-bold border-b border-navy/10 mb-1 pb-1">${node.label}</div>
+                  <div class="flex justify-between gap-4"><span>Influence:</span> <span class="text-primary">${node.influence}</span></div>
+                  <div class="flex justify-between gap-4"><span>Risk:</span> <span class="${node.risk === 'high' ? 'text-rose-500 font-bold' : 'text-emerald-500'}">${node.risk.toUpperCase()}</span></div>
+                  <div class="mt-1 text-navy/30 uppercase text-[8px]">Sentiment: ${node.sentiment}</div>
+                </div>
+              `}
+              nodeColor={node => {
+                if (node.sentiment === 'positive') return '#10b981';
+                if (node.sentiment === 'negative') return '#f43f5e';
+                return '#60a5fa';
+              }}
+              nodeVal={node => node.influence + 2} // Node size based on influence
+              linkColor={() => '#d4af3733'}
+              linkWidth={1.5}
+              backgroundColor="transparent"
+              width={1000}
+              height={500}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <BrainCircuit size={48} className="mx-auto mb-4 text-gold/20 animate-pulse" />
+                <p className="text-[10px] font-mono font-black text-navy/20 uppercase tracking-[0.3em]">Map Synchronization in Progress...</p>
+              </div>
+            </div>
+          )}
+          
+          <div className="absolute top-4 right-4 p-4 bg-white/80 backdrop-blur-md rounded-xl border border-gold/10 shadow-lg max-w-[200px]">
+            <div className="flex items-center gap-2 mb-2 text-primary">
+              <Info size={14} />
+              <span className="text-[9px] font-mono font-black uppercase">Graph Legend</span>
+            </div>
+            <p className="text-[8px] text-navy/60 leading-relaxed font-sans">
+              Nodes represent voters. Edges represent discovered family or community relationships. 
+              Drag nodes to explore clusters.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="grid lg:grid-cols-2 gap-8 mb-10">
         {/* Sentiment Matrix */}
         <div className="bg-white p-8 rounded-3xl border border-gold/10 shadow-sm" data-testid="sentiment-chart">

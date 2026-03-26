@@ -1,44 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getGrievances, updateGrievance } from '../../api';
+import { createPortal } from 'react-dom';
+import { getGrievances, updateGrievance, getUsersByRole } from '../../api';
 import { 
   Wrench, CheckCircle2, Clock, AlertCircle, RefreshCw, 
   ChevronRight, Calendar, UserCircle, X, ShieldAlert,
-  Zap, BadgeCheck, ClipboardList, Send
+  Zap, BadgeCheck, ClipboardList, Send, MapPin, Users
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
-  submitted: { 
-    label: 'Awaiting Orders', 
-    bg: 'bg-saffron/10', 
-    text: 'text-saffron', 
-    border: 'border-saffron/20',
-    icon: ShieldAlert 
-  },
-  assigned: { 
-    label: 'Deployment Ready', 
-    bg: 'bg-blue-500/10', 
-    text: 'text-blue-500', 
-    border: 'border-blue-500/20',
-    icon: ClipboardList 
-  },
-  in_progress: { 
-    label: 'Active Mission', 
-    bg: 'bg-primary/10', 
-    text: 'text-primary', 
-    border: 'border-primary/20',
-    icon: Zap 
-  },
-  resolved: { 
-    label: 'Mission Accomplished', 
-    bg: 'bg-emerald-500/10', 
-    text: 'text-emerald-500', 
-    border: 'border-emerald-500/20',
-    icon: BadgeCheck 
-  },
+  submitted: { label: 'Awaiting Orders', bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20', icon: ShieldAlert },
+  assigned: { label: 'Deployed', bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/20', icon: ClipboardList },
+  in_progress: { label: 'Active Mission', bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20', icon: Zap },
+  resolved: { label: 'Completed', bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20', icon: BadgeCheck },
 };
 
-export default function WorkerDashboard({ currentUser }) {
+export default function WorkerDashboard({ currentUser: initialUser }) {
+  const [currentUser, setCurrentUser] = useState(initialUser);
+  const [allWorkers, setAllWorkers] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resolveModal, setResolveModal] = useState(null);
@@ -46,19 +25,24 @@ export default function WorkerDashboard({ currentUser }) {
   const [submitting, setSubmitting] = useState(false);
 
   const loadData = useCallback(async () => {
+    if (!currentUser?.id) return;
     setLoading(true);
     try {
-      const data = await getGrievances({ assigned_to: currentUser.id });
-      setTasks(data);
+      const [gData, wData] = await Promise.all([
+        getGrievances({ assigned_to: String(currentUser.id) }),
+        getUsersByRole('worker')
+      ]);
+      setTasks(gData || []);
+      setAllWorkers(wData || []);
     } catch (e) { console.error(e); }
     setLoading(false);
-  }, [currentUser.id]);
+  }, [currentUser?.id]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
   const handleStartWork = async (taskId) => {
     try {
-      await updateGrievance({ id: taskId, status: 'in_progress' });
+      await updateGrievance({ id: String(taskId), status: 'in_progress' });
       loadData();
     } catch (e) { console.error(e); }
   };
@@ -68,9 +52,9 @@ export default function WorkerDashboard({ currentUser }) {
     setSubmitting(true);
     try {
       await updateGrievance({
-        id: resolveModal.id,
+        id: String(resolveModal.id),
         status: 'resolved',
-        resolution_note: resolutionNote || 'Mission completed by field operator'
+        resolution_note: resolutionNote || 'Mission completed by field personnel'
       });
       setResolveModal(null);
       setResolutionNote('');
@@ -83,161 +67,186 @@ export default function WorkerDashboard({ currentUser }) {
   const resolved = tasks.filter(t => t.status === 'resolved');
 
   return (
-    <div data-testid="worker-dashboard" className="p-0">
-      {/* Dynamic Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Active Missions', value: pending.length, icon: Zap, color: 'text-primary' },
-          { label: 'Neutralized', value: resolved.length, icon: BadgeCheck, color: 'text-emerald-600' },
-          { label: 'Total Operations', value: tasks.length, icon: Wrench, color: 'text-navy/40' },
-          { label: 'Efficiency Index', value: '98%', icon: Send, color: 'text-saffron' },
-        ].map((s, idx) => (
-          <div key={idx} className="bg-white p-5 rounded-2xl border border-gold/10 relative overflow-hidden group shadow-sm">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-gold/5 to-transparent" />
-            <div className="flex items-center gap-3 mb-2">
-              <s.icon size={16} className={s.color} />
-              <span className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-navy/40">{s.label}</span>
-            </div>
-            <p className="text-2xl font-serif font-black text-navy">{s.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Control Bar */}
-      <div className="flex items-center justify-between mb-8 pb-6 border-b border-gold/10">
-        <div className="flex items-center gap-3">
-          <div className="size-10 rounded-xl bg-gold/10 border border-gold/10 flex items-center justify-center text-primary">
-            <ClipboardList size={18} />
-          </div>
-          <h3 className="text-xl font-serif font-black text-navy uppercase tracking-tighter">Mission Briefing</h3>
-        </div>
-        <button onClick={loadData} data-testid="worker-refresh" 
-          className="p-3 rounded-xl bg-white border border-gold/10 text-primary hover:bg-gold/5 transition-all active:scale-95 shadow-md">
-          <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
-        </button>
-      </div>
-
-      {/* Operation List */}
-      <div className="space-y-4">
-        {loading ? (
-          <div className="py-20 text-center">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-navy/40 font-mono text-[10px] uppercase tracking-[0.3em]">Synchronizing Registry...</p>
-          </div>
-        ) : tasks.length === 0 ? (
-          <div className="py-20 bg-white border border-dashed border-gold/20 rounded-2xl text-center shadow-sm">
-            <Wrench size={40} className="mx-auto mb-4 text-navy/10" />
-            <p className="text-navy/20 font-mono text-[10px] uppercase tracking-[0.3em]">No active mission parameters found</p>
-          </div>
-        ) : tasks.map((task, idx) => {
-          const s = STATUS_CONFIG[task.status] || STATUS_CONFIG.assigned;
-          const SIcon = s.icon;
-          
-          return (
-            <motion.div key={task.id} data-testid={`worker-task-${task.id}`}
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
-              className="bg-white p-6 rounded-2xl border border-gold/10 hover:border-primary/20 transition-all group shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-gold/5 to-transparent pointer-events-none" />
-              
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-3 mb-4">
-                    <div className="px-3 py-1 rounded-lg bg-gold/5 border border-gold/10 text-[9px] font-mono font-black uppercase tracking-widest text-navy/60">
-                      {task.category || 'GENERAL'}
-                    </div>
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-lg border ${s.bg} ${s.border} ${s.text}`}>
-                      <SIcon size={12} />
-                      <span className="text-[9px] font-mono font-black uppercase tracking-widest">{s.label}</span>
-                    </div>
-                  </div>
-
-                  <p className="text-navy font-serif text-lg leading-relaxed mb-4 group-hover:text-primary transition-colors">
-                    {task.description}
-                  </p>
-
-                  <div className="flex flex-wrap items-center gap-4 text-[10px] font-mono font-bold uppercase tracking-[0.1em] text-navy/30">
-                    <span className="flex items-center gap-1.5"><RefreshCw size={10} /> OP_ID: #{task.id}</span>
-                    <span className="flex items-center gap-1.5"><Calendar size={10} /> {new Date(task.created_at).toLocaleDateString()}</span>
-                    {task.resolution_note && (
-                      <>
-                        <div className="h-3 w-px bg-gold/20 hidden md:block" />
-                        <span className="flex items-center gap-1.5 text-emerald-600/60">
-                          <CheckCircle2 size={10} /> REPORT: {task.resolution_note}
-                        </span>
-                      </>
-                    )}
-                  </div>
+    <div className="min-h-screen bg-[#f0ece3] bg-grid-pattern pb-24">
+      {/* Header */}
+      <header className="glass-panel sticky top-0 z-40 border-b border-[#c9a84c]/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-500 rounded-xl shadow-lg shadow-emerald-500/20">
+                <Wrench size={20} className="text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-navy tracking-tight">Field Unit</h1>
+                <div className="flex items-center gap-2">
+                  <p className="text-[9px] uppercase tracking-[0.2em] text-[#c9a84c] font-bold">Operator: {currentUser?.name || 'Unit-Alpha'}</p>
+                  {allWorkers.length > 1 && (
+                    <select 
+                      onChange={(e) => {
+                        const newWorker = allWorkers.find(w => w.id === e.target.value);
+                        if (newWorker) setCurrentUser(newWorker);
+                      }}
+                      value={currentUser?.id}
+                      className="text-[8px] bg-black/5 border-none rounded px-1 py-0.5 font-bold text-navy/40 focus:ring-0 cursor-pointer hover:bg-black/10 transition-colors"
+                    >
+                      {allWorkers.map(w => (
+                        <option key={w.id} value={w.id}>{w.name}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
+              </div>
+            </div>
+            <button onClick={loadData} className="p-2 hover:bg-black/5 rounded-full transition-colors relative">
+               <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+            </button>
+          </div>
+        </div>
+      </header>
 
-                <div className="shrink-0 flex items-end md:items-center gap-3">
-                  {task.status !== 'resolved' && (
-                    <div className="flex gap-2">
-                      {task.status === 'assigned' && (
-                        <button data-testid={`start-work-${task.id}`} onClick={() => handleStartWork(task.id)}
-                          className="px-6 py-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[10px] font-mono font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all flex items-center gap-3 shadow-lg shadow-blue-500/5">
-                          <Zap size={14} /> Begin Tech
+      <main className="page-container p-4">
+        {/* Quick Stats Grid */}
+        <div className="dashboard-grid mb-8">
+          {[
+            { label: 'Active Missions', val: pending.length, icon: Zap, color: 'text-primary' },
+            { label: 'Neutralized', val: resolved.length, icon: BadgeCheck, color: 'text-emerald-500' },
+            { label: 'Sector Status', val: 'Green', icon: ShieldAlert, color: 'text-blue-500' },
+            { label: 'Efficiency', val: '98%', icon: Send, color: 'text-navy/40' }
+          ].map((s, i) => (
+             <div key={i} className="glass-panel p-5 rounded-2xl flex items-center justify-between">
+               <div>
+                 <p className="text-[9px] font-mono font-black uppercase tracking-widest text-navy/40 mb-1">{s.label}</p>
+                 <p className={`text-2xl font-serif font-black ${s.color}`}>{s.val}</p>
+               </div>
+               <s.icon size={18} className={`${s.color} opacity-40`} />
+             </div>
+          ))}
+        </div>
+
+        <h3 className="text-xl font-serif font-black text-navy mb-6">Current Objectives</h3>
+        
+        <div className="space-y-4">
+          {loading ? (
+             <div className="py-20 text-center glass-panel rounded-3xl">
+               <RefreshCw className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
+               <p className="text-[10px] font-mono font-black uppercase tracking-widest text-[#c9a84c]">Awaiting Registry Sync...</p>
+             </div>
+          ) : tasks.length === 0 ? (
+             <div className="py-20 text-center glass-panel rounded-3xl border-dashed">
+               <p className="text-[10px] font-mono font-black uppercase tracking-widest text-navy/20">Operational Sector is Clear</p>
+             </div>
+          ) : (
+            <>
+              {pending.map((task, idx) => {
+                const config = STATUS_CONFIG[task.status] || STATUS_CONFIG.assigned;
+                return (
+                  <motion.div key={task.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
+                    className="glass-panel p-5 md:p-6 rounded-2xl flex flex-col md:flex-row items-start md:items-center gap-6 group hover:border-primary/40 transition-all">
+                    <div className={`p-4 rounded-xl ${config.bg} ${config.text} shrink-0`}>
+                      <config.icon size={24} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                         <span className={`px-2 py-0.5 rounded-lg border text-[8px] font-mono font-black uppercase tracking-widest ${config.bg} ${config.text} ${config.border}`}>
+                           {config.label}
+                         </span>
+                         <span className="text-[8px] font-mono font-bold text-navy/30">#ID-{task.id}</span>
+                      </div>
+                      <h4 className="text-lg font-serif font-bold text-navy truncate mb-1">{task.description}</h4>
+                      <div className="flex flex-wrap items-center gap-4 text-[9px] font-mono font-bold text-navy/40 uppercase tracking-wider">
+                        <span className="flex items-center gap-1"><MapPin size={10} /> Sector {task.booth_id}</span>
+                        <span className="flex items-center gap-1"><Clock size={10} /> Recieved: {new Date(task.created_at || Date.now()).toLocaleTimeString()}</span>
+                      </div>
+                    </div>
+                    <div className="w-full md:w-auto flex flex-col gap-2">
+                      {task.status === 'assigned' ? (
+                        <button onClick={() => handleStartWork(task.id)}
+                          className="w-full px-6 py-3 bg-navy text-white rounded-xl text-[10px] font-mono font-black uppercase tracking-widest hover:bg-primary transition-all shadow-lg active:scale-95">
+                          Acknowledge & Start
+                        </button>
+                      ) : (
+                        <button onClick={() => setResolveModal(task)}
+                          className="w-full px-6 py-3 bg-emerald-500 text-white rounded-xl text-[10px] font-mono font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-lg active:scale-95">
+                          Finalize Mission
                         </button>
                       )}
-                      <button data-testid={`resolve-btn-${task.id}`} onClick={() => setResolveModal(task)}
-                        className="px-6 py-3 rounded-xl bg-primary text-white text-[10px] font-mono font-black uppercase tracking-widest hover:brightness-110 shadow-lg shadow-primary/10 transition-all flex items-center gap-3">
-                        <CheckCircle2 size={14} /> Neutralize
-                      </button>
                     </div>
-                  )}
-                  {task.status === 'resolved' && (
-                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
-                      <BadgeCheck size={20} />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* Resolve Modal */}
-      <AnimatePresence>
-        {resolveModal && (
-          <div className="fixed inset-0 flex items-center justify-center z-[100] px-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setResolveModal(null)} className="absolute inset-0 bg-navy/20 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white p-8 rounded-3xl w-full max-w-lg border border-gold/20 relative z-10 shadow-2xl">
+                  </motion.div>
+                );
+              })}
               
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h3 className="text-2xl font-serif font-black text-navy uppercase tracking-tight">Neutralization Log</h3>
-                  <p className="text-[10px] font-mono font-bold text-primary uppercase tracking-[0.2em]">MISSION #{resolveModal.id.substr(-8).toUpperCase()}</p>
+              {resolved.length > 0 && (
+                <div className="mt-12">
+                   <h4 className="text-[10px] font-mono font-black uppercase tracking-[0.3em] text-navy/30 mb-6 px-2">Neutralized Targets</h4>
+                   <div className="space-y-3 opacity-60 grayscale hover:grayscale-0 transition-all">
+                     {resolved.map((task) => (
+                        <div key={task.id} className="glass-panel p-4 rounded-xl flex items-center gap-4 border-emerald-500/20">
+                          <BadgeCheck size={18} className="text-emerald-500" />
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-navy line-clamp-1">{task.description}</p>
+                            <p className="text-[8px] font-mono font-bold uppercase text-navy/40">Resolved at {new Date(task.updated_at || Date.now()).toLocaleTimeString()}</p>
+                          </div>
+                        </div>
+                     ))}
+                   </div>
                 </div>
-                <button onClick={() => setResolveModal(null)} className="p-2 rounded-xl bg-gold/10 text-navy/40 hover:text-navy transition-colors">
-                  <X size={20} />
-                </button>
-              </div>
+              )}
+            </>
+          )}
+        </div>
+      </main>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="text-[10px] font-mono font-black text-navy/40 uppercase tracking-widest mb-3 block">Field Report Details</label>
-                  <textarea data-testid="resolution-note-input" value={resolutionNote} onChange={e => setResolutionNote(e.target.value)}
-                    rows={4} placeholder="Document operational actions taken..."
-                    className="w-full p-4 rounded-xl bg-gold/5 border border-gold/10 text-xs text-navy font-mono font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary/20 outline-none resize-none placeholder:text-navy/20" />
-                </div>
+      {/* Resolution Portal */}
+      {createPortal(
+        <AnimatePresence>
+          {resolveModal && (
+            <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setResolveModal(null)}
+                className="absolute inset-0 bg-navy/40 backdrop-blur-sm" />
+              
+              <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="relative w-full max-w-lg bg-[#f0ece3] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border-t sm:border border-[#c9a84c]/20">
+                <div className="p-6 md:p-8">
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h4 className="text-2xl font-serif font-black text-navy mb-1 uppercase tracking-tight">Post-Mission Logs</h4>
+                      <p className="text-[10px] font-mono font-black uppercase tracking-widest text-[#c9a84c]">Mission ID: #{resolveModal.id}</p>
+                    </div>
+                    <button onClick={() => setResolveModal(null)} className="p-2 hover:bg-black/5 rounded-full">
+                      <X size={20} className="text-navy/40" />
+                    </button>
+                  </div>
 
-                <div className="flex gap-4 pt-4">
-                  <button onClick={() => setResolveModal(null)}
-                    className="flex-1 py-4 rounded-xl border border-gold/10 text-[10px] font-mono font-black uppercase tracking-widest text-navy/40 hover:bg-gold/5 transition-all">
-                    Cancel Log
-                  </button>
-                  <button data-testid="resolve-confirm-btn" onClick={handleResolve} disabled={submitting}
-                    className="flex-[2] py-4 rounded-xl bg-primary text-white text-[10px] font-mono font-black uppercase tracking-widest hover:brightness-110 shadow-lg shadow-primary/20 transition-all disabled:opacity-50">
-                    {submitting ? 'Transmitting...' : 'Commit Neutralized'}
-                  </button>
+                  <div className="space-y-6">
+                    <div className="p-4 bg-white/50 rounded-2xl border border-gold/10">
+                      <p className="text-[9px] font-mono font-black uppercase text-navy/40 mb-2">Objective Context</p>
+                      <p className="text-sm font-serif font-bold text-navy">{resolveModal.description}</p>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-mono font-black uppercase text-[#c9a84c] mb-3 block">Resolution Registry Note</label>
+                      <textarea value={resolutionNote} onChange={(e) => setResolutionNote(e.target.value)}
+                        placeholder="Detail the operational outcome..."
+                        className="w-full p-4 bg-white rounded-2xl border-2 border-gold/10 focus:border-primary outline-none text-sm font-bold transition-all h-24 resize-none" />
+                    </div>
+
+                    <button onClick={handleResolve} disabled={submitting}
+                      className="w-full py-4 bg-emerald-500 text-white rounded-2xl font-mono font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3">
+                      {submitting ? (
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <><BadgeCheck size={18} /> Transmit Mission Success</>
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
