@@ -122,6 +122,11 @@ export default function AnalystDashboard({ currentUser, boothId }) {
         );
     }
 
+    const sentTotal = Object.values(stats.sentiment_distribution || {}).reduce((a, b) => a + b, 0);
+    const sentPcts = Object.entries(stats.sentiment_distribution || {}).map(([k, v]) => ({
+        key: k, value: v, pct: sentTotal > 0 ? ((v / sentTotal) * 100).toFixed(1) : 0
+    }));
+
     const SENTIMENT_CONFIG = { 
         positive: { color: 'text-emerald-600', bg: 'bg-emerald-600', label: 'Positive Trajectory', icon: TrendingUp },
         neutral: { color: 'text-white/40', bg: 'bg-white/10', label: 'Static Alignment', icon: Activity },
