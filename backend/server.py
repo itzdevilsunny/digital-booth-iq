@@ -1221,16 +1221,23 @@ async def ai_chat(data: ChatRequest):
         """
         
         # Use OpenAI for high-quality reasoning
-        response = await openai_client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": context_prompt},
-                {"role": "user", "content": data.message}
-            ],
-            max_tokens=500
-        )
+        try:
+            response = await openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": context_prompt},
+                    {"role": "user", "content": data.message}
+                ],
+                max_tokens=500
+            )
+            ai_reply = response.choices[0].message.content
+        except Exception as ai_err:
+            logger.error(f"AI Service Error: {ai_err}")
+            # Fallback response when API key is out of quota
+            ai_reply = f"I'm currently operating in offline mode as our intelligence uplink is saturated. However, I can see you are {user.get('name', 'a citizen')} from Booth {data.booth_id}. How else can I assist you manually?"
+            if "insufficient_quota" in str(ai_err):
+                ai_reply = "Institutional AI Quota Exceeded. I am standing by for manual assistance. Please check back later for full intelligence services."
         
-        ai_reply = response.choices[0].message.content
         return {"response": ai_reply}
     except Exception as e:
         logger.error(f"Chat Error: {e}")

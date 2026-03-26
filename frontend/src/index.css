@@ -5,50 +5,59 @@
 @tailwind utilities;
 
 :root {
-  --background: 43 53% 96%;
-  --foreground: 240 10% 10%;
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 10%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 10%;
-  --primary: 43 53% 54%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 24 82% 49%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 43 50% 90%;
-  --muted-foreground: 240 5% 35%;
-  --accent: 43 53% 54%;
-  --accent-foreground: 0 0% 10%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 43 30% 85%;
-  --input: 43 30% 85%;
-  --ring: 43 53% 54%;
-  --radius: 0.75rem;
+  /* Premium Stone & Slate Palette */
+  --background: 24 10% 10%; /* Very dark stone for primary text/background contrast */
+  --foreground: 0 0% 100%;
+  
+  --card: 30 5% 98%;
+  --card-foreground: 24 10% 10%;
+  
+  --primary: 142 76% 36%; /* Emerald 600 */
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 43 53% 54%; /* Gold 500 */
+  --secondary-foreground: 24 10% 10%;
 
-  /* legacy HEX variables for direct CSS usage */
-  --navy: #080d1a;
-  --gold: #c9a84c;
-  --gold-dim: rgba(201, 168, 76, 0.2);
-  --white: #ffffff;
-  --cream: #f0ece3;
-  --saffron: #e8761a;
-  --background-light: #fdfaf3;
+  --muted: 24 10% 90%;
+  --muted-foreground: 24 10% 40%;
+  
+  --accent: 142 76% 36%;
+  --accent-foreground: 0 0% 100%;
+  
+  --border: 24 10% 85%;
+  --input: 24 10% 85%;
+  --ring: 142 76% 36%;
+  --radius: 1rem;
+
+  /* Custom Brand Colors */
+  --stone-950: #0c0a09;
+  --stone-900: #1c1917;
+  --stone-50: #fafaf9;
+  --emerald-600: #059669;
+  --gold-500: #eab308;
+  --slate-900: #0f172a;
 }
 
 @layer base {
   body {
-    @apply bg-[#f0ece3] text-[#080d1a] antialiased;
+    @apply bg-stone-50 text-stone-900 antialiased selection:bg-emerald-100 selection:text-emerald-900;
     font-family: "Public Sans", sans-serif;
   }
 }
 
 /* Glassmorphism utility - Light Mode */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(201, 167, 74, 0.3);
-  box-shadow: 0 8px 32px 0 rgba(169, 142, 70, 0.15);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(120, 113, 108, 0.1);
+  box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.05);
+}
+
+.glass-dark {
+  background: rgba(12, 10, 9, 0.8);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* Updated Responsive Dashboard Grid */
@@ -86,43 +95,58 @@
   @apply px-4 sm:px-6 md:px-8 max-w-7xl mx-auto py-8 md:py-12;
 }
 
-/* Grid pattern background - Gold on Cream */
-.bg-grid-pattern {
-  background-size: 50px 50px;
-  background-image: linear-gradient(to right, rgba(201, 167, 74, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(201, 167, 74, 0.08) 1px, transparent 1px);
+/* Fluent Animations */
+.animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+.animate-slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-in-right { animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* Text shimmer for saffron CTA */
-.text-shimmer {
-  background: linear-gradient(to right, #e8761a 20%, #ffbf85 40%, #ffbf85 60%, #e8761a 80%);
-  background-size: 200% auto;
-  color: transparent;
-  background-clip: text;
-  -webkit-background-clip: text;
-  animation: shimmer 3s linear infinite;
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes shimmer {
-  to { background-position: 200% center; }
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: rgba(201, 168, 76, 0.05); }
-::-webkit-scrollbar-thumb { background: rgba(201, 168, 76, 0.4); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(201, 168, 76, 0.6); }
+/* Custom Nav Transition */
+.nav-item-transition {
+  @apply transition-all duration-300 ease-in-out hover:scale-105 active:scale-95;
+}
+
+/* Bottom Nav Styling */
+.bottom-nav-shadow {
+  box-shadow: 0 -4px 20px -5px rgba(0, 0, 0, 0.1);
+}
 
 /* Mobile Touch Optimization */
 @media (max-width: 640px) {
-  button, select, input {
-    min-height: 44px;
+  button, select, input, .nav-item {
+    min-height: 48px;
+    touch-action: manipulation;
   }
-  .text-xs { font-size: 0.7rem; }
-  .text-sm { font-size: 0.8rem; }
+  .text-xs { font-size: 0.75rem; }
+  .text-sm { font-size: 0.875rem; }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0 0.5rem;
+  }
 }
 
-/* Framer Motion stacking context fix */
-.fixed-overlay {
-  @apply fixed inset-0 z-[9999] flex items-center justify-center;
+/* Stunning Typography Overrides */
+.font-display { font-family: "Playfair Display", serif; }
+.font-mono { font-family: "DM Mono", monospace; }
+
+/* Grid pattern background - Stone on Stone */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(120, 113, 108, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120, 113, 108, 0.05) 1px, transparent 1px);
 }
