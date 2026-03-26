@@ -4,8 +4,8 @@ import { Icon, Reveal, StaggerContainer, staggerChild } from "./shared";
 export function HowItWorks() {
   const steps = [
     { icon: "upload_file", step: "01. Intake", title: "Data Ingestion", desc: "Securely upload raw voter lists, legacy PDFs, and historic election datasets into the intelligence matrix." },
-    { icon: "diversity_3", step: "02. Analysis", title: "Neural Cleansing", desc: "Proprietary AI protocols eliminate redundancy and segment the electorate via multi-dimensional parameters." },
-    { icon: "campaign", step: "03. Strategy", title: "Tactical Planning", desc: "Generate high-precision campaign vectors and optimized route mapping for specialized ground units." },
+    { icon: "diversity_3", step: "02. Analysis", title: "Data Verification", desc: "Advanced AI systems eliminate redundancy and segment the electorate via multi-dimensional parameters." },
+    { icon: "campaign", step: "03. Strategy", title: "Strategic Planning", desc: "Generate data-driven campaign strategies and optimized route mapping for field teams." },
     { icon: "how_to_reg", step: "04. Victory", title: "Live Conversion", desc: "Execute real-time conversion tracking on Polling Day. Secure the booth through absolute data dominance." },
   ];
 

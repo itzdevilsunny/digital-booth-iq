@@ -47,7 +47,7 @@ export function Navbar() {
               BoothIQ
             </h2>
             <span className="text-[9px] text-white/40 font-bold uppercase tracking-[0.4em]">
-              Intelligence Hub
+              Insights Portal
             </span>
           </div>
         </motion.div>
@@ -97,7 +97,7 @@ export function Navbar() {
             className="px-8 py-4 rounded-[2rem] bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-[3px] shadow-2xl transition-all cursor-pointer relative overflow-hidden group border border-white/5"
           >
              <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-             <span className="relative z-10">Initialize Portal</span>
+             <span className="relative z-10">Login Now</span>
           </motion.button>
 
           {/* Mobile Access */}

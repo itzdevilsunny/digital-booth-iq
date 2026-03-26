@@ -43,7 +43,7 @@ export function MultilingualSupport() {
             {/* India Map Visualization (Abstract) */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.1),transparent)] blur-3xl animate-pulse" />
             <img
-              alt="Strategic Territorial Matrix"
+              alt="Constituency Map"
               className="w-full h-full object-contain filter invert opacity-10 drop-shadow-[0_0_30px_rgba(16,185,129,0.3)] saturate-0"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2JMRNjj0sVGQ8GC3cq1NZEz35Vneqgi9XJfz4Z9jmc87Qw3wMCQm6uoj7HynojGZHVtxoo4k6QxvAob-gBifwoV7RYggzS7QtRkW9w7bPz79DAVOuTgdBbLTR6uZoa_OoFmLnGadnL_3VfmOu6YyPdXz0bU-3fQ9wqxCjcP6DENn0MgF2evk2e4BVZPmm5eaXtk2VWJG0F9AsMwtVqDYJwHF61mGuRHXm_XXKHZBwX8o6DXCg8Sd2GtTFu2vV2ua4gET6YbwBOg"
             />

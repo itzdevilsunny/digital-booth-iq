@@ -26,7 +26,7 @@ export function CTASection() {
             </h3>
             <div className="flex flex-col items-center gap-2">
               <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.4em]">
-                Strategic Campaign Manager
+                Campaign Manager
               </span>
               <span className="text-amber-500 text-[10px] font-bold uppercase tracking-widest opacity-60">
                 Major State Assembly, 2024
@@ -62,7 +62,7 @@ export function CTASection() {
             </h2>
             <p className="text-lg md:text-xl text-white/40 font-display italic mb-12 max-w-2xl mx-auto leading-relaxed uppercase tracking-tight">
               Secure your constituency&apos;s data today. Access is strictly limited to
-              authorized campaign managers and validated strategic representatives.
+              authorized campaign managers and validated personnel.
             </p>
             
             <div className="flex flex-col sm:flex-row justify-center gap-6">
@@ -87,7 +87,7 @@ export function CTASection() {
             </div>
             
             <p className="mt-12 text-[9px] text-white/20 font-bold uppercase tracking-[0.5em]">
-              Strictly Confidential &bull; End-to-End Encryption &bull; Strategic Sovereignty
+              Strictly Confidential &bull; End-to-End Encryption &bull; Data Ownership
             </p>
           </div>
         </Reveal>

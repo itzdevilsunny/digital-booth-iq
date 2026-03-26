@@ -5,16 +5,16 @@ export function Roles() {
   const roles = [
     { 
       level: "PHASE 01", 
-      title: "Command Center", 
-      desc: "Super Admin controls for strategic resource deployment and state-wide tactical oversight.",
+      title: "Admin Dashboard", 
+      desc: "Comprehensive controls for resource management and state-wide oversight.",
       perks: ["Unified Ops Control", "State Analytics", "Resource Allocation"], 
       color: "border-emerald-500/20 bg-emerald-500/5 shadow-emerald-500/10" 
     },
     { 
       level: "PHASE 02", 
       title: "Regional Intel", 
-      desc: "District heads managing local mandal operations and real-time candidate synchronisation.",
-      perks: ["Constituency Map", "Field Sync", "Tactical Reporting"], 
+      desc: "District heads managing local operations and real-time coordination.",
+      perks: ["Constituency Map", "Field Updates", "Analytical Reports"], 
       color: "border-amber-500/20 bg-amber-500/5 shadow-amber-500/10" 
     },
     { 
@@ -26,7 +26,7 @@ export function Roles() {
     },
     { 
       level: "PHASE 04", 
-      title: "Citizen Hub", 
+      title: "Citizen Portal", 
       desc: "Direct conduit for governance transparency, AI-driven grievance resolution and trackability.",
       perks: ["Governance AI", "Track Progress", "Direct Support"], 
       color: "border-white/10 bg-white/5 shadow-white/5" 

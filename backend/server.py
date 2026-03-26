@@ -1,5 +1,5 @@
-from fastapi import FastAPI, APIRouter, HTTPException
-from dotenv import load_dotenv
+from fastapi import FastAPI, APIRouter, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File, Form
+from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
@@ -13,8 +13,8 @@ from typing import Optional, Union, Any, List
 import uuid
 from datetime import datetime, timezone, timedelta
 import time
-from fastapi import WebSocket, WebSocketDisconnect, UploadFile, File, Form
 import base64
+from dotenv import load_dotenv
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -62,6 +62,17 @@ api_router = APIRouter(prefix="/api")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+@app.middleware("http")
+async def error_handling_middleware(request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as e:
+        logger.error(f"Unhandled Exception at {request.url}: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": str(e), "path": str(request.url)}
+        )
 
 # --- NOTIFICATION INFRASTRUCTURE ---
 
@@ -1468,7 +1479,7 @@ async def get_schemes():
             "category": "Housing", 
             "desc": "Housing for all by 2022 scheme for urban areas.", 
             "eligibility": "Low income families",
-            "official_link": "https://pmay-urban.gov.in/",
+            "official_link": "https://pmay-urban.gov.in/pMAY-u-scheme-details",
             "steps": ["Apply on Portal", "Document Verification", "Site Inspection", "Grant Disbursement"]
         },
         {
@@ -1477,7 +1488,7 @@ async def get_schemes():
             "category": "Healthcare", 
             "desc": "Free health coverage up to 5 lakhs per family.", 
             "eligibility": "SECC 2011 listed families",
-            "official_link": "https://pmjay.gov.in/",
+            "official_link": "https://pmjay.gov.in/about-pmjay",
             "steps": ["Check Eligibility", "Get Golden Card", "Visit Empaneled Hospital", "Cashless Treatment"]
         },
         {
@@ -1486,7 +1497,7 @@ async def get_schemes():
             "category": "Welfare", 
             "desc": "Income support of 6000 per year to farmers.", 
             "eligibility": "Small and marginal farmers",
-            "official_link": "https://pmkisan.gov.in/",
+            "official_link": "https://pmkisan.gov.in/New_Registration.aspx",
             "steps": ["Farmer Registration", "Bank Account Linking", "Land Record Verification", "Direct Benefit Transfer"]
         },
         {
@@ -1495,7 +1506,7 @@ async def get_schemes():
             "category": "Energy", 
             "desc": "Free LPG connection to women of BPL households.", 
             "eligibility": "BPL households",
-            "official_link": "https://www.pmuy.gov.in/",
+            "official_link": "https://www.pmuy.gov.in/about.html",
             "steps": ["Submit Application", "KYC Completion", "Security Deposit Waiver", "Stove & Cylinder Issuance"]
         }
     ]
@@ -1635,7 +1646,7 @@ async def get_voter_services():
             "name": "Address Certification", 
             "desc": "Official verification of local residency for scheme eligibility.", 
             "icon": "home_pin",
-            "official_link": "https://uidai.gov.in/",
+            "official_link": "https://myaadhaar.uidai.gov.in/update-address",
             "more_info": "Institutional certification ensures you meet the residency requirements for localized welfare programs."
         },
         {
@@ -1651,7 +1662,7 @@ async def get_voter_services():
             "name": "Election Day Alert", 
             "desc": "Configure institutional notification protocols for upcoming cycles.", 
             "icon": "notifications_active",
-            "official_link": "https://eci.gov.in/",
+            "official_link": "https://voters.eci.gov.in/app-voter-helpline",
             "more_info": "Stay informed about your local booth status, queue times, and official announcements on election day."
         }
     ]
@@ -1751,7 +1762,7 @@ async def ai_chat(data: ChatRequest):
                 
                 # Using Sarvam's chat completion endpoint if it exists, otherwise fallback to OpenAI
                 response = await client.post(
-                    "https://api.sarvam.ai/chat/completions",
+                    "https://api.sarvam.ai/v1/chat/completions",
                     json=payload,
                     headers=headers,
                     timeout=30.0
@@ -2083,7 +2094,7 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -142,7 +142,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                 tab === 'dashboard' ? 'bg-emerald-500 text-black shadow-2xl' : 'bg-white/5 text-white/40 hover:text-white'
                             }`}
                         >
-                            <Shield size={12} strokeWidth={3} /> ADMIN_DASHBOARD
+                            <Shield size={12} strokeWidth={3} /> Admin Dashboard
                         </button>
                         <button 
                             onClick={() => handleTabChange('voters')}
@@ -150,17 +150,17 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                 tab === 'voters' ? 'bg-emerald-500 text-black shadow-2xl' : 'bg-white/5 text-white/40 hover:text-white'
                             }`}
                         >
-                            <Users size={12} strokeWidth={3} /> VOTER_LIST
+                            <Users size={12} strokeWidth={3} /> Voter List
                         </button>
                     </div>
                     <h1 className="text-6xl font-black text-white tracking-tighter uppercase leading-none">
-                        {tab === 'voters' ? 'VOTER_DATABASE' : 'ADMIN_OVERVIEW'}
+                        {tab === 'voters' ? 'Voter Database' : 'Admin Overview'}
                     </h1>
                 </div>
                 <div className="flex items-center gap-4">
                     <button onClick={loadData} className="px-8 py-4 rounded-2xl bg-white/5 text-stone-400 hover:text-white hover:bg-white/10 transition-all flex items-center gap-3 border border-white/5 group">
                         <RefreshCw size={18} className={`${loading ? 'animate-spin' : ''} group-hover:rotate-180 transition-transform duration-500`} />
-                        <span className="text-[10px] font-black uppercase tracking-[4px]">REFRESH</span>
+                        <span className="text-[10px] font-black uppercase tracking-[4px]">Refresh</span>
                     </button>
                 </div>
             </div>
@@ -170,7 +170,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                     {/* Metric Grid */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard 
-                    label="Active Issues" 
+                    label="Open Complaints" 
                     value={grievances.filter(g => g.status === 'submitted').length} 
                     icon={AlertCircle} 
                     color="#f59e0b"
@@ -213,7 +213,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                     : 'text-white/40 hover:text-white'
                             }`}
                         >
-                            {f === 'open' ? 'NEW_ISSUES' : f}
+                            {f === 'open' ? 'Recent Complaints' : f}
                         </button>
                     ))}
                 </div>
@@ -221,7 +221,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                 <div className="flex items-center gap-4">
                     <div className="px-6 py-3 rounded-full bg-emerald-500/5 border border-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-[4px] flex items-center gap-3">
                         <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                        LIVE_UPDATES
+                        Live Sync
                     </div>
                 </div>
             </div>
@@ -231,14 +231,14 @@ export default function AdminDashboard({ currentUser, boothId }) {
                 {loading ? (
                     <div className="p-32 text-center bg-[#1a1a1a] rounded-[4rem] border border-white/5 border-dashed">
                         <RefreshCw className="w-16 h-16 text-emerald-500/20 animate-spin mx-auto mb-8" />
-                        <p className="text-[11px] font-black uppercase tracking-[5px] text-white/20">FETCHING_DATA...</p>
+                        <p className="text-[11px] font-black uppercase tracking-[5px] text-white/20">Loading data...</p>
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="p-24 text-center bg-[#1a1a1a] rounded-[4rem] border border-white/5">
                         <div className="size-24 rounded-[2.5rem] bg-white/5 flex items-center justify-center mx-auto mb-10 border border-white/5">
                             <LayoutDashboard className="text-stone-700" size={48} />
                         </div>
-                        <h4 className="text-4xl font-black text-white mb-4 uppercase tracking-tighter">ALL_CLEAR</h4>
+                        <h4 className="text-4xl font-black text-white mb-4 uppercase tracking-tighter">All Clear</h4>
                         <p className="text-stone-600 text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">No issues reported in this booth. Status: Normal.</p>
                     </div>
                 ) : (
@@ -264,10 +264,10 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-wrap items-center gap-4 mb-6">
                                             <span className="px-5 py-1.5 rounded-full bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-[3px] border border-white/5">
-                                                ISSUE_ID: #{g.id}
+                                                Complaint ID: #{g.id}
                                             </span>
                                             <span className={`px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[3px] border ${config.bg} ${config.color} ${config.border}`}>
-                                                {config.label.toUpperCase()}
+                                                {config.label}
                                             </span>
                                         </div>
                                         <h4 className="text-3xl font-black text-white mb-6 uppercase tracking-tighter leading-tight group-hover:text-emerald-400 transition-colors">
@@ -275,10 +275,10 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                         </h4>
                                         <div className="flex flex-wrap items-center gap-8 text-[10px] font-black text-white/20 uppercase tracking-[4px]">
                                             <span className="flex items-center gap-3"><User size={14} className="text-white/20" /> {g.voter_name}</span>
-                                            <span className="flex items-center gap-3"><MapPin size={14} className="text-white/20" /> BOOTH_{g.booth_id}</span>
+                                            <span className="flex items-center gap-3"><MapPin size={14} className="text-white/20" /> Booth {g.booth_id}</span>
                                             {g.assigned_worker && (
                                                 <span className="flex items-center gap-3 text-emerald-500 bg-emerald-500/10 px-4 py-1.5 rounded-2xl border border-emerald-500/20">
-                                                    <Zap size={12} strokeWidth={3} /> WORKER: {g.assigned_worker}
+                                                    <Zap size={12} strokeWidth={3} /> Officer: {g.assigned_worker}
                                                 </span>
                                             )}
                                         </div>
@@ -290,11 +290,11 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                                 onClick={() => setAssignModal(g)}
                                                 className="w-full xl:w-72 py-6 bg-white text-black rounded-2xl font-black uppercase tracking-[4px] text-[11px] hover:bg-emerald-500 hover:text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-4"
                                             >
-                                                <Shield size={20} strokeWidth={3} /> ASSIGN_WORKER
+                                                <Shield size={20} strokeWidth={3} /> Assign Officer
                                             </button>
                                         ) : (
                                             <div className="w-full xl:w-72 py-6 bg-white/5 border border-white/5 text-stone-500 rounded-2xl font-black uppercase tracking-[4px] text-[11px] flex items-center justify-center gap-4">
-                                                <CheckCircle size={20} /> WORK_IN_PROGRESS
+                                                <CheckCircle size={20} /> Work in progress
                                             </div>
                                         )}
                                     </div>
@@ -313,26 +313,26 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                         >
                                             <div className="pt-10 mt-10 border-t border-white/5 grid grid-cols-1 md:grid-cols-3 gap-8">
                                                 <div className="p-6 bg-black/20 rounded-3xl border border-white/5">
-                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">ASSIGNED_TO</p>
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">Assigned to</p>
                                                     <p className="text-lg font-black text-white uppercase tracking-tighter flex items-center gap-3">
-                                                        <User size={18} className="text-emerald-500" /> {g.assigned_worker || 'NOT ASSIGNED'}
+                                                        <User size={18} className="text-emerald-500" /> {g.assigned_worker || 'Not Assigned'}
                                                     </p>
                                                 </div>
                                                 <div className="p-6 bg-black/20 rounded-3xl border border-white/5">
-                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">REPORTED_AT</p>
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">Reported at</p>
                                                     <p className="text-lg font-black text-white uppercase tracking-tighter flex items-center gap-3">
                                                         <Clock size={18} className="text-emerald-500" /> {new Date(g.created_at).toLocaleString()}
                                                     </p>
                                                 </div>
                                                 <div className="p-6 bg-black/20 rounded-3xl border border-white/5">
-                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">CURRENT_STATUS</p>
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[3px] mb-3">Status</p>
                                                     <p className="text-lg font-black text-emerald-500 uppercase tracking-tighter flex items-center gap-3">
-                                                        <Shield size={18} /> {g.status.toUpperCase()}
+                                                        <Shield size={18} /> {g.status}
                                                     </p>
                                                 </div>
                                                 {g.resolution_note && (
                                                     <div className="md:col-span-3 p-8 bg-emerald-500/5 rounded-[2rem] border border-emerald-500/10">
-                                                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[4px] mb-4">WORKER_NOTE</p>
+                                                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[4px] mb-4">Officer Note</p>
                                                         <p className="text-xl font-black text-stone-300 leading-tight uppercase tracking-tighter italic">"{g.resolution_note}"</p>
                                                     </div>
                                                 )}
@@ -368,11 +368,11 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                 </div>
                                 <div className="space-y-4 mb-8">
                                     <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[2px]">
-                                        <span className="text-stone-700">VOTER_MOOD</span>
+                                        <span className="text-stone-700">Voter Sentiment</span>
                                         <span className={
                                             v.sentiment === 'positive' ? 'text-emerald-500' : 
                                             v.sentiment === 'negative' ? 'text-rose-500' : 'text-stone-500'
-                                        }>{v.sentiment || 'NEUTRAL'}</span>
+                                        }>{v.sentiment || 'Neutral'}</span>
                                     </div>
                                     <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
                                         <div className={`h-full rounded-full transition-all duration-1000 ${
@@ -383,10 +383,10 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                 </div>
                                 <div className="flex items-center gap-3 pt-6 border-t border-white/5">
                                     <span className="px-4 py-1.5 rounded-full bg-white/5 text-stone-600 text-[9px] font-black uppercase tracking-[2px] border border-white/5">
-                                        {v.segment || 'GENERAL'}
+                                        {v.segment || 'General'}
                                     </span>
                                     <span className="px-4 py-1.5 rounded-full bg-white/5 text-stone-600 text-[9px] font-black uppercase tracking-[2px] border border-white/5">
-                                        {v.phone || 'NO_CONTACT'}
+                                        {v.phone || 'No Contact'}
                                     </span>
                                 </div>
                             </motion.div>
@@ -418,10 +418,10 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                     <div className="flex justify-between items-start mb-12">
                                         <div>
                                             <div className="px-5 py-2 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-[4px] border border-emerald-500/20 mb-6 inline-block">
-                                                ASSIGN_TASK
+                                                Assign Task
                                             </div>
-                                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">SELECT_WORKER</h4>
-                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-stone-600 mt-3">ISSUE #: {assignModal.id}</p>
+                                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">Select Officer</h4>
+                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-stone-600 mt-3">Issue #: {assignModal.id}</p>
                                         </div>
                                         <button onClick={() => setAssignModal(null)} className="size-14 rounded-2xl bg-white/5 flex items-center justify-center text-stone-500 hover:text-white transition-all border border-white/5">
                                             <X size={28} />
@@ -433,19 +433,19 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                             <div className="absolute top-6 right-6 text-emerald-500/5">
                                                 <Info size={64} />
                                             </div>
-                                            <p className="text-[10px] font-black uppercase text-stone-600 tracking-[3px] mb-4">ISSUE_DETAILS</p>
+                                            <p className="text-[10px] font-black uppercase text-stone-600 tracking-[3px] mb-4">Complaint Details</p>
                                             <p className="text-xl font-black text-stone-400 leading-tight uppercase tracking-tighter pr-12">{assignModal.description}</p>
                                         </div>
 
                                         <div className="space-y-4">
-                                            <label className="text-[10px] font-black uppercase tracking-[5px] text-emerald-500 pl-2">SELECT_WORKER</label>
+                                            <label className="text-[10px] font-black uppercase tracking-[5px] text-emerald-500 pl-2">Select Officer</label>
                                             <div className="relative">
                                                 <select 
                                                     value={selectedWorker} 
                                                     onChange={(e) => setSelectedWorker(e.target.value)}
                                                     className="w-full p-6 bg-white/5 rounded-2xl border border-white/5 focus:border-emerald-500/50 outline-none text-white text-lg font-black uppercase tracking-tighter appearance-none cursor-pointer pr-16"
                                                 >
-                                                    <option value="" className="bg-[#1a1a1a]">SELECT_A_WORKER...</option>
+                                                    <option value="" className="bg-[#1a1a1a]">Select an officer...</option>
                                                     {workers.map(w => (
                                                         <option key={w.id} value={w.id} className="bg-[#1a1a1a]">{w.name} (ID: {w.id})</option>
                                                     ))}
@@ -464,7 +464,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                             {submitting ? (
                                                 <RefreshCw className="size-6 animate-spin" />
                                             ) : (
-                                                <><Shield size={24} strokeWidth={3} /> CONFIRM_ASSIGNMENT</>
+                                                <><Shield size={24} strokeWidth={3} /> Confirm Assignment</>
                                             )}
                                         </button>
                                     </div>

@@ -136,6 +136,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
     const [expandedId, setExpandedId] = useState(null);
     const [workers, setWorkers] = useState([]);
     const [admin, setAdmin] = useState(null);
+    const [error, setError] = useState(null);
 
     const safeBoothId = parseInt(boothId) || 17;
 
@@ -185,7 +186,11 @@ export default function CitizenDashboard({ currentUser, boothId }) {
             setDescription('');
             setCategory('');
             fetchData();
-        } catch (e) { console.error(e); }
+        } catch (error) {
+            console.error('Submission Error:', error);
+            const detail = error.response?.data?.detail || error.message;
+            setError(`System Alert: ${detail}`);
+        }
         setSubmitting(false);
     };
 
@@ -388,11 +393,25 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                             <label className="text-[10px] font-bold uppercase tracking-[4px] text-stone-900 pl-1">Description</label>
                                             <textarea 
                                                 value={description}
-                                                onChange={(e) => setDescription(e.target.value)}
+                                                onChange={(e) => {
+                                                    setDescription(e.target.value);
+                                                    if (error) setError(null);
+                                                }}
                                                 placeholder="Describe the issue in detail..."
                                                 className="w-full bg-stone-50 border border-stone-200 rounded-[2rem] p-8 outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-100 transition-all text-sm font-medium h-44 resize-none placeholder:text-stone-300 text-stone-800"
                                             />
                                         </div>
+
+                                        {error && (
+                                            <motion.div 
+                                                initial={{ opacity: 0, y: -10 }} 
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600"
+                                            >
+                                                <AlertCircle size={18} />
+                                                <p className="text-[10px] font-bold uppercase tracking-wider">{error}</p>
+                                            </motion.div>
+                                        )}
 
                                         <button 
                                             onClick={handleSubmit} 

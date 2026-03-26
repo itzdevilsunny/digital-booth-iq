@@ -113,7 +113,7 @@ export function Hero() {
             className="h-18 px-12 rounded-[2rem] bg-emerald-600 text-white text-xs font-bold uppercase tracking-[0.4em] shadow-2xl transition-all flex items-center justify-center gap-4 group cursor-pointer relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-            <span className="relative z-10">Initialize Portal</span>
+            <span className="relative z-10">Login Now</span>
             <Icon name="arrow_forward" className="relative z-10 group-hover:translate-x-2 transition-transform duration-500 text-lg" />
           </motion.button>
 
@@ -126,7 +126,7 @@ export function Hero() {
             <div className="size-8 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
               <Icon name="play_arrow" className="text-lg" />
             </div>
-            Tactical Briefing
+            Platform Demo
           </motion.button>
         </motion.div>
       </div>
@@ -139,7 +139,7 @@ export function Hero() {
         onClick={() => scrollTo("problem")}
       >
         <span className="text-[10px] font-bold uppercase tracking-[0.6em] text-white/20">
-          Sync Stream
+          Live Updates
         </span>
         <div className="relative w-px h-16 bg-gradient-to-b from-emerald-500 to-transparent">
             <motion.div 

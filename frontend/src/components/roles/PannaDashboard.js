@@ -129,27 +129,27 @@ export default function PannaDashboard({ currentUser, boothId }) {
                 <div>
                     <div className="flex items-center gap-4 mb-4">
                         <div className="px-4 py-1.5 rounded-full bg-emerald-500 text-black text-[10px] font-black uppercase tracking-[3px] flex items-center gap-2 shadow-2xl shadow-emerald-500/20">
-                            <Activity size={12} strokeWidth={3} /> Voter Support
+                            <Activity size={12} strokeWidth={3} /> Voter Assistance
                         </div>
                         <div className="px-4 py-1.5 rounded-full bg-white/5 text-white/40 text-[10px] font-black uppercase tracking-[3px] border border-white/5">
                             Booth ID: {boothId}
                         </div>
                     </div>
-                    <h1 className="text-6xl font-black text-white tracking-tighter uppercase leading-none">Voter Management</h1>
+                    <h1 className="text-6xl font-black text-white tracking-tighter uppercase leading-none">Voter Assistance</h1>
                 </div>
                 <div className="flex items-center gap-4">
                     <button onClick={loadData} className="px-8 py-4 rounded-2xl bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all flex items-center gap-3 border border-white/5 group">
                         <RefreshCw size={18} className={`${loading ? 'animate-spin' : ''} group-hover:rotate-180 transition-transform duration-500`} />
-                        <span className="text-[10px] font-black uppercase tracking-[4px]">Refresh List</span>
+                        <span className="text-[10px] font-black uppercase tracking-[4px]">Refresh Voters</span>
                     </button>
                 </div>
             </div>
 
-            {/* Tactical Metrics */}
+            {/* Dashboard Overview */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                     { label: 'Total Voters', val: stats.total, icon: Users, color: 'text-white' },
-                    { label: 'Strong Supporters', val: stats.positive, icon: ArrowUpCircle, color: 'text-emerald-500' },
+                    { label: 'Confirmed Supporters', val: stats.positive, icon: ArrowUpCircle, color: 'text-emerald-500' },
                     { label: 'Calls Made', val: stats.callsThisWeek, icon: PhoneForwarded, color: 'text-amber-500' },
                     { label: 'Success Rate', val: `${stats.responseRate}%`, icon: BarChart3, color: 'text-indigo-500' }
                 ].map((s, i) => (
@@ -169,7 +169,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                 ))}
             </div>
 
-            {/* Tactical Control Bar */}
+            {/* Control Panel */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-8 py-4">
                 <div className="flex items-center gap-3 p-2 bg-white/5 rounded-3xl border border-white/5 w-fit">
                     {['voters', 'calls'].map(t => (
@@ -182,7 +182,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                     : 'text-white/20 hover:text-white/40'
                             }`}
                         >
-                            {t.toUpperCase()} {t === 'voters' ? `[${voters.length}]` : `[${calls.length}]`}
+                            {t.charAt(0).toUpperCase() + t.slice(1)} {t === 'voters' ? `[${voters.length}]` : `[${calls.length}]`}
                         </button>
                     ))}
                 </div>
@@ -198,7 +198,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                 </div>
             </div>
 
-            {/* Interactive Registry */}
+            {/* Voter List */}
             {tab === 'voters' && (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     {loading ? (
@@ -211,7 +211,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                             <div className="size-24 rounded-[3rem] bg-white/5 flex items-center justify-center mx-auto mb-10 border border-white/5">
                                 <Users className="text-white/20" size={48} />
                             </div>
-                            <h4 className="text-4xl font-black text-white mb-4 uppercase tracking-tighter">No Voters Found</h4>
+                            <h4 className="text-4xl font-black text-white mb-4 uppercase tracking-tighter">No voters found</h4>
                             <p className="text-white/40 text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">No voters match your search criteria. Please check the Booth ID or search term.</p>
                         </div>
                     ) : (
@@ -313,11 +313,11 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                         </div>
                                         <div className="flex items-center gap-6">
                                             <div className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isAnswered ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'}`}>
-                                                Status: {c.status.toUpperCase()}
+                                                Status: {c.status}
                                             </div>
                                             {c.sentiment && (
                                                 <div className={`flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${s.color}`}>
-                                                    <s.icon size={12} strokeWidth={3} /> {c.sentiment.toUpperCase()}
+                                                    <s.icon size={12} strokeWidth={3} /> {c.sentiment}
                                                 </div>
                                             )}
                                         </div>
@@ -385,7 +385,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                                         : 'bg-white/5 border-white/5 text-white/20 hover:border-white/10'
                                                                 }`}
                                                             >
-                                                                {s.toUpperCase()}
+                                                                {s === 'answered' ? 'Answered' : 'No Answer'}
                                                             </button>
                                                         ))}
                                                     </div>
@@ -420,7 +420,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                         <AlertTriangle size={40} strokeWidth={3} />
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">Register Complaint</h4>
+                                                        <h4 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">Register a Complaint</h4>
                                                         <p className="text-[10px] font-black uppercase tracking-[4px] text-white/40 mt-4">Voter: {grievanceModal.name}</p>
                                                     </div>
                                                 </div>
@@ -440,7 +440,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                                         >
                                                             <option value="" className="bg-[#141414]">General Support</option>
                                                             {['infrastructure', 'utilities', 'healthcare', 'security', 'logistics', 'education'].map(cat => (
-                                                                <option key={cat} value={cat} className="bg-[#141414]">{cat.toUpperCase()}</option>
+                                                                <option key={cat} value={cat} className="bg-[#141414]">{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
                                                             ))}
                                                         </select>
                                                         <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none text-white/20">

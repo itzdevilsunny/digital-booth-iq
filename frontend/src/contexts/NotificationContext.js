@@ -56,9 +56,18 @@ export const NotificationProvider = ({ children, userId }) => {
       });
     };
 
-    socket.onclose = () => {
-      console.log('Notification WebSocket disconnected. Attempting reconnect...');
-      // Reconnect logic could go here
+    socket.onopen = () => {
+      console.log('✅ Notification Matrix Uplink Established');
+    };
+
+    socket.onerror = (error) => {
+      console.error('❌ Notification Matrix Error:', error);
+    };
+
+    socket.onclose = (event) => {
+      console.warn('⚠️ Notification Matrix Disconnected:', event.code, event.reason);
+      // Attempt to reconnect after a delay
+      setTimeout(fetchHistory, 5000);
     };
 
     return () => socket.close();

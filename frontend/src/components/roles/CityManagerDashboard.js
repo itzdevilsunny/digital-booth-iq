@@ -32,7 +32,7 @@ const BoothCard = ({ booth, onClick }) => (
             </div>
             <div className="text-right">
                 <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Booth ID</p>
-                <p className="text-xl font-display font-bold text-white">SEC_{booth.booth_number}</p>
+                <p className="text-xl font-display font-bold text-white">Booth {booth.booth_number}</p>
             </div>
         </div>
 
@@ -181,7 +181,7 @@ export default function CityManagerDashboard({ currentUser }) {
                             <div className="size-10 rounded-2xl bg-white text-black flex items-center justify-center shadow-lg">
                                 <Globe size={20} />
                             </div>
-                            <p className="text-[10px] font-bold text-white/40 uppercase tracking-[4px]">City Management Hub</p>
+                            <p className="text-[10px] font-bold text-white/40 uppercase tracking-[4px]">City Management Dashboard</p>
                         </div>
                         <h1 className="text-5xl font-display font-bold text-white tracking-tighter uppercase">City Dashboard</h1>
                         <p className="text-white/40 text-xs font-medium mt-1 uppercase tracking-widest">Manager: {currentUser?.city_id || 'CAPITAL_NCR'}</p>
@@ -194,13 +194,13 @@ export default function CityManagerDashboard({ currentUser }) {
                             className="px-6 py-4 bg-emerald-600 text-white rounded-2xl text-[10px] font-bold uppercase tracking-[2px] flex items-center gap-3 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
                         >
                             {resolving ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                            Smart Task Assign
+                            Smart Assignment
                         </button>
                         <div className="relative group w-full md:w-80">
                             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-emerald-500 transition-colors" size={18} />
                             <input 
                                 type="text" 
-                                placeholder="SEARCH BOOTH AREA..."
+                                placeholder="Search booth area..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-14 pr-8 py-4 bg-[#141414] border border-white/5 rounded-[2rem] font-display font-bold text-sm tracking-tight text-white focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 outline-none transition-all placeholder:text-white/10"
@@ -214,7 +214,7 @@ export default function CityManagerDashboard({ currentUser }) {
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 mb-2">
                             <Sparkles size={16} className="text-emerald-500" />
-                            <h3 className="text-[10px] font-bold uppercase tracking-[4px] text-white/40">Priority Alerts</h3>
+                            <h3 className="text-[10px] font-bold uppercase tracking-[4px] text-white/40">High Priority Notifications</h3>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {alerts.map((alert) => (
@@ -256,7 +256,7 @@ export default function CityManagerDashboard({ currentUser }) {
                         <div className="size-12 rounded-full border-2 border-white/10 flex items-center justify-center mb-4">
                             <Layers size={20} className="text-white/20" />
                         </div>
-                        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest text-center">Awaiting Booth Assignment...</p>
+                        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest text-center">Waiting for Booth Assignment...</p>
                     </div>
                 </div>
             </div>
@@ -280,7 +280,7 @@ export default function CityManagerDashboard({ currentUser }) {
                     </button>
                     <div>
                         <div className="flex items-center gap-2 mb-1">
-                            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Active Analysis</p>
+                            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Processing</p>
                             <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         </div>
                         <h2 className="text-4xl font-display font-bold text-white tracking-tight uppercase">{selectedBooth.name}</h2>
@@ -293,12 +293,12 @@ export default function CityManagerDashboard({ currentUser }) {
                     className={`px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-3 transition-all ${analyzing ? 'bg-white/5 text-white/20' : 'bg-white text-black shadow-2xl shadow-white/10 hover:scale-105 active:scale-95'}`}
                 >
                     {analyzing ? <RefreshCw className="animate-spin" size={16} /> : <BrainCircuit size={16} />}
-                    {analyzing ? 'Analyzing Data...' : 'Detailed Analysis'}
+                    {analyzing ? 'Processing...' : 'Analyze Booth'}
                 </button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Tactical Intelligence Report */}
+                {/* Booth Report */}
                 <div className="lg:col-span-4 space-y-6">
                     <div className="glass-panel p-8 rounded-[3rem] border border-white/5 shadow-sm relative overflow-hidden bg-[#141414]">
                         <div className="flex items-center gap-3 mb-10">
@@ -414,7 +414,7 @@ export default function CityManagerDashboard({ currentUser }) {
                                                 </h4>
                                                 <div className="flex items-center gap-3">
                                                     <p className={`text-[9px] font-bold uppercase tracking-widest ${selectedVoters.includes(voter.id) ? 'text-black/40' : 'text-white/20'}`}>
-                                                        {voter.segment || 'REGULAR VOTER'}
+                                                        {voter.segment || 'Regular Voter'}
                                                     </p>
                                                     <div className={`size-1 rounded-full ${voter.sentiment === 'positive' ? 'bg-emerald-500' : voter.sentiment === 'negative' ? 'bg-rose-500' : 'bg-white/10'}`} />
                                                     <p className={`text-[9px] font-bold uppercase tracking-widest ${voter.sentiment === 'positive' ? 'text-emerald-500' : voter.sentiment === 'negative' ? 'text-rose-500' : 'text-white/20'}`}>
@@ -445,7 +445,7 @@ export default function CityManagerDashboard({ currentUser }) {
                     <div className="glass-panel p-8 rounded-[3rem] border border-white/5 shadow-sm bg-[#141414] sticky top-12">
                         <div className="flex items-center gap-3 mb-10">
                             <Target size={20} className="text-emerald-500" />
-                            <h3 className="text-xl font-display font-bold text-white tracking-tight uppercase">Action Panel</h3>
+                            <h3 className="text-xl font-display font-bold text-white tracking-tight uppercase">Actions</h3>
                         </div>
 
                         <div className="space-y-6">

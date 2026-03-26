@@ -10,10 +10,10 @@ export function SecurityEthics() {
         <Reveal>
           <div className="flex flex-col gap-6">
             <h2 className="text-4xl md:text-5xl font-serif font-black text-navy leading-tight">
-              Uncompromised <br />Strategic Security
+              Uncompromised <br />Data Protection
             </h2>
             <p className="text-lg text-navy/40 font-serif italic leading-relaxed max-w-lg">
-              Data sovereignty is the pillar of the modern campaign. We protect your strategic assets with institution-grade protocols and absolute encryption.
+              Data privacy is the foundation of a modern campaign. We protect your information with professional-grade security and absolute encryption.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               {[
@@ -36,9 +36,9 @@ export function SecurityEthics() {
         <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
           {[
             { title: "Quantum-Safe Encryption", desc: "Military-grade 256-bit encryption for data at rest and in transit.", icon: "enhanced_encryption" },
-            { title: "Granular Access Control", desc: "Proprietary RBAC protocols to prevent unauthorized tactical leaks.", icon: "admin_panel_settings" },
-            { title: "Immutable Audit Logs", desc: "Every command and access vector is recorded on our secure ledger.", icon: "history" },
-            { title: "Institutional 2FA", desc: "Mandatory biometric and multi-factor authentication for all command levels.", icon: "phonelink_lock" },
+            { title: "Secure Access Control", desc: "Advanced controls to prevent unauthorized data leaks.", icon: "admin_panel_settings" },
+            { title: "Complete Audit Logs", desc: "Every action and login attempt is recorded on our secure ledger.", icon: "history" },
+            { title: "Multi-Factor Authentication", desc: "Secure biometric and multi-factor authentication for all users.", icon: "phonelink_lock" },
           ].map((item) => (
             <motion.div key={item.title} variants={staggerChild} className="group">
               <div className="flex items-center gap-3 mb-4">

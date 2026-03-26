@@ -30,18 +30,18 @@ export function ProblemStatement() {
           {[
             { 
               title: "Information Fragmentation", 
-              desc: "Voter intelligence sequestered in disparate physical logs and isolated digital nodes.", 
+              desc: "Voter information hidden in disconnected paper logs and separate digital systems.", 
               icon: "data_exploration", 
               color: "border-rose-500/20 bg-rose-500/5 shadow-rose-500/5" 
             },
             { 
               title: "Operational Latency", 
-              desc: "Strategic ground insights arriving 48-72 hours post-event, rendering them non-actionable.", 
+              desc: "Ground-level insights arriving too late to be actionable for the campaign.", 
               icon: "timer_10_alt_1", 
               color: "border-amber-500/20 bg-amber-500/5 shadow-amber-500/5" 
             },
             { 
-              title: "Strategic Depletion", 
+              title: "Resource Gaps", 
               desc: "Campaign resources misallocated to stable zones instead of contested swing matrices.", 
               icon: "account_balance_wallet", 
               color: "border-emerald-500/20 bg-emerald-500/5 shadow-emerald-500/5" 

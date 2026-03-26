@@ -44,8 +44,8 @@ const TaskCard = ({ task, onStart, onResolve, delay }) => {
                     {task.description}
                 </h4>
                 <div className="flex flex-wrap items-center gap-6 text-[10px] font-black text-white/40 uppercase tracking-[3px]">
-                    <span className="flex items-center gap-2"><MapPin size={16} className="text-emerald-500" /> BOOTH_{task.booth_id}</span>
-                    <span className="flex items-center gap-2"><Clock size={16} className="text-emerald-500" /> AT_{new Date(task.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="flex items-center gap-2"><MapPin size={16} className="text-emerald-500" /> Booth {task.booth_id}</span>
+                    <span className="flex items-center gap-2"><Clock size={16} className="text-emerald-500" /> at {new Date(task.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
             </div>
 
@@ -122,14 +122,14 @@ export default function WorkerDashboard({ currentUser }) {
             {/* Header Info */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 pb-8 border-b border-white/5">
                 <div>
-                    <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">GROUND_OP<br/>DASHBOARD</h1>
+                    <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">Field Officer<br/>Dashboard</h1>
                     <div className="flex items-center gap-4 mt-6">
                         <div className="flex items-center gap-2">
                             <span className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                            <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[3px]">STATUS: ACTIVE</p>
+                            <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[3px]">Status: Active</p>
                         </div>
                         <div className="size-1 rounded-full bg-white/10" />
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[3px]">USER: {currentUser?.name}</p>
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[3px]">User: {currentUser?.name}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -140,7 +140,7 @@ export default function WorkerDashboard({ currentUser }) {
                         <RefreshCw size={24} className={loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
                     </button>
                     <div className="px-6 py-4 bg-emerald-600/10 border border-emerald-500/20 rounded-2xl">
-                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[2px]">SYNC_DELAY</p>
+                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[2px]">Network Latency</p>
                         <p className="text-xl font-black text-white">24ms</p>
                     </div>
                 </div>
@@ -179,10 +179,10 @@ export default function WorkerDashboard({ currentUser }) {
                         <div className="size-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-2xl shadow-emerald-500/20">
                             <Send size={20} strokeWidth={3} />
                         </div>
-                        <h3 className="text-3xl font-black text-white tracking-tighter uppercase">ASSIGNMENTS</h3>
+                        <h3 className="text-3xl font-black text-white tracking-tighter uppercase">Tasks</h3>
                     </div>
                     <span className="px-5 py-2 bg-emerald-500/10 rounded-full text-[10px] font-black text-emerald-400 border border-emerald-500/20 tracking-[3px]">
-                        RESTRICTED
+                        Internal Use
                     </span>
                 </div>
 
@@ -190,7 +190,7 @@ export default function WorkerDashboard({ currentUser }) {
                     {loading ? (
                         <div className="p-32 text-center bg-white/5 backdrop-blur-3xl rounded-[4rem] border border-white/5 border-dashed">
                              <RefreshCw className="w-16 h-16 text-emerald-600 animate-spin mx-auto mb-8 shadow-[0_0_30px_rgba(16,185,129,0.2)]" />
-                             <p className="text-[12px] font-black uppercase tracking-[5px] text-white/40 animate-pulse">Updating...</p>
+                             <p className="text-[12px] font-black uppercase tracking-[5px] text-white/40 animate-pulse">Loading...</p>
                         </div>
                     ) : activeTasks.length === 0 ? (
                         <motion.div 
@@ -201,7 +201,7 @@ export default function WorkerDashboard({ currentUser }) {
                              <div className="size-24 rounded-[2rem] bg-emerald-600 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-emerald-500/20 border border-white/10">
                                 <Shield className="text-white" size={48} strokeWidth={2.5} />
                              </div>
-                             <h4 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-none">NO_PENDING_ISSUES</h4>
+                             <h4 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-none">No Pending Tasks</h4>
                              <p className="text-white/40 text-sm max-w-sm mx-auto uppercase tracking-tighter font-medium leading-relaxed">System clear. All reported issues have been addressed.</p>
                         </motion.div>
                     ) : (
@@ -220,7 +220,7 @@ export default function WorkerDashboard({ currentUser }) {
                         <div className="mt-24 space-y-8">
                             <div className="flex items-center gap-4 px-2">
                                 <div className="h-px flex-1 bg-white/5" />
-                                <h4 className="text-[10px] font-black uppercase tracking-[5px] text-stone-700">COMPLETED_WORKS</h4>
+                                <h4 className="text-[10px] font-black uppercase tracking-[5px] text-stone-700">Completed Tasks</h4>
                                 <div className="h-px flex-1 bg-white/5" />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -256,10 +256,10 @@ export default function WorkerDashboard({ currentUser }) {
                                     <div className="flex justify-between items-start mb-12">
                                         <div>
                                             <div className="px-5 py-2 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-[3px] border border-emerald-500/20 mb-6 inline-block">
-                                                RESOLUTION_STEP
+                                                Task Resolution
                                             </div>
-                                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">SUBMIT_FIX</h4>
-                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-white/40 mt-3">ISSUE #: {resolveModal.id}</p>
+                                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">Submit Resolution</h4>
+                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-white/40 mt-3">Task #: {resolveModal.id}</p>
                                         </div>
                                         <button onClick={() => setResolveModal(null)} className="size-14 rounded-2xl bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all border border-white/5">
                                             <X size={28} />
@@ -293,7 +293,7 @@ export default function WorkerDashboard({ currentUser }) {
                                             {submitting ? (
                                                 <RefreshCw className="size-6 animate-spin" />
                                             ) : (
-                                                <><BadgeCheck size={24} strokeWidth={3} /> CONFIRM_RESOLUTION</>
+                                                <><BadgeCheck size={24} strokeWidth={3} /> Confirm Resolution</>
                                             )}
                                         </button>
                                     </div>

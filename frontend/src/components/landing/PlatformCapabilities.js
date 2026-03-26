@@ -3,8 +3,8 @@ import { Icon, Reveal, StaggerContainer, staggerChild } from "./shared";
 
 export function PlatformCapabilities() {
   const capabilities = [
-    { icon: "hub", title: "Intelligence Graph", desc: "Map voter influence networks, family hierarchies, and demographic cross-sections in a unified tactical matrix." },
-    { icon: "pie_chart", title: "Neural Segmentation", desc: "Precision micro-targeting utilizing 50+ strategic parameters including historic loyalty and sentiment trajectory." },
+    { icon: "hub", title: "Voter Insights", desc: "Map voter networks, family relationships, and demographics in a unified dashboard." },
+    { icon: "pie_chart", title: "Smart Segmentation", desc: "Precision targeting using 50+ parameters including past support and sentiment trends." },
     { icon: "psychology", title: "Cognitive Insights", desc: "AI-driven sentiment extraction from real-time ground reports, social intelligence, and local narrative tracking." },
     { icon: "map", title: "Theater Ops", desc: "Coordinate ground assets, track deployment progress, and verify field operations in a 1:1 real-time environment." },
   ];
@@ -17,7 +17,7 @@ export function PlatformCapabilities() {
         <Reveal>
           <div className="flex flex-col">
             <span className="text-emerald-500 font-bold text-[10px] font-mono uppercase tracking-[0.5em] mb-4 block opacity-60">
-              Strategic Assets
+              Key Features
             </span>
             <h2 className="text-4xl md:text-5xl font-display font-black text-white tracking-tight uppercase">
               Platform Capabilities
@@ -26,7 +26,7 @@ export function PlatformCapabilities() {
         </Reveal>
         <Reveal delay={0.2}>
           <p className="text-white/40 max-w-md font-display italic text-lg leading-relaxed uppercase tracking-tight">
-            A comprehensive terminal for high-command oversight and hyper-local tactical execution.
+            A comprehensive platform for leadership oversight and detailed ground execution.
           </p>
         </Reveal>
       </div>
@@ -62,9 +62,9 @@ export function PlatformCapabilities() {
               >
                 <Icon name="chat" size={24} />
               </motion.div>
-              <h3 className="text-2xl font-display font-bold text-white mb-4 uppercase tracking-tight">Tactical Communications</h3>
+              <h3 className="text-2xl font-display font-bold text-white mb-4 uppercase tracking-tight">Campaign Communications</h3>
               <p className="text-[11px] text-white/30 font-medium leading-relaxed italic uppercase tracking-[2px] max-w-md">
-                Deploy high-impact campaigns across WhatsApp and SMS directly from the command center. Personalized engagement at institutional scale.
+                Deploy high-impact campaigns across WhatsApp and SMS directly from the admin dashboard. Personalized engagement at professional scale.
               </p>
             </div>
             <div className="hidden md:flex flex-col gap-3">

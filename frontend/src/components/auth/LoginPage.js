@@ -52,7 +52,7 @@ const LoginPage = () => {
                         </div>
                         <div>
                             <p className="text-xl font-black tracking-tight leading-none uppercase">BoothIQ</p>
-                            <p className="text-[10px] font-bold uppercase tracking-[4px] opacity-40">Intelligence Hub</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[4px] opacity-40">Management Portal</p>
                         </div>
                     </motion.div>
 
@@ -63,7 +63,7 @@ const LoginPage = () => {
                         className="text-6xl font-black leading-[0.9] tracking-tighter mb-8 text-balance uppercase"
                     >
                         SECURE <br />
-                        <span className="text-emerald-500">LOGIN</span>
+                        <span className="text-emerald-500">Login</span>
                     </motion.h1>
 
                     <motion.p
@@ -79,9 +79,9 @@ const LoginPage = () => {
                 <div className="relative z-10">
                     <div className="space-y-8">
                         {[
-                            { icon: Fingerprint, text: 'Secure Authentication Active', sub: 'AES-256 Encryption' },
-                            { icon: Radio, text: 'Stable Network Connection', sub: 'Lat: 0.8ms / Verified' },
-                            { icon: Verified, text: 'BoothIQ Governance System', sub: 'Compliance Verified' }
+                            { icon: Fingerprint, text: 'Secure Login Active', sub: 'AES-256 Encryption' },
+                            { icon: Radio, text: 'Network Connected', sub: 'Verified Connection' },
+                            { icon: Verified, text: 'BoothIQ Management System', sub: 'Compliance Verified' }
                         ].map((item, i) => (
                             <motion.div
                                 key={i}
@@ -103,8 +103,8 @@ const LoginPage = () => {
                 </div>
 
                 <div className="relative z-10 flex items-center justify-between text-[10px] font-bold uppercase tracking-[4px] opacity-20">
-                    <span>Build_v5.2</span>
-                    <span>© 2026 BoothIQ System</span>
+                    <span>Version 5.2</span>
+                    <span>© 2026 BoothIQ Platform</span>
                 </div>
             </div>
 
@@ -189,13 +189,13 @@ const LoginPage = () => {
                                     {showSuccess ? (
                                         <motion.div initial={{ y: 20 }} animate={{ y: 0 }} className="flex items-center gap-2">
                                             <ShieldCheck size={20} />
-                                            <span>LOGIN SUCCESSFUL</span>
+                                            <span>Login Successful</span>
                                         </motion.div>
                                     ) : loading ? (
                                         <div className="size-6 rounded-full border-2 border-current border-t-transparent animate-spin" />
                                     ) : (
                                         <div className="flex items-center gap-4 group-hover:translate-x-1 transition-transform duration-500">
-                                            <span>LOGIN NOW</span>
+                                            <span>Login Now</span>
                                             <ChevronRight size={20} />
                                         </div>
                                     )}
@@ -208,11 +208,11 @@ const LoginPage = () => {
                     <div className="mt-16 flex items-center justify-center gap-10 py-10 border-t border-white/5">
                         <div className="flex items-center gap-3 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-crosshair">
                             <Radio size={14} className="text-emerald-500" />
-                            <span className="text-[10px] font-black uppercase tracking-[3px]">System Sec.</span>
+                            <span className="text-[10px] font-black uppercase tracking-[3px]">System Security</span>
                         </div>
                         <div className="flex items-center gap-3 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-crosshair">
                             <ShieldClose size={14} className="text-rose-500" />
-                            <span className="text-[10px] font-black uppercase tracking-[3px]">Security Monitor</span>
+                            <span className="text-[10px] font-black uppercase tracking-[3px]">Security Status</span>
                         </div>
                     </div>
                 </motion.div>

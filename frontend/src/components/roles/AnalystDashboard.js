@@ -95,7 +95,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                         <BrainCircuit size={48} className="animate-pulse" />
                     </div>
                 </div>
-                <h2 className="text-xl font-black text-white uppercase tracking-[8px] mb-4">LOADING_DATA</h2>
+                <h2 className="text-xl font-black text-white uppercase tracking-[8px] mb-4">Loading Data</h2>
                 <div className="flex justify-center gap-1">
                     {[1,2,3].map(i => (
                         <motion.div 
@@ -116,8 +116,8 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                 <div className="size-24 rounded-[2.5rem] bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 mx-auto mb-10 shadow-2xl shadow-rose-500/20">
                     <AlertTriangle size={48} strokeWidth={3} />
                 </div>
-                <h4 className="text-4xl font-black text-white uppercase tracking-tighter mb-4 leading-none">CONNECTION_ERROR</h4>
-                <p className="text-white/40 text-[10px] font-black uppercase tracking-[4px] leading-relaxed">UNABLE_TO_CONNECT_TO_DATABASE. RETRYING_SOON...</p>
+                <h4 className="text-4xl font-black text-white uppercase tracking-tighter mb-4 leading-none">Connection Error</h4>
+                <p className="text-white/40 text-[10px] font-black uppercase tracking-[4px] leading-relaxed">Unable to connect to database. Retrying soon...</p>
             </div>
         );
     }
@@ -140,12 +140,12 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                 <div className="space-y-2">
                     <div className="flex items-center gap-3">
                         <div className="size-3 rounded-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
-                        <h1 className="text-5xl sm:text-6xl font-black text-white tracking-tighter uppercase leading-none">BOOTH_DASHBOARD</h1>
+                        <h1 className="text-5xl sm:text-6xl font-black text-white tracking-tighter uppercase leading-none">Booth Analytics</h1>
                     </div>
                     <div className="flex items-center gap-4">
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[5px]">BOOTH_ID: {boothId}</p>
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[5px]">Booth ID: {boothId}</p>
                         <span className="size-1 rounded-full bg-white/10" />
-                        <p className="text-emerald-500/50 text-[9px] font-black uppercase tracking-[3px]">STATUS: UPDATED</p>
+                        <p className="text-emerald-500/50 text-[9px] font-black uppercase tracking-[3px]">Status: Updated</p>
                     </div>
                 </div>
                 
@@ -153,7 +153,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                     <button onClick={loadData} className="group relative px-8 py-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/50 transition-all active:scale-95">
                         <div className="flex items-center gap-3 relative z-10">
                             <RefreshCw size={16} className={`text-white/40 group-hover:text-emerald-500 transition-colors ${loading ? 'animate-spin' : ''}`} />
-                            <span className="text-[10px] font-black text-white uppercase tracking-[3px]">REFRESH_DATA</span>
+                            <span className="text-[10px] font-black text-white uppercase tracking-[3px]">Refresh Data</span>
                         </div>
                     </button>
                     
@@ -178,7 +178,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                     <div className="absolute top-10 right-10 z-20">
                          <div className="flex items-center gap-3 bg-black/40 backdrop-blur-xl px-4 py-2 rounded-full border border-white/5">
                             <span className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-                            <span className="text-[9px] font-black uppercase tracking-[3px] text-emerald-500/80">LIVE_DATA</span>
+                            <span className="text-[9px] font-black uppercase tracking-[3px] text-emerald-500/80">Live Data</span>
                          </div>
                     </div>
                     
@@ -187,8 +187,8 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                             <BarChart2 size={28} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">ISSUE_BREAKDOWN</h4>
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-2">COMPLAINTS_BY_CATEGORY</p>
+                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">Issue Breakdown</h4>
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-2">Complaints by Category</p>
                         </div>
                     </div>
 
@@ -196,7 +196,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                         <div className="h-[550px] flex items-center justify-center text-center">
                             <div className="space-y-4">
                                 <BrainCircuit size={48} className="mx-auto text-white/10 animate-pulse" />
-                                <p className="text-[10px] font-black text-white/20 uppercase tracking-[6px]">NO_DATA_YET...</p>
+                                <p className="text-[10px] font-black text-white/20 uppercase tracking-[6px]">No data yet...</p>
                             </div>
                         </div>
                     ) : (
@@ -250,8 +250,8 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                             <Target size={28} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">PUBLIC_SENTIMENT</h4>
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-2">DISTRIBUTION_OF_SUPPORT</p>
+                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">Public Sentiment</h4>
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mt-2">Sentiment Distribution</p>
                         </div>
                     </div>
 
@@ -282,7 +282,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                                     </div>
                                     <div className="flex justify-between items-center mt-3">
                                         <p className="text-[8px] font-black text-white/10 uppercase tracking-[2px]">COUNT</p>
-                                        <p className="text-[9px] font-black text-white/40 uppercase tracking-[3px]">{s.value} PEOPLE</p>
+                                        <p className="text-[9px] font-black text-white/40 uppercase tracking-[3px]">{s.value} VOTERS</p>
                                     </div>
                                 </div>
                             );
@@ -295,7 +295,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                                 <Zap size={18} strokeWidth={3} />
                              </div>
                              <p className="text-[10px] font-black text-emerald-500/80 leading-relaxed uppercase tracking-[2px]">
-                                BOOTH IS STABLE. NO MAJOR CHANGES IN LAST 24H.
+                                Booth is stable. No major changes in last 24h.
                              </p>
                         </div>
                     </div>
@@ -311,7 +311,7 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                             <div className="size-14 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20 shadow-2xl">
                                 <BrainCircuit size={28} strokeWidth={2.5} />
                             </div>
-                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">AI_SUGGESTIONS</h4>
+                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">AI Insights</h4>
                         </div>
                     </div>
                     
@@ -360,8 +360,8 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                              </div>
                         </div>
                         
-                        <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none mb-4">RESOLUTION_PERFORMANCE</h4>
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[4px] max-w-sm mx-auto mb-12 leading-relaxed">REAL-TIME ISSUE RESOLUTION TRACKING</p>
+                        <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none mb-4">Resolution Performance</h4>
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[4px] max-w-sm mx-auto mb-12 leading-relaxed">Real-time Resolution Tracking</p>
                         
                         <div className="grid grid-cols-2 gap-6 w-full max-w-md mx-auto">
                             <div className="p-8 bg-black/40 rounded-[2.5rem] border border-white/5 group-hover:border-emerald-500/30 transition-all">
