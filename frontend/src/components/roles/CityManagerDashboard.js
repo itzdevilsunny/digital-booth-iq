@@ -9,7 +9,7 @@ import {
   AlertTriangle, CheckCircle2, Users, Target,
   Zap, Send, ShieldAlert, BarChart3,
   ChevronRight, ArrowRight, Filter, MessageSquare,
-  PieChart, MapPin
+  PieChart, MapPin, RefreshCw
 } from 'lucide-react';
 
 export default function CityManagerDashboard({ currentUser }) {
