@@ -26,7 +26,8 @@ const Sidebar = () => {
         { id: 'report', label: 'Report Issue', icon: AlertCircle, path: `/${role}/report`, hide: role !== 'citizen' },
         { id: 'services', label: 'Voter Services', icon: Briefcase, path: `/${role}/voter-services`, hide: role !== 'citizen' },
         { id: 'schemes', label: 'Govt Schemes', icon: FileText, path: `/${role}/schemes`, hide: role !== 'citizen' },
-        { id: 'voters', label: 'Voter Registry', icon: Users, path: `/${role}/voters`, hide: !['panna', 'admin'].includes(role) },
+        { id: 'voters', label: 'Voter Registry', icon: Users, path: `/${role}/voters`, hide: !['panna', 'admin', 'constituency'].includes(role) },
+        { id: 'matrix', label: 'Intel Matrix', icon: Zap, path: `/${role}/matrix`, hide: role !== 'constituency' },
         { id: 'comms', label: 'Communications', icon: Activity, path: `/${role}/calls`, hide: role !== 'panna' },
     ];
 

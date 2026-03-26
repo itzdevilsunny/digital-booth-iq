@@ -13,7 +13,7 @@ const STATUS_CONFIG = {
     submitted: { label: 'New Issue', icon: ShieldAlert, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
     assigned: { label: 'Task Assigned', icon: ClipboardList, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
     in_progress: { label: 'Working on it', icon: Zap, color: 'text-emerald-400', bg: 'bg-emerald-400/20', border: 'border-emerald-400/30' },
-    resolved: { label: 'Issue Resolved', icon: BadgeCheck, color: 'text-white/40', bg: 'bg-white/5', border: 'border-white/5' },
+    resolved: { label: 'Issue Resolved', icon: BadgeCheck, color: 'text-muted-foreground', bg: 'bg-muted/10', border: 'border-border/10' },
 };
 
 const TaskCard = ({ task, onStart, onResolve, delay }) => {
@@ -25,11 +25,11 @@ const TaskCard = ({ task, onStart, onResolve, delay }) => {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay }}
-            className={`bg-white/5 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/5 transition-all flex flex-col md:flex-row md:items-center gap-8 group hover:border-emerald-500/30 shadow-2xl ${
+            className={`bg-card backdrop-blur-3xl p-8 rounded-[3rem] border border-border transition-all flex flex-col md:flex-row md:items-center gap-8 group hover:border-emerald-500/30 shadow-2xl ${
                 isResolved ? 'opacity-40 grayscale' : ''
             }`}
         >
-            <div className={`size-20 rounded-[2rem] flex items-center justify-center shrink-0 shadow-2xl border border-white/10 ${config.bg} ${config.color}`}>
+            <div className={`size-20 rounded-[2rem] flex items-center justify-center shrink-0 shadow-2xl border border-border/20 ${config.bg} ${config.color}`}>
                 <config.icon size={40} strokeWidth={2.5} />
             </div>
             
@@ -38,19 +38,19 @@ const TaskCard = ({ task, onStart, onResolve, delay }) => {
                     <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[2px] border ${config.bg} ${config.color} ${config.border}`}>
                         {config.label}
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-white/20 tracking-widest">TASK_ID: #{task.id}</span>
+                    <span className="text-[10px] font-mono font-bold text-muted-foreground/30 tracking-widest">TASK_ID: #{task.id}</span>
                 </div>
-                <h4 className="text-3xl font-black text-white mb-4 truncate group-hover:text-emerald-500 transition-colors uppercase tracking-tighter leading-tight">
+                <h4 className="text-3xl font-black text-foreground mb-4 truncate group-hover:text-emerald-500 transition-colors uppercase tracking-tighter leading-tight">
                     {task.description}
                 </h4>
-                <div className="flex flex-wrap items-center gap-6 text-[10px] font-black text-white/40 uppercase tracking-[3px]">
+                <div className="flex flex-wrap items-center gap-6 text-[10px] font-black text-muted-foreground/50 uppercase tracking-[3px]">
                     <span className="flex items-center gap-2"><MapPin size={16} className="text-emerald-500" /> Booth {task.booth_id}</span>
                     <span className="flex items-center gap-2"><Clock size={16} className="text-emerald-500" /> at {new Date(task.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
             </div>
 
             {!isResolved && (
-                <div className="w-full md:w-auto pt-8 md:pt-0 border-t md:border-t-0 md:pl-8 border-white/5">
+                <div className="w-full md:w-auto pt-8 md:pt-0 border-t md:border-t-0 md:pl-8 border-border">
                     {task.status === 'assigned' ? (
                         <button 
                             onClick={() => onStart(task.id)}
@@ -120,28 +120,28 @@ export default function WorkerDashboard({ currentUser }) {
     return (
         <div className="space-y-12 animate-fade-in relative z-10 px-4 sm:px-0">
             {/* Header Info */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 pb-8 border-b border-white/5">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 pb-8 border-b border-border">
                 <div>
-                    <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">Field Officer<br/>Dashboard</h1>
+                    <h1 className="text-5xl font-black text-foreground tracking-tighter uppercase leading-none">Field Officer<br/>Dashboard</h1>
                     <div className="flex items-center gap-4 mt-6">
                         <div className="flex items-center gap-2">
                             <span className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
                             <p className="text-emerald-500 text-[10px] font-black uppercase tracking-[3px]">Status: Active</p>
                         </div>
-                        <div className="size-1 rounded-full bg-white/10" />
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-[3px]">User: {currentUser?.name}</p>
+                        <div className="size-1 rounded-full bg-muted-foreground/20" />
+                        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[3px]">User: {currentUser?.name}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={loadData} 
-                        className="p-4 rounded-2xl bg-white/5 text-white/40 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all border border-white/5 shadow-2xl group active:scale-95"
+                        className="p-4 rounded-2xl bg-card text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 transition-all border border-border shadow-2xl group active:scale-95"
                     >
                         <RefreshCw size={24} className={loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
                     </button>
                     <div className="px-6 py-4 bg-emerald-600/10 border border-emerald-500/20 rounded-2xl">
                         <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[2px]">Network Latency</p>
-                        <p className="text-xl font-black text-white">24ms</p>
+                        <p className="text-xl font-black text-foreground">24ms</p>
                     </div>
                 </div>
             </div>
@@ -159,11 +159,11 @@ export default function WorkerDashboard({ currentUser }) {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="bg-white/5 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/5 shadow-2xl flex items-center justify-between group hover:border-emerald-500/30 transition-all"
+                        className="bg-card backdrop-blur-3xl p-8 rounded-[3rem] border border-border shadow-2xl flex items-center justify-between group hover:border-emerald-500/30 transition-all"
                     >
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-[3px] text-white/20 mb-2 group-hover:text-white/40 transition-colors">{s.label}</p>
-                            <p className="text-4xl font-black text-white tracking-tighter group-hover:text-emerald-500 transition-colors uppercase">{s.val}</p>
+                            <p className="text-[10px] font-black uppercase tracking-[3px] text-muted-foreground/30 mb-2 group-hover:text-muted-foreground transition-colors">{s.label}</p>
+                            <p className="text-4xl font-black text-foreground tracking-tighter group-hover:text-emerald-500 transition-colors uppercase">{s.val}</p>
                         </div>
                         <div className="size-14 rounded-2xl bg-emerald-600/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 group-hover:scale-110 transition-transform">
                             <s.icon size={28} strokeWidth={2.5} />
@@ -179,7 +179,7 @@ export default function WorkerDashboard({ currentUser }) {
                         <div className="size-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-2xl shadow-emerald-500/20">
                             <Send size={20} strokeWidth={3} />
                         </div>
-                        <h3 className="text-3xl font-black text-white tracking-tighter uppercase">Tasks</h3>
+                        <h3 className="text-3xl font-black text-foreground tracking-tighter uppercase">Tasks</h3>
                     </div>
                     <span className="px-5 py-2 bg-emerald-500/10 rounded-full text-[10px] font-black text-emerald-400 border border-emerald-500/20 tracking-[3px]">
                         Internal Use
@@ -188,9 +188,9 @@ export default function WorkerDashboard({ currentUser }) {
 
                 <div className="space-y-6">
                     {loading ? (
-                        <div className="p-32 text-center bg-white/5 backdrop-blur-3xl rounded-[4rem] border border-white/5 border-dashed">
+                        <div className="p-32 text-center bg-card backdrop-blur-3xl rounded-[4rem] border border-border border-dashed">
                              <RefreshCw className="w-16 h-16 text-emerald-600 animate-spin mx-auto mb-8 shadow-[0_0_30px_rgba(16,185,129,0.2)]" />
-                             <p className="text-[12px] font-black uppercase tracking-[5px] text-white/40 animate-pulse">Loading...</p>
+                             <p className="text-[12px] font-black uppercase tracking-[5px] text-muted-foreground animate-pulse">Loading...</p>
                         </div>
                     ) : activeTasks.length === 0 ? (
                         <motion.div 
@@ -201,8 +201,8 @@ export default function WorkerDashboard({ currentUser }) {
                              <div className="size-24 rounded-[2rem] bg-emerald-600 flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-emerald-500/20 border border-white/10">
                                 <Shield className="text-white" size={48} strokeWidth={2.5} />
                              </div>
-                             <h4 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-none">No Pending Tasks</h4>
-                             <p className="text-white/40 text-sm max-w-sm mx-auto uppercase tracking-tighter font-medium leading-relaxed">System clear. All reported issues have been addressed.</p>
+                             <h4 className="text-4xl font-black text-foreground mb-4 tracking-tighter uppercase leading-none">No Pending Tasks</h4>
+                             <p className="text-muted-foreground text-sm max-w-sm mx-auto uppercase tracking-tighter font-medium leading-relaxed">System clear. All reported issues have been addressed.</p>
                         </motion.div>
                     ) : (
                         activeTasks.map((task, idx) => (
@@ -219,9 +219,9 @@ export default function WorkerDashboard({ currentUser }) {
                     {completedTasks.length > 0 && (
                         <div className="mt-24 space-y-8">
                             <div className="flex items-center gap-4 px-2">
-                                <div className="h-px flex-1 bg-white/5" />
-                                <h4 className="text-[10px] font-black uppercase tracking-[5px] text-stone-700">Completed Tasks</h4>
-                                <div className="h-px flex-1 bg-white/5" />
+                                <div className="h-px flex-1 bg-border" />
+                                <h4 className="text-[10px] font-black uppercase tracking-[5px] text-muted-foreground/40">Completed Tasks</h4>
+                                <div className="h-px flex-1 bg-border" />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {completedTasks.map((task, idx) => (
@@ -243,14 +243,14 @@ export default function WorkerDashboard({ currentUser }) {
                                 animate={{ opacity: 1 }} 
                                 exit={{ opacity: 0 }}
                                 onClick={() => setResolveModal(null)}
-                                className="absolute inset-0 bg-[#0c0c0c]/80 backdrop-blur-2xl" 
+                                className="absolute inset-0 bg-background/80 backdrop-blur-2xl" 
                             />
                             
                             <motion.div 
                                 initial={{ y: '100%', opacity: 0 }} 
                                 animate={{ y: 0, opacity: 1 }} 
                                 exit={{ y: '100%', opacity: 0 }}
-                                className="relative w-full max-w-2xl bg-[#1a1a1a] rounded-t-[4rem] sm:rounded-[4rem] shadow-2xl overflow-hidden border border-white/10"
+                                className="relative w-full max-w-2xl bg-card rounded-t-[4rem] sm:rounded-[4rem] shadow-2xl overflow-hidden border border-border"
                             >
                                 <div className="p-12">
                                     <div className="flex justify-between items-start mb-12">
@@ -258,21 +258,21 @@ export default function WorkerDashboard({ currentUser }) {
                                             <div className="px-5 py-2 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-[3px] border border-emerald-500/20 mb-6 inline-block">
                                                 Task Resolution
                                             </div>
-                                            <h4 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">Submit Resolution</h4>
-                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-white/40 mt-3">Task #: {resolveModal.id}</p>
+                                            <h4 className="text-4xl font-black text-foreground tracking-tighter uppercase leading-none">Submit Resolution</h4>
+                                            <p className="text-[10px] font-mono font-bold uppercase tracking-[3px] text-muted-foreground mt-3">Task #: {resolveModal.id}</p>
                                         </div>
-                                        <button onClick={() => setResolveModal(null)} className="size-14 rounded-2xl bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all border border-white/5">
+                                        <button onClick={() => setResolveModal(null)} className="size-14 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-all border border-border">
                                             <X size={28} />
                                         </button>
                                     </div>
 
                                     <div className="space-y-10">
-                                        <div className="p-8 bg-black/40 rounded-[2.5rem] border border-white/5 relative overflow-hidden">
+                                        <div className="p-8 bg-muted/50 rounded-[2.5rem] border border-border relative overflow-hidden">
                                             <div className="absolute top-6 right-6 text-emerald-500/10">
                                                 <ClipboardList size={64} />
                                             </div>
-                                            <p className="text-[10px] font-black uppercase text-white/20 tracking-[3px] mb-4">ISSUE_DESCRIPTION</p>
-                                            <p className="text-xl font-black text-white/60 leading-tight uppercase tracking-tighter pr-12">{resolveModal.description}</p>
+                                            <p className="text-[10px] font-black uppercase text-muted-foreground/50 tracking-[3px] mb-4">ISSUE_DESCRIPTION</p>
+                                            <p className="text-xl font-black text-foreground/80 leading-tight uppercase tracking-tighter pr-12">{resolveModal.description}</p>
                                         </div>
 
                                         <div className="space-y-4">
@@ -281,7 +281,7 @@ export default function WorkerDashboard({ currentUser }) {
                                                 value={resolutionNote} 
                                                 onChange={(e) => setResolutionNote(e.target.value)}
                                                 placeholder="Briefly describe how you resolved this issue..."
-                                                className="w-full p-8 bg-white/5 rounded-[2.5rem] border border-white/5 focus:border-emerald-500/50 outline-none text-white text-lg font-medium transition-all h-40 resize-none placeholder:text-white/10 uppercase tracking-tighter" 
+                                                className="w-full p-8 bg-card rounded-[2.5rem] border border-border focus:border-emerald-500/50 outline-none text-foreground text-lg font-medium transition-all h-40 resize-none placeholder:text-muted-foreground/20 uppercase tracking-tighter" 
                                             />
                                         </div>
 

@@ -5,11 +5,11 @@
 @tailwind utilities;
 
 :root {
-  /* Premium Stone & Slate Palette */
-  --background: 24 10% 10%; /* Very dark stone for primary text/background contrast */
-  --foreground: 0 0% 100%;
+  /* Default: Light Mode - Premium Stone & Slate Palette */
+  --background: 0 0% 100%;
+  --foreground: 24 10% 10%;
   
-  --card: 30 5% 98%;
+  --card: 0 0% 100%;
   --card-foreground: 24 10% 10%;
   
   --primary: 142 76% 36%; /* Emerald 600 */
@@ -18,41 +18,69 @@
   --secondary: 43 53% 54%; /* Gold 500 */
   --secondary-foreground: 24 10% 10%;
 
-  --muted: 24 10% 90%;
+  --muted: 24 10% 96%;
   --muted-foreground: 24 10% 40%;
   
   --accent: 142 76% 36%;
   --accent-foreground: 0 0% 100%;
   
-  --border: 24 10% 85%;
-  --input: 24 10% 85%;
+  --border: 24 10% 90%;
+  --input: 24 10% 90%;
   --ring: 142 76% 36%;
   --radius: 1rem;
 
-  /* Custom Brand Colors */
+  /* Custom Brand Colors (Stable) */
   --stone-950: #0c0a09;
   --stone-900: #1c1917;
   --stone-50: #fafaf9;
   --emerald-600: #059669;
   --gold-500: #eab308;
   --slate-900: #0f172a;
+
+  /* Glassmorphism Defaults */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(120, 113, 108, 0.1);
+  --glass-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.05);
+}
+
+.dark {
+  /* Dark Mode Overrides */
+  --background: 24 10% 4%; /* Deepest stone */
+  --foreground: 0 0% 98%;
+  
+  --card: 24 10% 6%;
+  --card-foreground: 0 0% 98%;
+  
+  --muted: 24 10% 12%;
+  --muted-foreground: 24 10% 70%;
+  
+  --border: 24 10% 15%;
+  --input: 24 10% 15%;
+  
+  --glass-bg: rgba(12, 10, 9, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
 @layer base {
   body {
-    @apply bg-[#0c0c0c] text-white antialiased selection:bg-emerald-500/30 selection:text-white;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    @apply antialiased selection:bg-emerald-500/30 selection:text-white transition-colors duration-300;
     font-family: "Public Sans", sans-serif;
   }
 }
 
-/* Glassmorphism utility - Light Mode */
+/* Glassmorphism utility - Theme Aware */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--glass-bg);
   backdrop-filter: blur(24px);
-  border: 1px solid rgba(120, 113, 108, 0.1);
-  box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  @apply transition-all duration-300;
 }
 
+/* For explicit dark panel overrides if still needed */
 .glass-dark {
   background: rgba(12, 10, 9, 0.8);
   backdrop-filter: blur(24px);

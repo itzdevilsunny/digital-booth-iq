@@ -159,10 +159,10 @@ class NotificationHub:
                         "Content-Type": "application/json"
                     },
                     json={
-                        "from": f"BoothIQ Support <{FROM_EMAIL}>",
+                        "from": f"BoothIQ Command <{FROM_EMAIL}>",
                         "to": [to_email],
                         "subject": subject,
-                        "html": f"<div style='font-family:sans-serif;padding:20px;border-radius:10px;background:#f9f9f9;'>{content}</div>"
+                        "html": content
                     }
                 )
                 if response.status_code == 200 or response.status_code == 201:
@@ -173,6 +173,44 @@ class NotificationHub:
             except Exception as e:
                 logger.error(f"Email Exception: {e}")
                 return False
+
+    @staticmethod
+    async def send_manifesto(to_email: str, voter_name: str):
+        """Send specific party manifesto and vision email"""
+        subject = f"A Vision for Our Constituency - Message for {voter_name}"
+        content = f"""
+        <div style="font-family: 'Helvetica Neue', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #e2e8f0; border-radius: 24px; background: #ffffff;">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <div style="display: inline-block; padding: 12px 24px; background: #4f46e5; color: white; border-radius: 12px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; font-size: 14px;">Party Command Matrix</div>
+            </div>
+            
+            <h1 style="color: #1e1b4b; font-size: 32px; font-weight: 900; line-height: 1.1; margin-bottom: 24px; text-transform: uppercase; letter-spacing: -1px;">Our Vision. Your Future.</h1>
+            
+            <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 32px;">
+                Dear {voter_name},<br><br>
+                As we approach the upcoming election cycle, our party is committed to a transparent, tech-driven, and prosperous constituency. We are proud to share our 2026 Manifesto with you.
+            </p>
+            
+            <div style="background: #f8fafc; padding: 32px; border-radius: 16px; margin-bottom: 32px; border-left: 4px solid #4f46e5;">
+                <h3 style="color: #1e1b4b; margin-top: 0; font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Core Promises</h3>
+                <ul style="color: #475569; padding-left: 20px; font-size: 15px; line-height: 1.8;">
+                    <li><strong>Smart Infrastructure:</strong> 100% digital monitoring of all local road and water projects.</li>
+                    <li><strong>Healthcare Access:</strong> Expansion of Ayushman Bharat centers to every block.</li>
+                    <li><strong>Digital Literacy:</strong> AI-enabled skill centers for the youth in our constituency.</li>
+                    <li><strong>Transparent Governance:</strong> Direct feedback loops via the BoothIQ platform.</li>
+                </ul>
+            </div>
+            
+            <p style="color: #475569; font-size: 14px; line-height: 1.6; font-style: italic;">
+                "We don't just make promises; we build systems to fulfill them."
+            </p>
+            
+            <div style="margin-top: 40px; padding-top: 32px; border-top: 1px solid #e2e8f0; text-align: center;">
+                <p style="color: #94a3b8; font-size: 12px; text-transform: uppercase; font-weight: 700; letter-spacing: 2px;">Authorized by Party Command &bull; BoothIQ Protocol</p>
+            </div>
+        </div>
+        """
+        return await NotificationHub.send_email(to_email, subject, content)
 
     @staticmethod
     async def send_sms(to_phone: str, message: str):
@@ -1283,6 +1321,32 @@ async def update_grievance(data: GrievanceUpdate):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class CampaignBlast(BaseModel):
+    template_id: str
+    target_segment: str
+    channels: List[str]
+
+@api_router.post("/campaigns/blast")
+async def initiate_campaign_blast(data: CampaignBlast):
+    """Simulate a mass outreach campaign blast"""
+    logger.info(f"Campaign Blast Initiated: Template={data.template_id}, Segment={data.target_segment}, Channels={data.channels}")
+    
+    # 1. Send real manifesto email to our connected user
+    target_email = "hackopscrew@gmail.com"
+    await NotificationHub.send_manifesto(target_email, "Vikram Singh")
+    
+    # 2. Send a real test WhatsApp message to the connected test number if available
+    test_number = "+917974185707"
+    try:
+        await NotificationHub.send_whatsapp(
+            test_number, 
+            f"*BoothIQ Global Campaign Blast*\n\n*Target:* {data.target_segment}\n*Protocol:* Mass Outreach Active\n*Status:* Manifesto and Vision documents successfully deployed to your inbox ({target_email})."
+        )
+    except Exception as e:
+        logger.error(f"Campaign test notification failed: {e}")
+        
+    return {"status": "deployed", "reach": "950M", "timestamp": datetime.now(timezone.utc).isoformat()}
+
 # --- ROUTES: ANALYTICS ---
 
 @api_router.get("/analytics")
@@ -1927,7 +1991,7 @@ async def seed_data():
             {"id": "worker-2", "name": "Priya Yadav", "role": "worker", "booth_id": 17, "email": "priya@boothiq.ai", "phone": "9876543207"},
             {"id": "worker-3", "name": "Ajay Tiwari", "role": "worker", "booth_id": 18, "email": "ajay@boothiq.ai", "phone": "9876543208"},
             {"id": "analyst-1", "name": "Deepak Sharma", "role": "analyst", "booth_id": 17, "email": "deepak@boothiq.ai", "phone": "9876543209"},
-            {"id": "citizen-1", "name": "Vikram Singh", "role": "citizen", "booth_id": 17, "email": "vikram@example.com", "phone": "+917974185707"},
+            {"id": "citizen-1", "name": "Vikram Singh", "role": "citizen", "booth_id": 17, "email": "hackopscrew@gmail.com", "phone": "+917974185707"},
             {"id": "citizen-2", "name": "Lata Maurya", "role": "citizen", "booth_id": 18, "email": "lata@example.com", "phone": "9876543211"},
         ]
         

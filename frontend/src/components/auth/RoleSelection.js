@@ -7,31 +7,60 @@ import {
     ChevronRight, ArrowLeft
 } from 'lucide-react';
 
-const RoleCard = ({ role, title, desc, icon: Icon, color, onClick, delay }) => (
+const RoleCard = ({ id, title, desc, icon: Icon, color, onClick, delay, special, badge }) => (
     <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay }}
         onClick={onClick}
-        className="group p-8 rounded-[2.5rem] border border-white/5 transition-all cursor-pointer bg-[#141414] relative overflow-hidden active:scale-[0.98] duration-500 flex flex-col h-full hover:border-emerald-500/30"
+        className={`group p-8 rounded-[2.5rem] border transition-all cursor-pointer relative overflow-hidden active:scale-[0.98] duration-500 flex flex-col h-full ${
+            special 
+            ? 'bg-gradient-to-br from-[#1a1a2e] to-[#0c0c0c] border-indigo-500/20 hover:border-indigo-500/50' 
+            : 'bg-[#141414] border-white/5 hover:border-emerald-500/30'
+        }`}
     >
-        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity text-emerald-500 blur-sm group-hover:blur-0 duration-700">
+        <div className={`absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity blur-sm group-hover:blur-0 duration-700 ${
+            special ? 'text-indigo-500' : 'text-emerald-500'
+        }`}>
             <Icon size={140} strokeWidth={1} />
         </div>
         
         <div className="relative z-10 flex flex-col h-full">
-            <div className={`size-16 rounded-2xl flex items-center justify-center mb-10 transition-all shadow-xl bg-white/5 border border-white/10 text-emerald-500 group-hover:bg-emerald-600 group-hover:text-white group-hover:scale-110 duration-500`}>
-                <Icon size={28} />
+            <div className="flex justify-between items-start mb-10">
+                <div className={`size-16 rounded-2xl flex items-center justify-center transition-all shadow-xl border border-white/10 duration-500 ${
+                    special 
+                    ? 'bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white group-hover:scale-110' 
+                    : 'bg-white/5 text-emerald-500 group-hover:bg-emerald-600 group-hover:text-white group-hover:scale-110'
+                }`}>
+                    <Icon size={28} />
+                </div>
+                {special && (
+                    <div className="px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-[3px]">
+                        Party Command
+                    </div>
+                )}
             </div>
             
-            <h3 className="text-3xl font-black text-white mb-3 group-hover:text-emerald-500 transition-colors uppercase tracking-tight leading-none group-hover:translate-x-1 duration-500">{title}</h3>
+            <h3 className={`text-3xl font-black mb-3 transition-colors uppercase tracking-tight leading-none group-hover:translate-x-1 duration-500 ${
+                special ? 'text-white group-hover:text-indigo-400' : 'text-white group-hover:text-emerald-500'
+            }`}>{title}</h3>
             <p className="text-[11px] font-bold text-white/40 mb-auto leading-relaxed pr-6 uppercase tracking-widest italic group-hover:text-white/60 transition-colors duration-500">
                 {desc}
             </p>
             
             <div className="mt-12 flex items-center justify-between text-white/20 group-hover:text-white transition-all duration-500">
-                <span className="text-[10px] font-black uppercase tracking-[5px] group-hover:tracking-[6px] transition-all">Select Role</span>
-                <div className="size-10 rounded-full bg-white/5 border border-white/5 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-all duration-500">
+                {badge ? (
+                    <span className={`text-[10px] font-black uppercase tracking-[4px] px-4 py-2 rounded-xl border ${
+                        special ? 'border-indigo-500/30 text-indigo-400 bg-indigo-500/5' : 'border-emerald-500/30 text-emerald-400 bg-emerald-500/5'
+                    }`}>
+                        {badge}
+                    </span>
+                ) : (
+                    <span className="text-[10px] font-black uppercase tracking-[5px] group-hover:tracking-[6px] transition-all">Select Role</span>
+                )}
+                <div className={`size-10 rounded-full bg-white/5 border border-white/5 flex items-center justify-center group-hover:text-white group-hover:scale-110 group-hover:shadow-lg transition-all duration-500 ${
+                    special ? 'group-hover:bg-indigo-600 group-hover:shadow-indigo-500/20' : 'group-hover:bg-emerald-600 group-hover:shadow-emerald-500/20'
+                }`}>
                     <ChevronRight size={20} />
                 </div>
             </div>
@@ -133,10 +162,12 @@ const RoleSelectionPage = () => {
                             icon: ShieldCheck, 
                         },
                         { 
-                            id: 'analyst', 
-                            title: 'Data Analyst', 
-                            desc: 'Data analysis and performance insights for policy development.', 
-                            icon: BarChart3, 
+                            id: 'constituency', 
+                            title: 'Constituency Manager', 
+                            desc: 'Live booth turnout, worker GPS, sentiment heatmaps, campaign blast tool — everything a manager needs to run a constituency on election day.', 
+                            icon: Zap, 
+                            special: true,
+                            badge: '543 seats managed'
                         },
                         { 
                             id: 'city_manager', 
