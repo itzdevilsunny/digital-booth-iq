@@ -402,7 +402,7 @@ async def get_user_contact(user_id: str):
             }
             
         # Try Supabase if not in MongoDB
-        eci_data = await supabase_request("GET", "voters_eci", params={"id": f"eq.{user_id}"})
+        eci_data = await supabase_request("GET", "voters_eci", params={"select": "id,name,phone", "id": f"eq.{user_id}"})
         if eci_data and len(eci_data) > 0:
             return {
                 "phone": eci_data[0].get("phone"),
