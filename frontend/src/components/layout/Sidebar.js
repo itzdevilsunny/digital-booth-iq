@@ -99,7 +99,20 @@ const Sidebar = ({ user }) => {
                             <p className="text-xs font-black truncate tracking-tight uppercase">{userName}</p>
                             <div className="flex items-center gap-2 mt-0.5">
                                 <div className="size-1.5 rounded-full bg-primary animate-pulse" />
-                                <p className="text-[9px] text-muted-foreground truncate font-bold uppercase tracking-widest">{role.replace('_', ' ')}</p>
+                                <p className="text-[9px] text-muted-foreground truncate font-bold uppercase tracking-widest">
+                                    {
+                                        {
+                                            citizen: 'Citizen App',
+                                            worker: 'Field Agent',
+                                            panna: 'Field Staff',
+                                            admin: 'Booth Manager',
+                                            blo: 'Registration Lead',
+                                            city_manager: 'Operations Lead',
+                                            constituency: 'HQ Command',
+                                            analyst: 'Intelligence Lead'
+                                        }[role] || role.replace('_', ' ')
+                                    }
+                                </p>
                             </div>
                         </div>
                     </div>

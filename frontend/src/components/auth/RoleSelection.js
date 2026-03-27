@@ -129,55 +129,55 @@ const RoleSelectionPage = () => {
                     <div className="w-full lg:w-7/12 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
                         {[
                             { 
-                                id: 'citizen', 
-                                title: 'Citizen', 
-                                desc: 'Public portal for grievances & live tracking.', 
-                                icon: Users, 
-                            },
-                            { 
-                                id: 'worker', 
-                                title: 'Field Officer', 
-                                desc: 'On-ground task & booth management.', 
-                                icon: Briefcase, 
-                            },
-                            { 
-                                id: 'panna', 
-                                title: 'Voter Guide', 
-                                desc: 'Information & local community outreach.', 
-                                icon: UserCheck, 
-                            },
-                            { 
-                                id: 'admin', 
-                                title: 'Booth Mgr', 
-                                desc: 'Booth ops & resource allocation.', 
-                                icon: ShieldCheck, 
-                            },
-                            { 
-                                id: 'analyst', 
-                                title: 'Data Analyst', 
-                                desc: 'Deep-dive into booth metrics and predictive AI insights.', 
-                                icon: BarChart3, 
-                            },
-                            { 
-                                id: 'blo', 
-                                title: 'Booth Agent', 
-                                desc: 'Real-time voter check-in and turnout management.', 
-                                icon: UserCheck, 
-                                badge: 'NEW'
+                                id: 'city_manager', 
+                                title: 'Operations Lead', 
+                                desc: 'Regional oversight and administrative command.', 
+                                icon: Globe, 
+                                badge: 'Root'
                             },
                             { 
                                 id: 'constituency', 
-                                title: 'Sub-Division', 
-                                desc: 'Live turnout, worker GPS, sentiment maps.', 
+                                title: 'HQ Command', 
+                                desc: 'Strategic coordination and zone monitoring.', 
                                 icon: Zap, 
                                 special: true,
                             },
                             { 
-                                id: 'city_manager', 
-                                title: 'City Admin', 
-                                desc: 'City-wide ops coordination.', 
-                                icon: Globe, 
-                                badge: 'Root'
+                                id: 'analyst', 
+                                title: 'Intelligence Lead', 
+                                desc: 'AI-driven forecasting and predictive metrics.', 
+                                icon: BarChart3, 
+                            },
+                            { 
+                                id: 'admin', 
+                                title: 'Booth Manager', 
+                                desc: 'Booth-level supervisor for voter operations.', 
+                                icon: ShieldCheck, 
+                            },
+                            { 
+                                id: 'blo', 
+                                title: 'Registration Lead', 
+                                desc: 'Voter registry verification and turnout tracking.', 
+                                icon: UserCheck, 
+                                badge: 'NEW'
+                            },
+                            { 
+                                id: 'worker', 
+                                title: 'Field Agent', 
+                                desc: 'On-ground service response and grievance resolution.', 
+                                icon: Briefcase, 
+                            },
+                            { 
+                                id: 'panna', 
+                                title: 'Field Staff', 
+                                desc: 'Voter assistance and community outreach support.', 
+                                icon: UserCheck, 
+                            },
+                            { 
+                                id: 'citizen', 
+                                title: 'Citizen App', 
+                                desc: 'Public portal for grievances and services.', 
+                                icon: Users, 
                             }
                         ].map((role, idx) => (
                             <RoleCard 

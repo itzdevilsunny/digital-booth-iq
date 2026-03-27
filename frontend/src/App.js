@@ -49,13 +49,13 @@ function App() {
 
                     {/* Dashboard Routes with Layout */}
                     <Route path="/citizen/*" element={
-                        <RoleRoute role="citizen" title="Public Portal">
+                        <RoleRoute role="citizen" title="Citizen App">
                             <CitizenDashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />
 
                     <Route path="/worker/*" element={
-                        <RoleRoute role="worker" title="Field Officer">
+                        <RoleRoute role="worker" title="Field Agent">
                             <WorkerDashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />
@@ -67,31 +67,31 @@ function App() {
                     } />
 
                     <Route path="/panna/*" element={
-                        <RoleRoute role="panna" title="Voter Guide">
+                        <RoleRoute role="panna" title="Field Staff">
                             <PannaDashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />
 
                     <Route path="/analyst/*" element={
-                        <RoleRoute role="analyst" title="Data Analyst">
+                        <RoleRoute role="analyst" title="Intelligence Lead">
                             <AnalystDashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />
 
                     <Route path="/city_manager/*" element={
-                        <RoleRoute role="city_manager" title="Admin Portal">
+                        <RoleRoute role="city_manager" title="Operations Lead">
                             <CityManagerDashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />
 
                     <Route path="/constituency/*" element={
-                        <RoleRoute role="constituency" title="Party Command">
+                        <RoleRoute role="constituency" title="HQ Command">
                             <ConstituencyDashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />
 
                     <Route path="/blo/*" element={
-                        <RoleRoute role="blo" title="Booth Agent">
+                        <RoleRoute role="blo" title="Registration Lead">
                             <BLODashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />

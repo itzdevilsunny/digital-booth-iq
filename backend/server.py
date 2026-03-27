@@ -66,10 +66,11 @@ async def get_optional_user(authorization: str = Header(None)) -> Optional[dict]
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
-# Removed tlsInsecure=true for production-grade security
+# Use tlsAllowInvalidCertificates=True to resolve SSL handshake failures in some cloud environments (like Render)
 client = AsyncIOMotorClient(
     mongo_url,
     serverSelectionTimeoutMS=5000,
+    tlsAllowInvalidCertificates=True
 )
 db = client[os.environ['DB_NAME']]
 
@@ -671,6 +672,7 @@ class GrievanceUpdate(BaseModel):
     assigned_to: Optional[Union[int, str]] = None
     assigned_worker: Optional[str] = None
     resolution_note: Optional[str] = None
+    after_images: Optional[List[str]] = None
 
 class VoterUpdate(BaseModel):
     id: Union[int, str]
@@ -1673,6 +1675,9 @@ async def update_grievance(data: GrievanceUpdate, user: dict = Depends(get_curre
         if data.resolution_note:
             updates["resolution_note"] = data.resolution_note
         
+        if data.after_images:
+            updates["after_images"] = data.after_images
+        
         # Update in Supabase
         result = None
         if updates:
@@ -1682,12 +1687,16 @@ async def update_grievance(data: GrievanceUpdate, user: dict = Depends(get_curre
         try:
             # Find the voter who owns this grievance in MongoDB
             # Try both exact match and numeric match for ID consistency
+            mongo_updates = {
+                "grievances.$.status": data.status or "assigned",
+                "grievances.$.resolution_note": data.resolution_note or "Issue resolved."
+            }
+            if data.after_images:
+                mongo_updates["grievances.$.after_images"] = data.after_images
+
             await db.voters.update_one(
                 {"grievances.id": g_id_str},
-                {"$set": {
-                    "grievances.$.status": data.status or "assigned",
-                    "grievances.$.resolution_note": data.resolution_note
-                }}
+                {"$set": mongo_updates}
             )
         except Exception as e:
             logger.error(f"Mongo grievance update error: {e}")
@@ -1797,29 +1806,96 @@ async def get_voter_services():
         {"id": "s6", "name": "Electoral Roll Audit", "icon": "fact_check", "description": "Verify your presence in the final list.", "status": "active"}
     ]
 
+# --- ROUTES: GOVERNMENT SCHEMES ---
+
 @api_router.get("/schemes")
 async def get_schemes():
-    """Available government schemes and welfare programs"""
+    """Available government schemes and welfare programs with full details"""
     return [
-        {"id": "sch1", "title": "PM Kisan Samman", "category": "Agriculture", "benefit": "₹6,000 Annual", "status": "Verified", "official_link": "https://pmkisan.gov.in/"},
-        {"id": "sch2", "title": "Ayushman Bharat Card", "category": "Healthcare", "benefit": "₹5L Coverage", "status": "Available", "official_link": "https://dashboard.pmjay.gov.in/"},
-        {"id": "sch3", "title": "Ujjwala Yojana 2.0", "category": "Energy", "benefit": "Free Gas Connection", "status": "Eligible", "official_link": "https://www.pmuy.gov.in/"},
-        {"id": "sch4", "title": "PM Svanidhi", "category": "Livelihood", "benefit": "Interest Subsidy", "status": "Open", "official_link": "https://pmsvanidhi.mohua.gov.in/"}
+        {
+            "id": "sch1", 
+            "name": "PM Kisan Samman", 
+            "category": "Agriculture", 
+            "desc": "Income support of ₹6,000 per year to small and marginal farmers.", 
+            "benefit": "₹6,000 Annual", 
+            "status": "Verified", 
+            "official_link": "https://pmkisan.gov.in/"
+        },
+        {
+            "id": "sch2", 
+            "name": "Ayushman Bharat Card", 
+            "category": "Healthcare", 
+            "desc": "World's largest health insurance scheme providing ₹5 Lakh coverage.", 
+            "benefit": "₹5L Coverage", 
+            "status": "Available", 
+            "official_link": "https://dashboard.pmjay.gov.in/"
+        },
+        {
+            "id": "sch3", 
+            "name": "Ujjwala Yojana 2.0", 
+            "category": "Energy", 
+            "desc": "Providing clean cooking fuel like LPG to rural and deprived households.", 
+            "benefit": "Free Gas Connection", 
+            "status": "Eligible", 
+            "official_link": "https://www.pmuy.gov.in/"
+        },
+        {
+            "id": "sch4", 
+            "name": "PM Svanidhi", 
+            "category": "Livelihood", 
+            "desc": "Special micro-credit facility for street vendors to restart their business.", 
+            "benefit": "Interest Subsidy", 
+            "status": "Open", 
+            "official_link": "https://pmsvanidhi.mohua.gov.in/"
+        },
+        {
+            "id": "sch5", 
+            "name": "PM Awas Yojana", 
+            "category": "Housing", 
+            "desc": "Affordable housing for the urban and rural poor.", 
+            "benefit": "Home Subsidy", 
+            "status": "Available", 
+            "official_link": "https://pmay-urban.gov.in/"
+        }
     ]
 
 @api_router.post("/schemes/apply")
 async def apply_scheme(data: SchemeApplication):
-    """Register application for a welfare scheme"""
-    logger.info(f"Scheme Application: Voter {data.voter_id} applied for {data.scheme_id} in Booth {data.booth_id}")
-    return {"status": "success", "message": "Application received and queued for priority verification."}
+    """Log a scheme application using MongoDB for persistence"""
+    try:
+        application = {
+            "id": str(uuid.uuid4()),
+            "voter_id": str(data.voter_id),
+            "scheme_id": data.scheme_id,
+            "booth_id": data.booth_id,
+            "status": "submitted",
+            "applied_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.scheme_applications.insert_one(application)
+        
+        # Send real-time notification to user via WebSocket
+        await send_notification(
+            user_id=str(data.voter_id),
+            title="Application Logged",
+            message=f"Your application for {data.scheme_id} has been received.",
+            n_type="success"
+        )
+        
+        return {"status": "success", "application_id": application["id"]}
+    except Exception as e:
+        logger.error(f"Error applying for scheme: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/schemes/applications")
 async def get_applications(voter_id: str):
-    """Fetch user's scheme application status"""
-    return [
-        {"id": "app1", "scheme_title": "Ayushman Bharat", "status": "resolved", "date": (datetime.now(timezone.utc) - timedelta(days=5)).isoformat()},
-        {"id": "app2", "scheme_title": "PM Kisan", "status": "submitted", "date": (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()}
-    ]
+    """Get all scheme applications for a specific voter from MongoDB"""
+    try:
+        cursor = db.scheme_applications.find({"voter_id": str(voter_id)}, {"_id": 0})
+        apps = await cursor.to_list(length=100)
+        return apps
+    except Exception as e:
+        logger.error(f"Error fetching applications: {e}")
+        return []
 
 # --- AI VOICE SERVICES (SARVAM AI Integration) ---
 
@@ -2142,87 +2218,6 @@ async def manager_send_update(data: ManagerUpdate):
         logger.error(f"Manager update error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.get("/schemes")
-async def get_schemes():
-    """Get list of available government schemes with official links"""
-    schemes = [
-        {
-            "id": "SCH-001", 
-            "name": "Pradhan Mantri Awas Yojana", 
-            "category": "Housing", 
-            "desc": "Housing for all by 2022 scheme for urban areas.", 
-            "eligibility": "Low income families",
-            "official_link": "https://pmay-urban.gov.in/pMAY-u-scheme-details",
-            "steps": ["Apply on Portal", "Document Verification", "Site Inspection", "Grant Disbursement"]
-        },
-        {
-            "id": "SCH-002", 
-            "name": "Ayushman Bharat", 
-            "category": "Healthcare", 
-            "desc": "Free health coverage up to 5 lakhs per family.", 
-            "eligibility": "SECC 2011 listed families",
-            "official_link": "https://pmjay.gov.in/about-pmjay",
-            "steps": ["Check Eligibility", "Get Golden Card", "Visit Empaneled Hospital", "Cashless Treatment"]
-        },
-        {
-            "id": "SCH-003", 
-            "name": "PM Kisan Samman Nidhi", 
-            "category": "Welfare", 
-            "desc": "Income support of 6000 per year to farmers.", 
-            "eligibility": "Small and marginal farmers",
-            "official_link": "https://pmkisan.gov.in/New_Registration.aspx",
-            "steps": ["Farmer Registration", "Bank Account Linking", "Land Record Verification", "Direct Benefit Transfer"]
-        },
-        {
-            "id": "SCH-004", 
-            "name": "Ujjwala Yojana", 
-            "category": "Energy", 
-            "desc": "Free LPG connection to women of BPL households.", 
-            "eligibility": "BPL households",
-            "official_link": "https://www.pmuy.gov.in/about.html",
-            "steps": ["Submit Application", "KYC Completion", "Security Deposit Waiver", "Stove & Cylinder Issuance"]
-        }
-    ]
-    return schemes
-
-@api_router.post("/schemes/apply")
-async def apply_scheme(data: SchemeApplication):
-    """Log a scheme application"""
-    try:
-        application = {
-            "id": str(uuid.uuid4()),
-            "voter_id": data.voter_id,
-            "scheme_id": data.scheme_id,
-            "booth_id": data.booth_id,
-            "status": "pending",
-            "applied_at": datetime.now(timezone.utc).isoformat()
-        }
-        await db.scheme_applications.insert_one(application)
-        
-        # Send notification to user
-        await send_notification(
-            user_id=data.voter_id,
-            title="Application Received",
-            message=f"Your application for scheme {data.scheme_id} has been successfully logged.",
-            n_type="success"
-        )
-        
-        return {"status": "success", "application_id": application["id"]}
-    except Exception as e:
-        logger.error(f"Error applying for scheme: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@api_router.get("/schemes/applications")
-async def get_applications(voter_id: str):
-    """Get applications for a specific voter"""
-    try:
-        cursor = db.scheme_applications.find({"voter_id": str(voter_id)}, {"_id": 0})
-        apps = await cursor.to_list(length=100)
-        return apps
-    except Exception as e:
-        logger.error(f"Error fetching applications: {e}")
-        return []
-
 @api_router.get("/manager/automation-alerts")
 async def get_manager_alerts(user: dict = Depends(get_current_user)):
     """AI Automation: Predictive alerts for the City Manager - RBAC enforced"""
@@ -2514,9 +2509,24 @@ async def ai_chat(data: ChatRequest):
         except Exception as e:
             logger.error(f"Error fetching schemes context: {e}")
         
+        # Define role-specific persona to ensure AI acts according to its audience
+        role = user.get("role", "citizen")
+        role_personas = {
+            "citizen": "You are the Citizen Service Assistant. Be empathetic, helpful, and focused on public welfare schemes and grievance tracking. Use encouraging, community-focused language.",
+            "worker": "You are the Field Operations Advisor. Be tactical, direct, and authoritative. Focus on territory management, task completion, and on-ground execution. Provide quick, actionable advice for field visits.",
+            "panna": "You are the Field Strategy Lead. Focus on voter engagement, influence mapping, and territory stabilization. Be strategic and provide clear field-level tactics for communication.",
+            "admin": "You are the Booth Management Supervisor. Be administrative and metric-oriented. Focus on booth-level turnout, issue resolution rates, and operational bottlenecks. Provide analytical, logical advice.",
+            "city_manager": "You are the Strategic Operations Lead. Be high-level, strategic, and formal. Focus on regional trends, political risk forecasting, and resource allocation. Provide bird's-eye view intelligence.",
+            "constituency": "You are the Command Center Strategist. Be highly institutional and intelligence-driven. Focus on the ultimate strategic moat: The Knowledge Graph and Social Fabric. Provide deep-dive insights.",
+            "analyst": "You are the Intelligence Analyst. Be data-driven, technical, and precise. Focus on uncovering hidden patterns in the knowledge graph and reporting sentiment shifts."
+        }
+        active_persona = role_personas.get(role, role_personas["citizen"])
+
         context_prompt = f"""
-        You are ESarthi, an intelligent AI assistant for the BoothIQ Governance Platform.
-        User Identity: {user.get('name', 'Citizen') if user else 'Citizen'} (Role: {user.get('role', 'Voter') if user else 'Voter'})
+        {active_persona}
+        
+        Institutional Identity: BoothIQ AI (ESarthi)
+        User: {user.get('name', 'Citizen')} | Current Role Context: {role.upper()}
         Voter Context: {json.dumps(sanitize_for_json(voter)) if voter else 'No direct registry match, but assisting as a local resident.'}
         Platform Data:
         - Active Grievances: {json.dumps(sanitize_for_json(system_grievances))} (Total: {len(grievances) if grievances else 0})
@@ -2525,14 +2535,15 @@ async def ai_chat(data: ChatRequest):
         Current Query: {data.message}
         
         Strategic Guidelines:
-        - You represent the BoothIQ Institutional AI. Be authoritative yet helpful.
-        - Reference their specific grievances (IDs or categories) if they ask about status.
-        - Suggest specific schemes like 'Ayushman Bharat' or 'PM Kisan' based on their context.
-        - Use localized terminology (Sector, Booth, Voter Guide, Booth Manager) when appropriate.
+        - Maintain your role-specific persona throughout the conversation.
+        - Reference specific grievance IDs or categories if the user asks for status.
+        - Suggest specific schemes like 'Ayushman Bharat' or 'PM Kisan' ONLY if they are relevant to the user's context.
+        - Use localized terminology (Sector, Booth, Field Team, HQ Command) when appropriate.
         - Keep responses sharp, professional, and under 150 words.
+        - IMPORTANT: Do NOT include internal 'thought' or 'thinking' process tags in your final output. Return ONLY the final message.
         """
         
-        # Try Sarvam AI LLM first as per user request to use Sarvam AI
+        # Try Sarvam AI LLM first
         ai_reply = None
         try:
             sarvam_key = os.environ.get('SARVAM_API_KEY')
@@ -2552,7 +2563,6 @@ async def ai_chat(data: ChatRequest):
                     ]
                 }
                 
-                # Using Sarvam's chat completion endpoint if it exists, otherwise fallback to OpenAI
                 response = await client.post(
                     "https://api.sarvam.ai/v1/chat/completions",
                     json=payload,
@@ -2563,12 +2573,10 @@ async def ai_chat(data: ChatRequest):
                 if response.status_code == 200:
                     ai_reply = response.json()["choices"][0]["message"]["content"]
                 else:
-                    logger.warning(f"Sarvam LLM failed with {response.status_code}: {response.text}")
                     raise Exception(f"Sarvam LLM error {response.status_code}")
                     
         except Exception as sarvam_err:
             logger.info(f"Using OpenAI as primary/fallback (Sarvam error: {sarvam_err})")
-            # Use OpenAI for high-quality reasoning
             try:
                 response = await openai_client.chat.completions.create(
                     model="gpt-4o",
@@ -2576,19 +2584,24 @@ async def ai_chat(data: ChatRequest):
                         {"role": "system", "content": context_prompt},
                         {"role": "user", "content": data.message}
                     ],
-                    max_tokens=500
+                    max_tokens=600
                 )
                 ai_reply = response.choices[0].message.content
             except Exception as ai_err:
                 logger.error(f"AI Service Error: {ai_err}")
-                # Fallback response when API key is out of quota
                 user_name = user.get('name', 'a citizen') if user else 'a citizen'
-                if "insufficient_quota" in str(ai_err):
-                    ai_reply = f"System Quota Exceeded. Please verify keys in .env and restart server."
-                else:
-                    ai_reply = f"I'm currently operating in offline mode. I can see you are {user_name} from Booth {data.booth_id}. How else can I assist you manually? (Diagnostics: {str(ai_err)[:50]})"
-        
+                ai_reply = f"I'm currently operating in offline mode. I can see you are {user_name} from Booth {data.booth_id}. How else can I assist you manually?"
+
+        # CLEANUP: Aggressively strip internal thought processes (e.g., <think> tags) before returning
+        if ai_reply:
+            import re
+            # Strip both <think>...</think> and markdown-style thinking blocks
+            ai_reply = re.sub(r'<think>.*?</think>', '', ai_reply, flags=re.DOTALL | re.IGNORECASE)
+            ai_reply = re.sub(r'```thinking.*?```', '', ai_reply, flags=re.DOTALL | re.IGNORECASE)
+            ai_reply = ai_reply.strip()
+
         return {"response": ai_reply if ai_reply else "System busy. Please try again soon."}
+
     except Exception as e:
         logger.error(f"Chat Error [Full Trace]: {e}", exc_info=True)
         return {"response": f"System Alert: A backend synchronization error occurred. Error: {str(e)[:100]}"}

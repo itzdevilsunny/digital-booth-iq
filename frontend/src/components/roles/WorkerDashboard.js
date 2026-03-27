@@ -107,8 +107,26 @@ export default function WorkerDashboard({ currentUser }) {
     const [loading, setLoading] = useState(true);
     const [resolveModal, setResolveModal] = useState(null);
     const [resolutionNote, setResolutionNote] = useState('');
+    const [afterImages, setAfterImages] = useState([]);
+    const [uploadingAfter, setUploadingAfter] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
+
+    const handleAfterImageUpload = async (e) => {
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+        
+        setUploadingAfter(true);
+        try {
+            // Mock upload for now, similar to CitizenDashboard logic
+            const newUrls = files.map(f => URL.createObjectURL(f));
+            setAfterImages(prev => [...prev, ...newUrls]);
+        } catch (err) {
+            console.error("Upload error:", err);
+            setError("Failed to upload evidence.");
+        }
+        setUploadingAfter(false);
+    };
 
     const loadData = useCallback(async () => {
         if (!currentUser?.id) return;
@@ -160,10 +178,12 @@ export default function WorkerDashboard({ currentUser }) {
             await updateGrievance({
                 id: String(resolveModal.id),
                 status: 'resolved',
-                resolution_note: resolutionNote || 'Issue resolved and verified.'
+                resolution_note: resolutionNote || 'Issue resolved and verified.',
+                after_images: afterImages // New field for Impact Showcase
             });
             setResolveModal(null);
             setResolutionNote('');
+            setAfterImages([]);
             loadData();
         } catch (e) { 
             console.error(e);
@@ -353,6 +373,30 @@ export default function WorkerDashboard({ currentUser }) {
                                                 placeholder="Briefly describe how you resolved this issue..."
                                                 className="w-full p-3 bg-card rounded-xl border border-border focus:border-emerald-500/50 outline-none text-foreground text-sm transition-all h-24 resize-none placeholder:text-muted-foreground/30 uppercase tracking-tight" 
                                             />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[8px] font-bold uppercase tracking-widest text-emerald-500 pl-1">Impact Evidence (After Images)</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {afterImages.map((url, idx) => (
+                                                    <div key={idx} className="relative size-16 rounded-xl border border-border overflow-hidden bg-muted group/img shadow-sm">
+                                                        <img src={url} alt="After" className="w-full h-full object-cover" />
+                                                        <button 
+                                                            onClick={() => setAfterImages(prev => prev.filter(u => u !== url))}
+                                                            className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center text-white transition-opacity"
+                                                        >
+                                                            <X size={14} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                {afterImages.length < 4 && (
+                                                    <label className="size-16 rounded-xl border-2 border-dashed border-border hover:border-emerald-500/50 hover:bg-emerald-500/5 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all">
+                                                        <input type="file" multiple accept="image/*" onChange={handleAfterImageUpload} className="hidden" />
+                                                        {uploadingAfter ? <RefreshCw className="animate-spin text-emerald-500" size={14} /> : <ImageIcon size={14} className="text-muted-foreground" />}
+                                                        <span className="text-[8px] font-black text-muted-foreground uppercase">Upload</span>
+                                                    </label>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <button 

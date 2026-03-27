@@ -13,7 +13,7 @@ import {
   Fingerprint, Target, Mail, TrendingUp, Sparkles,
   Droplets, BookOpen, Map as MapIcon, Sun, Image as ImageIcon,
   ThumbsUp, ThumbsDown, MessageCircle, Bell, Globe, ShieldAlert, ShieldCheck,
-  Upload, X, Film, Loader2
+  Upload, X, Film, Loader2, Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AIChatbot from './AIChatbot';
@@ -312,9 +312,14 @@ export default function CitizenDashboard({ currentUser, boothId }) {
     const [uploading, setUploading] = useState(false);
     const [aiVisionAnalysis, setAiVisionAnalysis] = useState(null);
     const [userFeedback, setUserFeedback] = useState({});
+    const [verifications, setVerifications] = useState({});
 
-    const handleFeedback = (id) => {
-        setUserFeedback(prev => ({ ...prev, [id]: true }));
+    const handleFeedback = (id, type) => {
+        setUserFeedback(prev => ({ ...prev, [id]: type }));
+    };
+
+    const handleVerify = (id) => {
+        setVerifications(prev => ({ ...prev, [id]: true }));
     };
 
     const t = (key) => {
@@ -1092,7 +1097,17 @@ export default function CitizenDashboard({ currentUser, boothId }) {
 
                                 <div className="space-y-10">
                                     {[
+                                        // Merge resolved grievances that have after_images with mock showcase items
+                                        ...grievances.filter(g => g.status === 'resolved' && g.after_images?.length > 0).map(g => ({
+                                            id: `real-${g.id}`,
+                                            title: g.description,
+                                            before: "Initial report uploaded by citizen.",
+                                            after: g.resolution_note,
+                                            imgBefore: g.photo_url || (g.attachments?.[0]),
+                                            imgAfter: g.after_images[0]
+                                        })),
                                         { 
+                                            id: "impact-0",
                                             title: "Sector 17 Community Clinic", 
                                             before: "Basic first aid, limited hours, no specialized care.", 
                                             after: "24/7 emergency, maternity ward, and telemedicine integration.", 
@@ -1100,6 +1115,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                             imgAfter: "https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&q=80&w=500&h=300" 
                                         },
                                         { 
+                                            id: "impact-1",
                                             title: "Main Arterial Road", 
                                             before: "Frequent waterlogging, severe potholes, no pedestrian walkway.", 
                                             after: "New drainage system, asphalt paving, and solar-lit sidewalks.", 
@@ -1107,28 +1123,52 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                             imgAfter: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&q=80&w=500&h=300" 
                                         }
                                     ].map((item, i) => (
-                                        <div key={i} className="bg-card rounded-[2.5rem] border border-border overflow-hidden group shadow-sm hover:shadow-2xl transition-all duration-700">
+                                        <div key={item.id} className="bg-card rounded-[2.5rem] border border-border overflow-hidden group shadow-sm hover:shadow-2xl transition-all duration-700">
                                             <div className="p-6 border-b border-border flex justify-between items-center bg-muted/20">
                                                 <h4 className="text-lg font-black text-foreground uppercase tracking-tight">{item.title}</h4>
-                                                <div className="flex items-center gap-2">
-                                                    {userFeedback[`impact-${i}`] ? (
-                                                        <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Verified</span>
-                                                    ) : (
-                                                        <>
+                                                <div className="flex items-center gap-3">
+                                                    {/* Voting Section */}
+                                                    <div className="flex items-center gap-1.5 border-r border-border pr-3">
+                                                        {userFeedback[item.id] ? (
+                                                            <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-2">
+                                                                <span className={`text-[9px] font-black uppercase tracking-widest ${userFeedback[item.id] === 'up' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                                    {userFeedback[item.id] === 'up' ? 'Voted Up' : 'Voted Down'}
+                                                                </span>
+                                                            </motion.div>
+                                                        ) : (
+                                                            <>
+                                                                <button 
+                                                                    onClick={() => handleFeedback(item.id, 'up')}
+                                                                    className="size-9 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-emerald-500 hover:border-emerald-500/30 transition-all shadow-sm"
+                                                                >
+                                                                    <ThumbsUp size={14} />
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleFeedback(item.id, 'down')}
+                                                                    className="size-9 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-rose-500 hover:border-rose-500/30 transition-all shadow-sm"
+                                                                >
+                                                                    <ThumbsDown size={14} />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Verification Section */}
+                                                    <div className="pl-1">
+                                                        {verifications[item.id] ? (
+                                                            <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="flex items-center gap-2 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
+                                                                <BadgeCheck size={14} className="text-emerald-500" />
+                                                                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Verified</span>
+                                                            </motion.div>
+                                                        ) : (
                                                             <button 
-                                                                onClick={() => handleFeedback(`impact-${i}`)}
-                                                                className="size-9 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-emerald-500 hover:border-emerald-500/30 transition-all shadow-sm"
+                                                                onClick={() => handleVerify(item.id)}
+                                                                className="px-4 py-1.5 bg-emerald-500 text-white rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center gap-2"
                                                             >
-                                                                <ThumbsUp size={14} />
+                                                                <Check size={12} strokeWidth={3} /> Verify Work
                                                             </button>
-                                                            <button 
-                                                                onClick={() => handleFeedback(`impact-${i}`)}
-                                                                className="size-9 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-rose-500 hover:border-rose-500/30 transition-all shadow-sm"
-                                                            >
-                                                                <ThumbsDown size={14} />
-                                                            </button>
-                                                        </>
-                                                    )}
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
