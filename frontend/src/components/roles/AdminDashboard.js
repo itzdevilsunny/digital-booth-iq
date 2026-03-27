@@ -21,7 +21,10 @@ import {
     Info,
     Send,
     MessageSquare,
-    Globe
+    Globe,
+    Sparkles,
+    Film,
+    Image as ImageIcon
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -97,9 +100,9 @@ export default function AdminDashboard({ currentUser, boothId }) {
         setLoading(true);
         try {
             const results = await Promise.allSettled([
-                getGrievances({ booth_id: safeBoothId }),
+                getGrievances(), // Fetch all grievances for admin
                 getUsersByRole('worker'),
-                getVoters(safeBoothId)
+                getVoters(safeBoothId) // Keep booth-specific for voter context
             ]);
             
             const [gRes, wRes, vRes] = results;
@@ -115,7 +118,27 @@ export default function AdminDashboard({ currentUser, boothId }) {
         setLoading(false);
     }, [safeBoothId]);
 
-    useEffect(() => { loadData(); }, [loadData]);
+    useEffect(() => {
+        loadData();
+
+        const wsUrl = process.env.REACT_APP_BACKEND_URL.replace(/^http/, 'ws');
+        const socket = new WebSocket(`${wsUrl}/ws/notifications/${currentUser.id}`);
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'new_grievance') {
+                // Optimistically add the new grievance to the top of the list
+                setGrievances(prev => [data.grievance, ...prev]);
+            }
+        };
+
+        socket.onopen = () => console.log("Admin WebSocket Connected");
+        socket.onclose = () => console.log("Admin WebSocket Disconnected");
+
+        return () => {
+            socket.close();
+        };
+    }, [loadData, currentUser.id]);
 
     const handleAssign = async () => {
         if (!assignModal || !selectedWorker) return;
@@ -420,7 +443,8 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                                 <div className="p-3 bg-muted/30 rounded-xl border border-border">
                                                     <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[2px] mb-1">Assigned to</p>
                                                     <p className="text-sm font-black text-foreground uppercase tracking-tighter flex items-center gap-2">
-                                                        <User size={14} className="text-primary" /> {g.assigned_worker || 'Not Assigned'}
+                                                        <User size={14} className="text-primary" /> 
+                                                        {g.assigned_worker || (g.status !== 'submitted' ? 'Assigned Personnel' : 'Not Assigned')}
                                                     </p>
                                                 </div>
                                                 <div className="p-3 bg-muted/30 rounded-xl border border-border">
@@ -435,6 +459,55 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                                         <Shield size={14} /> {g.status}
                                                     </p>
                                                 </div>
+
+                                                {/* AI Vision & Media Feed */}
+                                                {(g.ai_vision_details || (g.attachments && g.attachments.length > 0)) && (
+                                                    <div className="md:col-span-3 space-y-4 pt-4 border-t border-border">
+                                                        <div className="flex items-center justify-between">
+                                                            <h5 className="text-[10px] font-black text-foreground uppercase tracking-[3px] flex items-center gap-2">
+                                                                <ImageIcon size={14} className="text-primary" /> Evidence & AI Insight
+                                                            </h5>
+                                                        </div>
+                                                        
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            {/* Media Grid */}
+                                                            {g.attachments && g.attachments.length > 0 && (
+                                                                <div className="grid grid-cols-4 gap-2">
+                                                                    {g.attachments.map((url, i) => (
+                                                                        <div key={i} className="aspect-square rounded-xl border border-border overflow-hidden bg-muted group relative">
+                                                                            {url.match(/\.(mp4|webm|ogg)$/) ? (
+                                                                                <div className="w-full h-full flex items-center justify-center text-primary bg-primary/5">
+                                                                                    <Film size={20} />
+                                                                                </div>
+                                                                            ) : (
+                                                                                <img src={url} alt="Evidence" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                                                                            )}
+                                                                            <a href={url} target="_blank" rel="noreferrer" className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                                <Send size={14} className="text-white" />
+                                                                            </a>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+
+                                                            {/* AI Analysis Box */}
+                                                            {g.ai_vision_details && (
+                                                                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/20 relative overflow-hidden">
+                                                                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                                                                        <Sparkles size={40} className="text-primary" />
+                                                                    </div>
+                                                                    <p className="text-[8px] font-black text-primary uppercase tracking-[3px] mb-2 flex items-center gap-2">
+                                                                        <Sparkles size={12} /> AI Vision Analysis
+                                                                    </p>
+                                                                    <p className="text-xs font-bold text-foreground leading-relaxed uppercase tracking-tight italic">
+                                                                        {g.ai_vision_details}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 {g.resolution_note && (
                                                     <div className="md:col-span-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
                                                         <p className="text-[8px] font-black text-primary uppercase tracking-[2px] mb-2">Officer Note</p>

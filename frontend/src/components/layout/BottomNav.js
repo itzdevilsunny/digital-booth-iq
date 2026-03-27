@@ -2,7 +2,8 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
     LayoutDashboard, Zap, LogOut, AlertCircle, 
-    Briefcase, FileText, Activity, Users, Target
+    Briefcase, FileText, Activity, Users, Target,
+    TrendingUp, User
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -34,7 +35,8 @@ const BottomNav = () => {
                     { id: 'report', label: 'Report', icon: AlertCircle, path: '/citizen/report' },
                     { id: 'services', label: 'Services', icon: Briefcase, path: '/citizen/voter-services' },
                     { id: 'schemes', label: 'Schemes', icon: FileText, path: '/citizen/schemes' },
-                    ...common
+                    { id: 'development', label: 'Dev', icon: TrendingUp, path: '/citizen/development' },
+                    { id: 'profile', label: 'User', icon: User, path: '/citizen/profile' }
                 ];
             case 'admin':
             case 'panna':

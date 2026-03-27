@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File, Form, Header, Depends
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
@@ -51,6 +52,18 @@ async def get_current_user(authorization: str = Header(None)):
         logger.error(f"JWT Decode Error: {e}")
         raise HTTPException(status_code=401, detail="Invalid token")
 
+async def get_optional_user(authorization: str = Header(None)) -> Optional[dict]:
+    """Like get_current_user but returns None instead of raising for unauthenticated requests.
+    Use for endpoints that have a demo bypass for unauthenticated users."""
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    token = authorization.split(" ")[1]
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return payload
+    except Exception:
+        return None
+
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 # Removed tlsInsecure=true for production-grade security
@@ -86,6 +99,49 @@ SUPABASE_HEADERS = {
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
+
+# --- ROUTES: VOTER PROFILE ---
+@api_router.get("/voters-profile/{voter_id}")
+async def get_voter_profile(voter_id: str, user: Optional[dict] = Depends(get_optional_user)):
+    """Get detailed profile for a specific voter - Ownership & RBAC enforced"""
+    # Handle Dummy Users for Demo - check first, before any auth checks
+    if "dummy" in str(voter_id).lower():
+        return {
+            "id": voter_id,
+            "name": f"Demo {str(voter_id).replace('dummy-', '').capitalize()}",
+            "role": str(voter_id).replace('dummy-', ''),
+            "booth_id": 17,
+            "sentiment": "neutral",
+            "voter_id": f"V-{str(voter_id).upper()}"
+        }
+
+    # Require auth for non-dummy profiles
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    # Security Check: Only the voter themselves or an Admin/Worker can view full profile
+    is_admin_or_worker = user.get("role") in ["admin", "city_manager", "analyst", "worker", "panna"]
+    is_owner = str(user.get("id")) == str(voter_id) or str(user.get("id")) == f"V{voter_id}"
+    
+    if not is_admin_or_worker and not is_owner:
+        raise HTTPException(status_code=403, detail="Unauthorized access to PII data")
+
+    # Try with original ID and V-prefix
+    voter = await db.voters.find_one({"id": voter_id}, {"_id": 0})
+    if not voter and voter_id.isdigit():
+        voter = await db.voters.find_one({"id": f"V{voter_id}"}, {"_id": 0})
+    
+    if not voter:
+        raise HTTPException(status_code=404, detail="Voter profile not found")
+    
+    return voter
+
+# Ensure uploads directory exists
+UPLOAD_DIR = ROOT_DIR / "static" / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+# Mount static files to serve uploads
+app.mount("/static", StaticFiles(directory=ROOT_DIR / "static"), name="static")
 
 @app.middleware("http")
 async def error_handling_middleware(request, call_next):
@@ -606,6 +662,8 @@ class GrievanceCreate(BaseModel):
     category: Optional[str] = None
     description: str
     booth_id: Union[int, str]
+    attachments: Optional[List[str]] = []
+    ai_vision_details: Optional[str] = None
 
 class GrievanceUpdate(BaseModel):
     id: Union[int, str]
@@ -617,6 +675,9 @@ class GrievanceUpdate(BaseModel):
 class VoterUpdate(BaseModel):
     id: Union[int, str]
     sentiment: Optional[str] = None
+    voted: Optional[bool] = None
+    voted_at: Optional[str] = None
+    booth_id: Optional[Union[int, str]] = None
 
 class CallCreate(BaseModel):
     voter_id: Union[int, str]
@@ -855,13 +916,19 @@ async def get_graph_data():
 
 @app.websocket("/ws/notifications/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
+    logger.info(f"WebSocket connection request for user: {user_id}")
     await manager.connect(user_id, websocket)
     try:
         while True:
-            # Keep connection alive
+            # Keep connection alive by reading messages
             data = await websocket.receive_text()
-            # Optional: handle client messages
+            # Echo back a heartbeat acknowledgement
+            await websocket.send_json({"type": "ack", "data": data})
     except WebSocketDisconnect:
+        logger.info(f"WebSocket disconnected (clean): {user_id}")
+        manager.disconnect(user_id, websocket)
+    except Exception as e:
+        logger.warning(f"WebSocket error for {user_id}: {e}")
         manager.disconnect(user_id, websocket)
 
 @api_router.get("/notifications")
@@ -922,21 +989,25 @@ async def get_voters(booth_id: Union[int, str]):
     real_id = await resolve_booth_id(booth_id)
     # logger.info(f"Fetching voters for [Requested:{booth_id} -> Real:{real_id}]")
     
-    # Get voter base data from voters_eci
+    # Get base data and voted status from Supabase
     eci_data = await supabase_request("GET", "voters_eci", params={
-        "select": "id,name,phone,booth_id,address,gender,dob",
+        "select": "id,name,phone,booth_id,address,gender,dob,voted,voted_at",
         "booth_id": f"eq.{real_id}",
         "order": "name"
     })
     
-    if not eci_data:
+    if isinstance(eci_data, dict) and "error" in eci_data:
+        logger.error(f"Supabase error in get_voters: {eci_data}")
+        eci_data = []
+
+    if not eci_data or (isinstance(eci_data, dict) and "error" in eci_data):
         # Try finding ANY voters if booth specific fails, for demo robustness
         eci_data = await supabase_request("GET", "voters_eci", params={
-            "select": "id,name,phone,booth_id,address,gender,dob",
+            "select": "id,name,phone,booth_id,address,gender,dob,voted,voted_at",
             "limit": 50
         })
         
-    if not eci_data:
+    if not eci_data or (isinstance(eci_data, dict) and "error" in eci_data):
         # Fallback to MongoDB voters if Supabase fails (Hybrid Robustness)
         mongo_voters = await db.voters.find({"booth_id": real_id}, {"_id": 0}).to_list(100)
         if not mongo_voters:
@@ -951,6 +1022,8 @@ async def get_voters(booth_id: Union[int, str]):
             "address": v.get("address"),
             "sentiment": v.get("sentiment", "neutral"),
             "segment": v.get("tags", ["other"])[0],
+            "voted": v.get("voted", False),
+            "voted_at": v.get("voted_at"),
             "status": "active"
         } for v in mongo_voters]
     
@@ -964,7 +1037,11 @@ async def get_voters(booth_id: Union[int, str]):
     })
     
     # Use string keys for reliable mapping
-    enrichment_map = {str(v["eci_voter_id"]): v for v in (enrichment or [])}
+    # Guard: enrichment may be an error dict from supabase_request when the query fails
+    if not isinstance(enrichment, list):
+        logger.warning(f"Enrichment query returned non-list response: {enrichment}")
+        enrichment = []
+    enrichment_map = {str(v["eci_voter_id"]): v for v in enrichment}
 
     # Combine data
     result = []
@@ -980,6 +1057,8 @@ async def get_voters(booth_id: Union[int, str]):
             "gender": v.get("gender", ""),
             "sentiment": enrich.get("sentiment", "neutral"),
             "segment": enrich.get("segment", "other"),
+            "voted": v.get("voted", False),
+            "voted_at": v.get("voted_at"),
             "status": "active"
         })
     
@@ -1008,7 +1087,7 @@ async def get_voters(booth_id: Union[int, str]):
 async def update_voter(data: VoterUpdate, user: dict = Depends(get_current_user)):
     """Update voter details - IDOR Protection & RBAC enforced"""
     # IDOR Check: Only Admins/Workers or the voter themselves can update
-    is_admin_or_worker = user.get("role") in ["admin", "city_manager", "worker", "panna"]
+    is_admin_or_worker = user.get("role") in ["admin", "city_manager", "worker", "panna", "blo"]
     is_owner = str(user.get("id")) == str(data.id) or str(user.get("id")) == f"V{data.id}"
     
     if not is_admin_or_worker and not is_owner:
@@ -1019,6 +1098,13 @@ async def update_voter(data: VoterUpdate, user: dict = Depends(get_current_user)
         if data.sentiment:
             updates["sentiment"] = data.sentiment
         
+        if data.voted is not None:
+            # RBAC Check for BLO fields
+            if user.get("role") not in ["blo", "admin", "panna"]:
+                raise HTTPException(status_code=403, detail="Unauthorized for voter check-in")
+            updates["voted"] = data.voted
+            updates["voted_at"] = data.voted_at or datetime.now(timezone.utc).isoformat()
+
         if not updates:
             raise HTTPException(status_code=400, detail="No updates provided")
 
@@ -1040,7 +1126,7 @@ async def update_voter(data: VoterUpdate, user: dict = Depends(get_current_user)
             {"$set": updates}
         )
 
-        return {"status": "updated", "id": data.id}
+        return {"status": "updated", "id": data.id, "updates": updates}
     except Exception as e:
         logger.error(f"Error updating voter: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -1161,63 +1247,68 @@ async def get_bulletins():
         logger.error(f"Error fetching bulletins: {e}")
         return []
 
-@api_router.get("/voters/profile/{voter_id}")
-async def get_voter_profile(voter_id: str, user: dict = Depends(get_current_user)):
-    """Get detailed profile for a specific voter - Ownership & RBAC enforced"""
-    # Security Check: Only the voter themselves or an Admin/Worker can view full profile
-    is_admin_or_worker = user.get("role") in ["admin", "city_manager", "analyst", "worker", "panna"]
-    is_owner = str(user.get("id")) == str(voter_id) or str(user.get("id")) == f"V{voter_id}"
-    
-    if not is_admin_or_worker and not is_owner:
-        raise HTTPException(status_code=403, detail="Unauthorized access to PII data")
-
-    # Try with original ID and V-prefix
-    voter = await db.voters.find_one({"id": voter_id}, {"_id": 0})
-    if not voter and voter_id.isdigit():
-        voter = await db.voters.find_one({"id": f"V{voter_id}"}, {"_id": 0})
-    
-    if not voter:
-        raise HTTPException(status_code=404, detail="Voter profile not found")
-    
-    return voter
-
 # --- ROUTES: GRIEVANCES ---
+
+# --- HELPERS ---
+def normalize_voter_id(vid: Optional[Union[int, str]]) -> Optional[str]:
+    """Helper to normalize voter IDs to handle V-prefix consistency"""
+    if not vid: return None
+    v_str = str(vid)
+    if v_str.startswith('V'):
+        return v_str[1:]
+    return v_str
 
 @api_router.get("/grievances")
 async def get_grievances(
     booth_id: Optional[Union[int, str]] = None, 
     assigned_to: Optional[str] = None, 
     voter_id: Optional[Union[int, str]] = None,
-    user: dict = Depends(get_current_user)
+    user: Optional[dict] = Depends(get_optional_user)
 ):
     """Get grievances - RBAC & Data Isolation enforced"""
+    # Handle Dummy Users for Demo - check first, before any auth checks
+    if not user and voter_id and "dummy" in str(voter_id).lower():
+        # Create a mock user context for the demo bypass
+        user = {
+            "id": str(voter_id),
+            "role": "citizen" if "citizen" in str(voter_id).lower() else "worker",
+            "name": f"Demo {str(voter_id).replace('dummy-', '').capitalize()}"
+        }
+
+    # Require auth for non-dummy requests
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
     # Security Check: Enforce data isolation based on role
     role = user.get("role")
     
+    # Normalize requested voter_id and user ID
+    requested_voter_id = normalize_voter_id(voter_id)
+    user_id = normalize_voter_id(user.get("id"))
+    
     if role == "citizen":
         # Citizens can ONLY see their own grievances
-        voter_id = user.get("id")
-    elif role in ["worker", "panna"]:
-        # Workers can only see grievances for their assigned booth or assigned to them
-        # For this demo, we rely on the booth_id passed, but a real check would verify user.booth_id
-        pass 
-    elif role not in ["admin", "city_manager", "analyst"]:
-        raise HTTPException(status_code=403, detail="Unauthorized role for grievance access")
+        final_voter_id = user_id
+    else:
+        final_voter_id = requested_voter_id
 
     real_id = await resolve_booth_id(booth_id) if booth_id else None
-    # logger.info(f"Fetching grievances for [Requested:{booth_id} -> Real:{real_id}], assigned_to={assigned_to}")
     
     # If filtered by assigned worker, find those IDs first from MongoDB
     specific_ids = []
     if assigned_to:
-        cursor = db.grievance_assignments.find({"worker_id": assigned_to}, {"grievance_id": 1})
+        cursor = db.grievance_assignments.find({"worker_id": str(assigned_to)}, {"grievance_id": 1})
         async for doc in cursor:
-            specific_ids.append(doc["grievance_id"])
-        
-        if not specific_ids:
-            # logger.info(f"No assignments found for worker {assigned_to}")
-            return []
-        # logger.info(f"Worker {assigned_to} has {len(specific_ids)} assignments: {specific_ids}")
+            specific_ids.append(str(doc["grievance_id"]))
+
+    # Separate Supabase IDs (integers) from MongoDB IDs (strings like GR-xxx)
+    supabase_ids = []
+    mongo_only_ids = []
+    for sid in specific_ids:
+        if str(sid).isdigit():
+            supabase_ids.append(str(sid))
+        else:
+            mongo_only_ids.append(str(sid))
 
     params = {
         "select": "*",
@@ -1226,47 +1317,83 @@ async def get_grievances(
     
     if real_id:
         params["booth_id"] = f"eq.{real_id}"
-    if voter_id:
-        params["voter_id"] = f"eq.{voter_id}"
-    if specific_ids:
-        # Filter Supabase by these specific IDs
-        params["id"] = f"in.({','.join(specific_ids)})"
+    if final_voter_id:
+        # Check for both numeric and V-prefixed IDs in Supabase for safety
+        params["voter_id"] = f"in.({final_voter_id},V{final_voter_id})"
     
-    data = await supabase_request("GET", "grievances", params=params)
+    # If a worker is requesting, they ONLY see their assigned IDs
+    if assigned_to and not specific_ids:
+        return []
+        
+    # For citizens, we often want to show all their reports regardless of booth
+    # But we still respect booth_id if explicitly passed and not a self-query
+    effective_real_id = real_id
+    if final_voter_id and role == "citizen":
+        effective_real_id = None # Ignore booth filter for self-reports
+
+    # Only query Supabase if we have valid integer IDs or if we're not filtering by ID
+    data = []
+    if not assigned_to or supabase_ids:
+        if supabase_ids:
+            params["id"] = f"in.({','.join(supabase_ids)})"
+        
+        # Adjust Supabase params for citizen self-query
+        if final_voter_id and role == "citizen":
+            if "booth_id" in params: del params["booth_id"]
+
+        data = await supabase_request("GET", "grievances", params=params)
+    
+    # Handle Supabase errors gracefully to avoid 500 Internal Server Error
+    supabase_grievances = []
+    if isinstance(data, list):
+        supabase_grievances = data
+    elif isinstance(data, dict) and "error" in data:
+        logger.error(f"Supabase grievances fetch error (Code {data.get('status_code')}): {data.get('error')}")
+        # Continue with empty list to allow fallback to MongoDB
     
     # Merge with MongoDB data for hybrid richness
     mongo_grievances = []
     try:
-        query = {}
-        if real_id: query["booth_id"] = real_id
-        if voter_id: query["voter_id"] = str(voter_id)
-        
-        # Search in voters' embedded grievances
-        cursor = db.voters.find({"grievances": {"$exists": True, "$ne": []}})
+        # Filter MongoDB by normalized voter_id or original voter_id
+        mongo_query = {"grievances": {"$exists": True, "$ne": []}}
+        if final_voter_id:
+            # Match either ID or V-ID in MongoDB, and handle potential string/int conversion
+            mongo_query["id"] = {"$in": [str(final_voter_id), f"V{final_voter_id}", str(requested_voter_id) if requested_voter_id else None]}
+            # Remove None from the list
+            mongo_query["id"]["$in"] = [x for x in mongo_query["id"]["$in"] if x is not None]
+            
+        cursor = db.voters.find(mongo_query)
         async for v in cursor:
+            v_booth = v.get("booth_id")
+            if effective_real_id and v_booth != effective_real_id: continue
+            
             for g in v.get("grievances", []):
-                # Filter criteria
-                if real_id and v.get("booth_id") != real_id: continue
-                if voter_id and str(v.get("id")) != str(voter_id): continue
+                g_id = str(g.get("id"))
+                
+                # If worker is requesting, only show assigned to them
+                if assigned_to and g_id not in specific_ids:
+                    continue
                 
                 mongo_grievances.append({
-                    "id": g.get("id"),
+                    "id": g_id,
                     "voter_id": v.get("id"),
                     "voter_name": v.get("name"),
                     "description": g.get("description"),
                     "status": g.get("status", "submitted"),
                     "category": g.get("category", "other"),
-                    "booth_id": v.get("booth_id"),
-                    "created_at": v.get("last_ai_update")
+                    "booth_id": v_booth,
+                    "created_at": g.get("created_at") or v.get("last_ai_update"),
+                    "attachments": g.get("attachments", []),
+                    "ai_vision_details": g.get("ai_vision_details", None)
                 })
     except Exception as e:
         logger.error(f"Mongo grievances fetch error: {e}")
 
-    # Combine data sets
-    all_data = (data or []) + mongo_grievances
+    # Combine data sets safely
+    all_data = supabase_grievances + mongo_grievances
     
-    if not all_data:
-        # Final fallback for demo: Return embedded grievances from MongoDB voters
+    # fallback for demo: Only if NOT filtering by voter or assigned
+    if not all_data and not assigned_to and not final_voter_id:
         mongo_voters_gr = await db.voters.find({"grievances": {"$exists": True, "$ne": []}}, {"_id": 0}).to_list(20)
         fallback_gr = []
         for v in mongo_voters_gr:
@@ -1279,14 +1406,16 @@ async def get_grievances(
                     "status": g.get("status", "submitted"),
                     "category": g.get("category", "other"),
                     "booth_id": v.get("booth_id"),
-                    "created_at": v.get("last_ai_update")
+                    "created_at": g.get("created_at") or v.get("last_ai_update"),
+                    "attachments": g.get("attachments", []),
+                    "ai_vision_details": g.get("ai_vision_details", None)
                 })
         all_data = fallback_gr
     
     if not all_data:
         return []
 
-    # Get assignments from MongoDB for enrichment
+    # Get ALL relevant assignments from MongoDB for enrichment
     grievance_ids = [str(g["id"]) for g in all_data]
     assignments = {}
     if grievance_ids:
@@ -1310,12 +1439,67 @@ async def get_grievances(
         
         g = dict(item)
         assignment = assignments.get(g_id, {})
+        
+        if g.get("status") == "submitted" and assignment:
+            g["status"] = "assigned"
+            
         g["assigned_worker"] = assignment.get("worker_name", None)
         g["assigned_worker_id"] = assignment.get("worker_id", None)
         result.append(g)
     
     return result
 
+
+@api_router.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    """Upload media and perform AI Vision analysis if it's an image"""
+    try:
+        file_ext = file.filename.split(".")[-1].lower()
+        file_name = f"{uuid.uuid4().hex}.{file_ext}"
+        file_path = UPLOAD_DIR / file_name
+        
+        content = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+            
+        file_url = f"/static/uploads/{file_name}"
+        ai_vision_details = None
+        
+        # Perform AI Vision analysis for images
+        if file_ext in ["jpg", "jpeg", "png", "webp"]:
+            try:
+                base64_image = base64.b64encode(content).decode('utf-8')
+                response = await openai_client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": "Analyze this image of a public grievance (like a broken road, trash, or water leak). Provide a very brief summary of the damage/issue and estimate the severity (Low, Medium, High). Format: Summary: [Text], Severity: [Text]"},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/{file_ext};base64,{base64_image}",
+                                    },
+                                },
+                            ],
+                        }
+                    ],
+                    max_tokens=300,
+                )
+                ai_vision_details = response.choices[0].message.content
+            except Exception as e:
+                logger.error(f"AI Vision error: {e}")
+                ai_vision_details = "AI analysis currently unavailable for this image."
+
+        return {
+            "url": file_url,
+            "filename": file.filename,
+            "ai_details": ai_vision_details
+        }
+    except Exception as e:
+        logger.error(f"Upload error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/grievances")
 async def create_grievance(data: GrievanceCreate):
@@ -1330,24 +1514,34 @@ async def create_grievance(data: GrievanceCreate):
         valid_categories = ['road', 'water', 'electricity', 'sanitation', 'healthcare', 'education', 'other']
         category = data.category.lower() if data.category and data.category.lower() in valid_categories else ai_result["category"]
         
+        # Normalize voter ID for Supabase
+        clean_voter_id = normalize_voter_id(data.voter_id)
+        
         grievance_data = {
             "description": data.description,
             "category": category,
             "booth_id": real_booth_id,
             "status": "submitted",
             "sentiment": ai_result["sentiment"],
-            "priority": ai_result["priority"]
+            "priority": ai_result["priority"],
+            "photo_url": data.attachments[0] if data.attachments else None
         }
         
-        if data.voter_id:
-            grievance_data["voter_id"] = data.voter_id
+        # --- Supabase Schema Compatibility Check ---
+        # Note: If Supabase schema is updated to include attachments and ai_vision_details, 
+        # uncomment the lines below to sync them to Supabase.
+        # if data.attachments: grievance_data["attachments"] = data.attachments
+        # if data.ai_vision_details: grievance_data["ai_vision_details"] = data.ai_vision_details
+        
+        if clean_voter_id:
+            grievance_data["voter_id"] = clean_voter_id
         
         result = await supabase_request("POST", "grievances", json_data=grievance_data)
         
         # --- HYBRID FALLBACK: Also store in MongoDB for demo safety ---
         mongo_gr = {
             "id": f"GR-{uuid.uuid4().hex[:6]}",
-            "voter_id": data.voter_id or "anonymous",
+            "voter_id": data.voter_id or "anonymous", # Keep original for Mongo lookup
             "voter_name": data.voter_name or "Anonymous Citizen",
             "description": data.description,
             "category": category,
@@ -1355,16 +1549,31 @@ async def create_grievance(data: GrievanceCreate):
             "booth_id": real_booth_id,
             "sentiment": ai_result["sentiment"],
             "priority": ai_result["priority"],
+            "attachments": data.attachments,
+            "ai_vision_details": data.ai_vision_details,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
         try:
-            # Add to a relevant voter in MongoDB or a separate collection
+            # Add to a relevant voter in MongoDB
             if data.voter_id:
-                await db.voters.update_one(
-                    {"id": str(data.voter_id)},
+                # Try matching both original and normalized in Mongo
+                mongo_res = await db.voters.update_one(
+                    {"id": {"$in": [str(data.voter_id), f"V{clean_voter_id}" if clean_voter_id else ""]}},
                     {"$push": {"grievances": mongo_gr}}
                 )
+                
+                # If no voter found (e.g. dummy user not in DB), create a minimal record for the demo
+                if mongo_res.matched_count == 0 and "dummy" in str(data.voter_id).lower():
+                    logger.info(f"Creating mock voter record for {data.voter_id} in MongoDB")
+                    await db.voters.insert_one({
+                        "id": str(data.voter_id),
+                        "name": data.voter_name or "Demo Citizen",
+                        "booth_id": real_booth_id,
+                        "grievances": [mongo_gr],
+                        "role": "citizen",
+                        "last_ai_update": datetime.now(timezone.utc).isoformat()
+                    })
         except Exception as e:
             logger.error(f"MongoDB grievance fallback error: {e}")
 
@@ -1372,8 +1581,23 @@ async def create_grievance(data: GrievanceCreate):
         grievance = mongo_gr # Default to local copy
         if result and isinstance(result, list) and len(result) > 0:
             grievance = result[0]
-        elif result and isinstance(result, dict) and "error" in result:
-            logger.warning(f"Supabase sync failed (Code {result.get('status_code')}): {result.get('error')}. Falling back to MongoDB only.")
+            # CRITICAL: If we have a real Supabase ID, update the MongoDB record to match
+            # This ensures future updates and lookups work across both DBs
+            try:
+                if data.voter_id:
+                    await db.voters.update_one(
+                        {"id": str(data.voter_id), "grievances.id": mongo_gr["id"]},
+                        {"$set": {"grievances.$.id": str(grievance["id"])}}
+                    )
+                # Also update the local object for the notification hook below
+                grievance_id_to_use = str(grievance["id"])
+            except Exception as e:
+                logger.error(f"Failed to sync Mongo ID with Supabase: {e}")
+                grievance_id_to_use = mongo_gr["id"]
+        else:
+            grievance_id_to_use = mongo_gr["id"]
+            if result and isinstance(result, dict) and "error" in result:
+                logger.warning(f"Supabase sync failed (Code {result.get('status_code')}): {result.get('error')}. Falling back to MongoDB only.")
         
         # Ensure grievance is a dictionary and has required fields for the AI logic below
         if not isinstance(grievance, dict):
@@ -1392,7 +1616,7 @@ async def create_grievance(data: GrievanceCreate):
             await send_notification(
                 user_id=str(data.voter_id) if data.voter_id else "anonymous",
                 title="Grievance Filed Successfully",
-                message=f"Your {category} issue has been logged. Ref ID: {grievance.get('id', 'N/A')}",
+                message=f"Your {category} issue has been logged. Ref ID: {grievance_id_to_use}",
                 n_type="success",
                 metadata={"phone": data.voter_phone}
             )
@@ -1403,7 +1627,7 @@ async def create_grievance(data: GrievanceCreate):
                 title="New Grievance Filed",
                 message=f"A new {category} issue has been reported in Booth {real_booth_id}.",
                 n_type="warning",
-                metadata={"grievance_id": str(grievance.get("id"))}
+                metadata={"grievance_id": grievance_id_to_use}
             )
         except Exception as e:
             logger.error(f"Notification Hook Error: {e}")
@@ -1420,14 +1644,24 @@ async def create_grievance(data: GrievanceCreate):
 async def update_grievance(data: GrievanceUpdate, user: dict = Depends(get_current_user)):
     """Update grievance - IDOR Protection & RBAC enforced"""
     # Security Check: Only Admins or the assigned Worker can update a grievance.
-    # Citizens can NOT update their own grievances (e.g. to "resolve" them prematurely).
     is_admin = user.get("role") in ["admin", "city_manager"]
     
-    # Check if the user is the assigned worker in the current DB state if not in request
-    current_assignment = await db.grievance_assignments.find_one({"grievance_id": str(data.id)})
-    is_assigned_worker = current_assignment and str(user.get("id")) == str(current_assignment.get("worker_id"))
+    # Check if the user is the assigned worker in the current DB state OR in the incoming request
+    # Robust check: Try both string and integer IDs for MongoDB lookup
+    g_id_str = str(data.id)
+    current_assignment = await db.grievance_assignments.find_one({"grievance_id": g_id_str})
+    
+    # If not found by string ID, try as int if it's numeric
+    if not current_assignment and g_id_str.isdigit():
+        current_assignment = await db.grievance_assignments.find_one({"grievance_id": int(g_id_str)})
+    
+    is_already_assigned = current_assignment and str(user.get("id")) == str(current_assignment.get("worker_id"))
+    is_being_assigned = data.assigned_to and str(user.get("id")) == str(data.assigned_to)
+    
+    is_authorized_worker = is_already_assigned or is_being_assigned
             
-    if not is_admin and not is_assigned_worker:
+    if not is_admin and not is_authorized_worker:
+        logger.warning(f"Unauthorized update attempt by {user.get('id')} ({user.get('role')}) for grievance {data.id}. Admin={is_admin}, Assigned={is_already_assigned}")
         raise HTTPException(status_code=403, detail="Unauthorized grievance update attempt")
 
     try:
@@ -1447,8 +1681,9 @@ async def update_grievance(data: GrievanceUpdate, user: dict = Depends(get_curre
         # --- HYBRID UPDATE: Also update in MongoDB if it exists there ---
         try:
             # Find the voter who owns this grievance in MongoDB
+            # Try both exact match and numeric match for ID consistency
             await db.voters.update_one(
-                {"grievances.id": str(data.id)},
+                {"grievances.id": g_id_str},
                 {"$set": {
                     "grievances.$.status": data.status or "assigned",
                     "grievances.$.resolution_note": data.resolution_note
@@ -1460,24 +1695,24 @@ async def update_grievance(data: GrievanceUpdate, user: dict = Depends(get_curre
         # Handle worker assignment in MongoDB
         if data.assigned_to:
             # Get worker details from MongoDB
-            worker = await db.users.find_one({"id": data.assigned_to}, {"_id": 0})
+            worker = await db.users.find_one({"id": str(data.assigned_to)}, {"_id": 0})
             worker_name = worker["name"] if worker else (data.assigned_worker or "Assigned Personnel")
             
             logger.info(f"Assigning grievance {data.id} to {worker_name} ({data.assigned_to})")
             
-            res = await db.grievance_assignments.update_one(
-                {"grievance_id": str(data.id)},
+            # Upsert assignment record
+            await db.grievance_assignments.update_one(
+                {"grievance_id": g_id_str},
                 {"$set": {
-                    "grievance_id": str(data.id),
-                    "worker_id": data.assigned_to,
+                    "grievance_id": g_id_str,
+                    "worker_id": str(data.assigned_to),
                     "worker_name": worker_name,
                     "assigned_at": datetime.now(timezone.utc).isoformat()
                 }},
                 upsert=True
             )
-            logger.info(f"MongoDB Update Result: matched={res.matched_count}, modified={res.modified_count}, upserted={res.upserted_id}")
             
-            # Update status to assigned if not already
+            # Ensure Supabase status reflects the assignment
             if not data.status or data.status == "submitted":
                 await supabase_request("PATCH", f"grievances?id=eq.{data.id}", json_data={
                     "status": "assigned"
@@ -1526,6 +1761,128 @@ async def update_grievance(data: GrievanceUpdate, user: dict = Depends(get_curre
     except Exception as e:
         logger.error(f"Error updating grievance: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# --- ROUTES: CITIZEN SERVICES ---
+
+@api_router.get("/bulletins")
+async def get_bulletins():
+    """Live news and updates for the citizen portal"""
+    return [
+        {
+            "id": 1,
+            "title": "Booth #17 Modernization Complete",
+            "content": "New solar-powered lighting and automated queue desks are now operational. Latency reduced by 40%.",
+            "date": datetime.now(timezone.utc).isoformat(),
+            "category": "infrastructure"
+        },
+        {
+            "id": 2,
+            "title": "Voter List Refresh Q1",
+            "content": "Final synchronized electoral roll for the Strategic Sector is now live. Verify your details in the Services tab.",
+            "date": (datetime.now(timezone.utc) - timedelta(days=1)).isoformat(),
+            "category": "governance"
+        }
+    ]
+
+@api_router.get("/voter-services")
+async def get_voter_services():
+    """High-utility digital services for citizens"""
+    return [
+        {"id": "s1", "name": "Voter ID Proxy", "icon": "badge", "description": "Encrypted digital identity for verification.", "status": "active"},
+        {"id": "s2", "name": "Booth Navigation", "icon": "near_me", "description": "AR-ready route to Booth #17 entrance.", "status": "active"},
+        {"id": "s3", "name": "Digital Voter Slip", "icon": "receipt_long", "description": "Instantly download your polling station pass.", "status": "active"},
+        {"id": "s4", "name": "Live Queue Latency", "icon": "timer", "description": "Real-time AI wait-time predictions.", "status": "active"},
+        {"id": "s5", "name": "Family Linkage", "icon": "family_history", "description": "Manage polling for your entire household.", "status": "active"},
+        {"id": "s6", "name": "Electoral Roll Audit", "icon": "fact_check", "description": "Verify your presence in the final list.", "status": "active"}
+    ]
+
+@api_router.get("/schemes")
+async def get_schemes():
+    """Available government schemes and welfare programs"""
+    return [
+        {"id": "sch1", "title": "PM Kisan Samman", "category": "Agriculture", "benefit": "₹6,000 Annual", "status": "Verified", "official_link": "https://pmkisan.gov.in/"},
+        {"id": "sch2", "title": "Ayushman Bharat Card", "category": "Healthcare", "benefit": "₹5L Coverage", "status": "Available", "official_link": "https://dashboard.pmjay.gov.in/"},
+        {"id": "sch3", "title": "Ujjwala Yojana 2.0", "category": "Energy", "benefit": "Free Gas Connection", "status": "Eligible", "official_link": "https://www.pmuy.gov.in/"},
+        {"id": "sch4", "title": "PM Svanidhi", "category": "Livelihood", "benefit": "Interest Subsidy", "status": "Open", "official_link": "https://pmsvanidhi.mohua.gov.in/"}
+    ]
+
+@api_router.post("/schemes/apply")
+async def apply_scheme(data: SchemeApplication):
+    """Register application for a welfare scheme"""
+    logger.info(f"Scheme Application: Voter {data.voter_id} applied for {data.scheme_id} in Booth {data.booth_id}")
+    return {"status": "success", "message": "Application received and queued for priority verification."}
+
+@api_router.get("/schemes/applications")
+async def get_applications(voter_id: str):
+    """Fetch user's scheme application status"""
+    return [
+        {"id": "app1", "scheme_title": "Ayushman Bharat", "status": "resolved", "date": (datetime.now(timezone.utc) - timedelta(days=5)).isoformat()},
+        {"id": "app2", "scheme_title": "PM Kisan", "status": "submitted", "date": (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()}
+    ]
+
+# --- AI VOICE SERVICES (SARVAM AI Integration) ---
+
+@api_router.post("/ai/stt")
+async def speech_to_text(file: UploadFile = File(...)):
+    """Convert audio to text using Sarvam AI or Fallback"""
+    if not SARVAM_API_KEY:
+        return {"transcript": "System Note: Audio processed. (Sarvam Key Missing - Simulated Transcript for Demo)"}
+    
+    try:
+        content = await file.read()
+        async with httpx.AsyncClient() as client:
+            files = {'file': (file.filename, content, 'audio/mpeg')}
+            response = await client.post(
+                "https://api.sarvam.ai/v1/speech-to-text",
+                headers={'api-subscription-key': SARVAM_API_KEY},
+                files=files,
+                timeout=20.0
+            )
+            if response.status_code == 200:
+                return response.json()
+            return {"transcript": f"Transcription System: Processing error ({response.status_code}). Please try text input."}
+    except Exception as e:
+        logger.error(f"STT Error: {e}")
+        return {"transcript": "Transcription System: Network latency exceeded. Using manual input fallback."}
+
+@api_router.post("/ai/tts")
+async def text_to_speech(text: str = Form(...), user_id: str = Form(...)):
+    """Convert text to speech using Sarvam AI"""
+    if not text or not SARVAM_API_KEY:
+        # Fallback to a pre-recorded base64 or empty
+        return {"audio_content": None, "error": "TTS Service Unavailable (Demo Mode)"}
+
+    try:
+        async with httpx.AsyncClient() as client:
+            payload = {
+                "inputs": [text],
+                "target_language_code": "hi-IN",
+                "speaker": "meera",
+                "pitch": 0,
+                "pace": 1.0,
+                "loudness": 1.5,
+                "speech_sample_rate": 8000,
+                "enable_preprocessing": True,
+                "model": "bulbul:v1"
+            }
+            response = await client.post(
+                "https://api.sarvam.ai/text-to-speech",
+                headers={
+                    'api-subscription-key': SARVAM_API_KEY,
+                    'Content-Type': 'application/json'
+                },
+                json=payload,
+                timeout=15.0
+            )
+            if response.status_code == 200:
+                data = response.json()
+                # Sarvam returns audio_content as base64 in a list
+                return {"audio_content": data["audios"][0] if data.get("audios") else None}
+            return {"audio_content": None, "error": f"Sarvam API error: {response.status_code}"}
+    except Exception as e:
+        logger.error(f"TTS Error: {e}")
+        return {"audio_content": None, "error": str(e)}
 
 
 class CampaignBlast(BaseModel):
@@ -2538,8 +2895,9 @@ async def health():
 
 app.include_router(api_router)
 
-# CORS configuration: Use environment variable or default for safety
-ALLOWED_ORIGINS = os.environ.get("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3002").split(",")
+# CORS configuration: Include all known frontend ports (CRA :3000, Vite :5173-5176)
+_default_cors = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3002,http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176"
+ALLOWED_ORIGINS = os.environ.get("CORS_ORIGINS", _default_cors).split(",")
 
 app.add_middleware(
     CORSMiddleware,

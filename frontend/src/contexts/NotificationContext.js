@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { toast, Toaster } from 'sonner';
+import { useUser } from './UserContext';
 
 const NotificationContext = createContext();
 
@@ -33,7 +34,7 @@ export const NotificationProvider = ({ children, userId }) => {
   }, [userId]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) return; // Don't connect if user is not authenticated
 
     fetchHistory();
 

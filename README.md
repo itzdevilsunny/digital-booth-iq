@@ -15,6 +15,8 @@ BoothIQ transforms raw electoral data into a high-precision **Knowledge Graph**,
 
 ## 📦 Setting Up for Production
 
+**Developer Recommendation**: For a better development experience, we recommend installing the [React Developer Tools](https://reactjs.org/link/react-devtools) browser extension.
+
 ### Backend (Render)
 1.  **Environment Variables**:
     - `MONGO_URL`: Your MongoDB Atlas connection string.

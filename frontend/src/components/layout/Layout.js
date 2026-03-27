@@ -20,8 +20,8 @@ const Layout = ({ children, title = "Dashboard", user }) => {
 
     return (
         <div className={`flex min-h-screen bg-background text-foreground overflow-hidden selection:bg-emerald-500/30 transition-colors duration-500`}>
-            {/* Sidebar - Desktop Only */}
-            <Sidebar user={user} />
+            {/* Sidebar - Desktop Only (Hidden for Citizen role to avoid dual nav) */}
+            {!isCitizen && <Sidebar user={user} />}
 
             <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
                 {/* Header */}

@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   getBoothsSummary, analyzeBooth, sendTargetedUpdate,
-  getVoters, getManagerAlerts, managerAutoResolve
+  getVoters, getManagerAlerts, managerAutoResolve,
+  getConstituencySummary
 } from '../../api';
 import { 
   Globe, Search, 
@@ -73,12 +74,15 @@ const BoothCard = ({ booth, onClick }) => (
     </motion.div>
 );
 
-export default function CityManagerDashboard({ currentUser }) {
+export default function CityManagerDashboard({ currentUser, boothId }) {
+    const [summary, setSummary] = useState(null);
     const [booths, setBooths] = useState([]);
     const [selectedBooth, setSelectedBooth] = useState(null);
     const [alerts, setAlerts] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [resolving, setResolving] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('overview');
     
     // States for the Action Flow
     const [analyzing, setAnalyzing] = useState(false);
@@ -90,14 +94,22 @@ export default function CityManagerDashboard({ currentUser }) {
     const [updateMessage, setUpdateMessage] = useState('');
 
     const loadBooths = useCallback(async () => {
+        setLoading(true);
         try {
-            const [bData, aData] = await Promise.all([
+            const results = await Promise.allSettled([
                 getBoothsSummary(),
-                getManagerAlerts()
+                getVoters(),
+                getManagerAlerts(),
+                getConstituencySummary()
             ]);
-            setBooths(bData || []);
-            setAlerts(aData || []);
+            
+            const [bRes, vRes, aRes, sRes] = results;
+            setBooths(bRes.status === 'fulfilled' ? bRes.value || [] : []);
+            setVoters(vRes.status === 'fulfilled' ? vRes.value || [] : []);
+            setAlerts(aRes.status === 'fulfilled' ? aRes.value || [] : []);
+            setSummary(sRes.status === 'fulfilled' ? sRes.value : null);
         } catch (e) { console.error(e); }
+        setLoading(false);
     }, []);
 
     useEffect(() => { loadBooths(); }, [loadBooths]);
@@ -345,22 +357,28 @@ export default function CityManagerDashboard({ currentUser }) {
                         </AnimatePresence>
                     </div>
 
-                    <div className="glass-panel p-6 rounded-2xl border border-border shadow-sm bg-card text-foreground">
-                        <div className="flex items-center gap-2 mb-6">
-                            <Activity size={16} className="text-emerald-600" />
-                            <h3 className="text-lg font-display font-bold tracking-tight uppercase">Voter Statistics</h3>
+                    <div className="bg-card border border-border rounded-2xl p-6 h-full">
+                        <div className="flex items-center gap-3 mb-6">
+                            <Activity className="text-emerald-500" size={20} />
+                            <h3 className="font-black text-foreground uppercase tracking-tight">Institutional Metrics</h3>
                         </div>
-                        <div className="space-y-5">
+                        <div className="space-y-6">
                             {[
-                                { label: 'Outreach Rate', value: '84%', trend: '+4%', color: 'text-emerald-600' },
-                                { label: 'Issue Resolution', value: 'High', trend: 'OPTIMAL', color: 'text-emerald-500' },
-                                { label: 'Interaction Score', value: 'Excellent', trend: 'STABLE', color: 'text-foreground' }
+                                { label: 'Outreach Rate', value: summary?.metrics?.total_turnout || '72%', color: 'bg-emerald-500' },
+                                { label: 'Issue Resolution', value: `${summary?.metrics?.active_issues === 0 ? '100%' : '84%'}`, color: 'bg-indigo-500' },
+                                { label: 'System Latency', value: summary?.metrics?.system_latency || '24ms', color: 'bg-amber-500' },
                             ].map((stat, i) => (
-                                <div key={i} className="flex items-center justify-between group">
-                                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest group-hover:text-foreground transition-colors">{stat.label}</span>
-                                    <div className="text-right">
-                                        <p className="text-lg font-display font-bold leading-none">{stat.value}</p>
-                                        <p className={`text-[7px] font-bold uppercase tracking-widest mt-1 ${stat.color}`}>{stat.trend}</p>
+                                <div key={i}>
+                                    <div className="flex justify-between items-end mb-2">
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</p>
+                                        <p className="text-sm font-black text-foreground">{stat.value}</p>
+                                    </div>
+                                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                                        <motion.div 
+                                            initial={{ width: 0 }}
+                                            animate={{ width: typeof stat.value === 'string' && stat.value.includes('%') ? stat.value : '95%' }}
+                                            className={`h-full ${stat.color} rounded-full`}
+                                        />
                                     </div>
                                 </div>
                             ))}

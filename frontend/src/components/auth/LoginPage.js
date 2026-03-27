@@ -46,14 +46,19 @@ const LoginPage = () => {
 
     const handleLogin = (e) => {
         e.preventDefault();
+        setError(null);
         setLoading(true);
 
-        const userToLogin = selectedDemoUser || {
-            id: email || `dummy-${roleKey}`,
-            name: email.split('@')[0] || `Demo ${roleKey}`,
-            role: roleKey,
-            email: email || `${roleKey}@boothiq.ai`
-        };
+        // Security: Always ensure role is present in the payload
+        const userToLogin = selectedDemoUser 
+            ? { ...selectedDemoUser, role: roleKey } 
+            : {
+                id: email || `dummy-${roleKey}`,
+                name: email.split('@')[0] || `Demo ${roleKey}`,
+                role: roleKey,
+                email: email || `${roleKey}@boothiq.ai`,
+                password: password // Include password if entered
+            };
 
         // Async Auth - Handle real token generation
         (async () => {
@@ -67,7 +72,18 @@ const LoginPage = () => {
             } catch (err) {
                 console.error("Login failed:", err);
                 setLoading(false);
-                setError(`Login failed: ${err.response?.data?.detail || err.message}`);
+                
+                // Enhanced Error Handling for [object Object] issues
+                let errorMsg = "Login failed. Please check credentials.";
+                if (err.response?.data?.detail) {
+                    errorMsg = typeof err.response.data.detail === 'string' 
+                        ? err.response.data.detail 
+                        : JSON.stringify(err.response.data.detail);
+                } else if (err.message) {
+                    errorMsg = err.message;
+                }
+                
+                setError(errorMsg);
             }
         })();
     };

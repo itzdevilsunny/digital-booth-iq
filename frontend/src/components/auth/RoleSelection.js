@@ -155,8 +155,15 @@ const RoleSelectionPage = () => {
                             { 
                                 id: 'analyst', 
                                 title: 'Data Analyst', 
-                                desc: 'Sentiment analysis & trend prediction.', 
+                                desc: 'Deep-dive into booth metrics and predictive AI insights.', 
                                 icon: BarChart3, 
+                            },
+                            { 
+                                id: 'blo', 
+                                title: 'Booth Agent', 
+                                desc: 'Real-time voter check-in and turnout management.', 
+                                icon: UserCheck, 
+                                badge: 'NEW'
                             },
                             { 
                                 id: 'constituency', 

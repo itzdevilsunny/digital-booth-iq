@@ -6,7 +6,7 @@ import {
   CheckCircle2, RefreshCw, 
   ChevronRight, Clock, ShieldAlert,
   Zap, BadgeCheck, ClipboardList, Send, MapPin,
-  Shield, Activity, X
+  Shield, Activity, X, Image as ImageIcon, Sparkles, Film
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -43,6 +43,36 @@ const TaskCard = ({ task, onStart, onResolve, delay }) => {
                 <h4 className="text-sm font-bold text-foreground mb-1 truncate group-hover:text-emerald-500 transition-colors uppercase tracking-tight leading-tight">
                     {task.description}
                 </h4>
+
+                {/* AI Vision & Media Quick View */}
+                {(task.ai_vision_details || (task.attachments && task.attachments.length > 0)) && (
+                    <div className="flex flex-col gap-2 my-2 p-2 bg-emerald-500/5 rounded-xl border border-emerald-500/10">
+                        {task.attachments && task.attachments.length > 0 && (
+                            <div className="flex gap-1.5">
+                                {task.attachments.map((url, i) => (
+                                    <div key={i} className="size-10 rounded-lg border border-border overflow-hidden bg-muted">
+                                        {url.match(/\.(mp4|webm|ogg)$/) ? (
+                                            <div className="w-full h-full flex items-center justify-center text-emerald-500">
+                                                <Film size={14} />
+                                            </div>
+                                        ) : (
+                                            <img src={url} alt="Evidence" className="w-full h-full object-cover" />
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {task.ai_vision_details && (
+                            <div className="flex items-start gap-2">
+                                <Sparkles size={10} className="text-emerald-500 mt-0.5 shrink-0" />
+                                <p className="text-[9px] font-bold text-muted-foreground/80 leading-tight uppercase italic">
+                                    {task.ai_vision_details.length > 100 ? task.ai_vision_details.substring(0, 100) + '...' : task.ai_vision_details}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 <div className="flex flex-wrap items-center gap-4 text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest">
                     <span className="flex items-center gap-1.5"><MapPin size={12} className="text-emerald-500" /> Booth {task.booth_id}</span>
                     <span className="flex items-center gap-1.5"><Clock size={12} className="text-emerald-500" /> at {new Date(task.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -78,10 +108,12 @@ export default function WorkerDashboard({ currentUser }) {
     const [resolveModal, setResolveModal] = useState(null);
     const [resolutionNote, setResolutionNote] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState(null);
 
     const loadData = useCallback(async () => {
         if (!currentUser?.id) return;
         setLoading(true);
+        setError(null);
         try {
             // Use Promise.allSettled to prevent total failure if one endpoint fails
             const results = await Promise.allSettled([
@@ -89,27 +121,41 @@ export default function WorkerDashboard({ currentUser }) {
             ]);
             
             const [gRes] = results;
-            setTasks(gRes.status === 'fulfilled' ? gRes.value || [] : []);
             
-            if (results.some(r => r.status === 'rejected')) {
-                console.error("Worker sync partial failure:", results.filter(r => r.status === 'rejected'));
+            if (gRes.status === 'fulfilled') {
+                setTasks(gRes.value || []);
+            } else {
+                console.error("Task fetch failed:", gRes.reason);
+                // Gracefully handle backend errors by showing an empty list or specific message
+                setTasks([]);
+                setError("System failed to sync your tasks. Please refresh.");
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error("Dashboard sync error:", e);
+            setTasks([]);
+            setError("A connection error occurred.");
+        }
         setLoading(false);
     }, [currentUser?.id]);
 
     useEffect(() => { loadData(); }, [loadData]);
 
     const handleStartWork = async (taskId) => {
+        setError(null);
         try {
             await updateGrievance({ id: String(taskId), status: 'in_progress' });
             loadData();
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e);
+            const detail = e.response?.data?.detail || "Action failed.";
+            setError(`Start Task Error: ${detail}`);
+        }
     };
 
     const handleResolve = async () => {
         if (!resolveModal) return;
         setSubmitting(true);
+        setError(null);
         try {
             await updateGrievance({
                 id: String(resolveModal.id),
@@ -119,7 +165,11 @@ export default function WorkerDashboard({ currentUser }) {
             setResolveModal(null);
             setResolutionNote('');
             loadData();
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e);
+            const detail = e.response?.data?.detail || "Update failed.";
+            setError(`Resolution Error: ${detail}`);
+        }
         setSubmitting(false);
     };
 
@@ -180,6 +230,17 @@ export default function WorkerDashboard({ currentUser }) {
                     </motion.div>
                 ))}
             </div>
+
+            {error && (
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center gap-3 text-rose-500"
+                >
+                    <ShieldAlert size={18} />
+                    <p className="text-[10px] font-black uppercase tracking-widest">{error}</p>
+                </motion.div>
+            )}
 
             {/* Tasks Area */}
             <div className="space-y-4">
