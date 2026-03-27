@@ -35,7 +35,6 @@ const BottomNav = () => {
                     { id: 'report', label: 'Report', icon: AlertCircle, path: '/citizen/report' },
                     { id: 'services', label: 'Services', icon: Briefcase, path: '/citizen/voter-services' },
                     { id: 'schemes', label: 'Schemes', icon: FileText, path: '/citizen/schemes' },
-                    { id: 'development', label: 'Dev', icon: TrendingUp, path: '/citizen/development' },
                     { id: 'profile', label: 'User', icon: User, path: '/citizen/profile' }
                 ];
             case 'admin':

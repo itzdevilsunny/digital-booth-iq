@@ -2003,6 +2003,70 @@ async def initiate_campaign_blast(data: CampaignBlast, user: dict = Depends(get_
         
     return {"status": "deployed", "reach": "950M", "timestamp": datetime.now(timezone.utc).isoformat()}
 
+@api_router.get("/graph-data")
+async def get_graph_data(booth_id: Union[int, str], user: dict = Depends(get_current_user)):
+    """Extraction logic for the Intelligence Lead's Knowledge Graph (nodes & links)"""
+    if user.get("role") not in ["admin", "city_manager", "analyst", "constituency"]:
+        raise HTTPException(status_code=403, detail="Unauthorized access to intelligence graph")
+
+    real_id = await resolve_booth_id(booth_id)
+    try:
+        # Fetch all voters for this booth from MongoDB (source of truth for connections)
+        voters = await db.voters.find({"booth_id": real_id}, {"_id": 0}).to_list(1000)
+        
+        if not voters:
+            # Fallback for demo: return any voters if booth-specific query is empty
+            voters = await db.voters.find({}, {"_id": 0}).limit(100).to_list(100)
+
+        nodes = []
+        links = []
+        seen_voter_ids = {str(v.get("id")) for v in voters}
+
+        for v in voters:
+            v_id = str(v.get("id"))
+            nodes.append({
+                "id": v_id,
+                "name": v.get("name", "Voter"),
+                "sentiment": v.get("sentiment", "neutral"),
+                "influence": v.get("influence_score", 1.0),
+                "role": v.get("role", "citizen"),
+                "isInfluencer": v.get("influence_score", 0) > 3.5
+            })
+
+            # Process links from connections
+            for conn in v.get("connections", []):
+                target_id = str(conn.get("to"))
+                if target_id in seen_voter_ids:
+                    # Avoid duplicate links by sorting IDs
+                    link_pair = tuple(sorted([v_id, target_id]))
+                    links.append({
+                        "source": v_id,
+                        "target": target_id,
+                        "type": conn.get("type", "community")
+                    })
+
+        # Remove duplicate links (simplistic bidirectional check)
+        unique_links = []
+        seen_links = set()
+        for l in links:
+            key = tuple(sorted([l["source"], l["target"]]))
+            if key not in seen_links:
+                unique_links.append(l)
+                seen_links.add(key)
+
+        return {
+            "nodes": nodes,
+            "links": unique_links,
+            "metadata": {
+                "total_nodes": len(nodes),
+                "total_links": len(unique_links),
+                "booth_id": real_id
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error generating graph data: {e}")
+        return {"nodes": [], "links": []}
+
 # --- ROUTES: ANALYTICS ---
 
 @api_router.get("/analytics")
@@ -2915,16 +2979,24 @@ async def health():
 
 app.include_router(api_router)
 
-# CORS configuration: Include all known frontend ports (CRA :3000, Vite :5173-5176)
-_default_cors = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3002,http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176"
-ALLOWED_ORIGINS = os.environ.get("CORS_ORIGINS", _default_cors).split(",")
+# CORS configuration: Merge default origins with environment-specific overrides
+_default_cors = [
+    "http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3002", 
+    "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176",
+    "https://26th-may-booth-iq.vercel.app"
+]
+_env_cors = [o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()]
+ALLOWED_ORIGINS = list(set(_default_cors + _env_cors))
+
+logger.info(f"CORS Configuration: Allowed Origins = {ALLOWED_ORIGINS}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=True,
     allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 @app.on_event("startup")

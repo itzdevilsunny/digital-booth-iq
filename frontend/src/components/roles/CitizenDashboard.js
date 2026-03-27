@@ -147,7 +147,6 @@ const ServiceGrid = ({ items, onSelect, activeTab }) => (
             { id: 'report', label: t('reportTab') || 'Report', icon: AlertCircle },
             { id: 'voter-services', label: t('servicesTab') || 'Services', icon: Briefcase },
             { id: 'schemes', label: t('schemesTab') || 'Schemes', icon: FileText },
-            { id: 'development', label: t('developmentTab') || 'Development', icon: TrendingUp },
             { id: 'profile', label: 'Profile', icon: User },
         ];
 

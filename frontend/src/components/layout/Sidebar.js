@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard, AlertCircle, Users, Activity, Target, Zap, LogOut, ChevronRight,
-    Briefcase, FileText, TrendingUp
+    Briefcase, FileText, TrendingUp, Globe
 } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
 
@@ -32,9 +32,9 @@ const Sidebar = ({ user }) => {
         { id: 'report', label: 'Report Issue', icon: AlertCircle, path: `/${role}/report`, hide: role !== 'citizen' },
         { id: 'services', label: 'Voter Services', icon: Briefcase, path: `/${role}/voter-services`, hide: role !== 'citizen' },
         { id: 'schemes', label: 'Govt Schemes', icon: FileText, path: `/${role}/schemes`, hide: role !== 'citizen' },
-        { id: 'development', label: 'Development', icon: TrendingUp, path: `/${role}/development`, hide: role !== 'citizen' },
-        { id: 'voters', label: 'Voter Registry', icon: Users, path: `/${role}/voters`, hide: !['panna', 'admin', 'constituency'].includes(role) },
-        { id: 'matrix', label: 'Data Analysis', icon: Zap, path: `/${role}/matrix`, hide: role !== 'constituency' },
+        { id: 'voters', label: 'Voter Registry', icon: Users, path: `/${role}/voters`, hide: !['panna', 'admin'].includes(role) },
+        { id: 'campaigns', label: 'Campaigns', icon: Zap, path: `/${role}/campaigns`, hide: role !== 'admin' },
+        { id: 'intelligence', label: 'Intelligence', icon: Globe, path: `/${role}`, hide: !['analyst', 'constituency'].includes(role) },
         { id: 'comms', label: 'Communications', icon: Activity, path: `/${role}/calls`, hide: role !== 'panna' },
     ];
 
