@@ -13,13 +13,24 @@ import CityManagerDashboard from './components/roles/CityManagerDashboard';
 import ConstituencyDashboard from './components/roles/ConstituencyDashboard';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { UserProvider, useUser } from './contexts/UserContext';
 import { getUsers } from './api';
 
-const RoleRoute = ({ children, role, title, user }) => {
+const RoleRoute = ({ children, role, title }) => {
+    const { user, loading } = useUser();
+    
+    if (loading) return null;
     if (!user) return <Navigate to="/select-role" />;
+    
+    // Strict Role-Based Access Control (RBAC)
+    if (user.role !== role && user.role !== 'admin' && user.role !== 'city_manager') {
+        console.warn(`Unauthorized access attempt to ${role} dashboard by ${user.role}`);
+        return <Navigate to="/select-role" />;
+    }
+    
     return (
         <NotificationProvider userId={user.id}>
-            <Layout title={title}>
+            <Layout title={title} user={user}>
                 {children}
             </Layout>
         </NotificationProvider>
@@ -27,17 +38,7 @@ const RoleRoute = ({ children, role, title, user }) => {
 };
 
 function App() {
-    const [users, setUsers] = useState([]);
-
-    // Fetch users silently in the background — do NOT block render on this.
-    useEffect(() => {
-        getUsers()
-            .then(u => setUsers(u || []))
-            .catch(e => console.error('App init error (non-blocking):', e));
-    }, []);
-
-    // Helper to get dummy user for a role
-    const getRoleUser = (role) => users.find(u => u.role === role) || { id: `dummy-${role}`, role, name: `Demo ${role}`, booth_id: 17 };
+    const { user } = useUser();
 
     return (
         <ThemeProvider>
@@ -50,44 +51,44 @@ function App() {
 
                     {/* Dashboard Routes with Layout */}
                     <Route path="/citizen/*" element={
-                        <RoleRoute role="citizen" title="Public Portal" user={getRoleUser('citizen')}>
-                            <CitizenDashboard currentUser={getRoleUser('citizen')} boothId={17} />
+                        <RoleRoute role="citizen" title="Public Portal">
+                            <CitizenDashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />
 
                     <Route path="/worker/*" element={
-                        <RoleRoute role="worker" title="Field Officer" user={getRoleUser('worker')}>
-                            <WorkerDashboard currentUser={getRoleUser('worker')} boothId={17} />
+                        <RoleRoute role="worker" title="Field Officer">
+                            <WorkerDashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />
 
                     <Route path="/admin/*" element={
-                        <RoleRoute role="admin" title="Booth Manager" user={getRoleUser('admin')}>
-                            <AdminDashboard currentUser={getRoleUser('admin')} boothId={17} />
+                        <RoleRoute role="admin" title="Booth Manager">
+                            <AdminDashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />
 
                     <Route path="/panna/*" element={
-                        <RoleRoute role="panna" title="Voter Guide" user={getRoleUser('panna')}>
-                            <PannaDashboard currentUser={getRoleUser('panna')} boothId={17} />
+                        <RoleRoute role="panna" title="Voter Guide">
+                            <PannaDashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />
 
                     <Route path="/analyst/*" element={
-                        <RoleRoute role="analyst" title="Data Analyst" user={getRoleUser('analyst')}>
-                            <AnalystDashboard currentUser={getRoleUser('analyst')} boothId={17} />
+                        <RoleRoute role="analyst" title="Data Analyst">
+                            <AnalystDashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />
 
                     <Route path="/city_manager/*" element={
-                        <RoleRoute role="city_manager" title="Admin Portal" user={getRoleUser('city_manager')}>
-                            <CityManagerDashboard currentUser={getRoleUser('city_manager')} boothId={17} />
+                        <RoleRoute role="city_manager" title="Admin Portal">
+                            <CityManagerDashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />
 
                     <Route path="/constituency/*" element={
-                        <RoleRoute role="constituency" title="Party Command" user={getRoleUser('constituency')}>
-                            <ConstituencyDashboard currentUser={getRoleUser('constituency')} boothId={17} />
+                        <RoleRoute role="constituency" title="Party Command">
+                            <ConstituencyDashboard currentUser={user} boothId={17} />
                         </RoleRoute>
                     } />
 
@@ -99,4 +100,10 @@ function App() {
     );
 }
 
-export default App;
+const AppWrapper = () => (
+    <UserProvider>
+        <App />
+    </UserProvider>
+);
+
+export default AppWrapper;

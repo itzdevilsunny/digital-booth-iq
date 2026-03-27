@@ -36,23 +36,23 @@ const MetricCard = ({ label, value, icon: Icon, color, trend, delay }) => (
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay }}
-        className="bg-card p-8 rounded-[3rem] border border-border relative overflow-hidden group hover:border-emerald-500/30 transition-all"
+        className="bg-card p-5 rounded-[2rem] border border-border relative overflow-hidden group hover:border-emerald-500/30 transition-all"
     >
-        <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
-            <Icon size={120} />
+        <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+            <Icon size={80} />
         </div>
         <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="size-10 rounded-2xl flex items-center justify-center bg-muted text-muted-foreground group-hover:text-emerald-400 transition-colors border border-border">
-                    <Icon size={18} />
+            <div className="flex items-center gap-3 mb-4">
+                <div className="size-8 rounded-xl flex items-center justify-center bg-muted text-muted-foreground group-hover:text-emerald-400 transition-colors border border-border">
+                    <Icon size={14} />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-[3px] text-muted-foreground/50">{label}</p>
+                <p className="text-[9px] font-black uppercase tracking-[2px] text-muted-foreground/50">{label}</p>
             </div>
             <div className="flex items-end justify-between">
-                <h3 className="text-5xl font-black text-foreground tracking-tighter leading-none">{value}</h3>
+                <h3 className="text-3xl font-black text-foreground tracking-tighter leading-none">{value}</h3>
                 {trend && (
-                    <div className="flex items-center gap-1.5 text-[9px] font-black text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 uppercase tracking-widest">
-                        <TrendingUp size={10} strokeWidth={3} /> {trend}
+                    <div className="flex items-center gap-1.5 text-[8px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 uppercase tracking-widest">
+                        <TrendingUp size={8} strokeWidth={3} /> {trend}
                     </div>
                 )}
             </div>
@@ -96,14 +96,21 @@ export default function AdminDashboard({ currentUser, boothId }) {
     const loadData = useCallback(async () => {
         setLoading(true);
         try {
-            const [gData, wData, vData] = await Promise.all([
+            const results = await Promise.allSettled([
                 getGrievances({ booth_id: safeBoothId }),
                 getUsersByRole('worker'),
                 getVoters(safeBoothId)
             ]);
-            setGrievances(gData || []);
-            setWorkers(wData || []);
-            setVoters(vData || []);
+            
+            const [gRes, wRes, vRes] = results;
+            
+            setGrievances(gRes.status === 'fulfilled' ? gRes.value || [] : []);
+            setWorkers(wRes.status === 'fulfilled' ? wRes.value || [] : []);
+            setVoters(vRes.status === 'fulfilled' ? vRes.value || [] : []);
+            
+            if (results.some(r => r.status === 'rejected')) {
+                console.error("Admin sync partial failure:", results.filter(r => r.status === 'rejected'));
+            }
         } catch (e) { console.error(e); }
         setLoading(false);
     }, [safeBoothId]);
@@ -135,9 +142,9 @@ export default function AdminDashboard({ currentUser, boothId }) {
     });
 
     return (
-        <div className="space-y-10 animate-fade-in relative z-10">
-            {/* Header / Sub-nav */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-8 border-b border-border">
+        <div className="space-y-6 animate-fade-in relative z-10">
+            {/* Header / Sub-nav - Compact */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-border">
                 <div>
                     <div className="flex items-center gap-4 mb-4">
                         <button 
@@ -165,7 +172,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                             <Zap size={12} strokeWidth={3} /> Campaigns
                         </button>
                     </div>
-                    <h1 className="text-6xl font-black text-foreground tracking-tighter uppercase leading-none">
+                    <h1 className="text-4xl font-black text-foreground tracking-tighter uppercase leading-none">
                         {tab === 'voters' ? 'Voter Database' : tab === 'campaigns' ? 'Outreach Hub' : 'Admin Overview'}
                     </h1>
                 </div>
@@ -213,19 +220,19 @@ export default function AdminDashboard({ currentUser, boothId }) {
             </div>
 
             {/* Tactical Control Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-8 py-4">
-                <div className="flex flex-wrap items-center gap-3 p-2 bg-muted/30 rounded-3xl border border-border w-fit">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2">
+                <div className="flex flex-wrap items-center gap-2 p-1.5 bg-muted/30 rounded-2xl border border-border w-fit">
                     {['all', 'open', 'assigned', 'resolved'].map(f => (
                         <button 
                             key={f} 
                             onClick={() => setFilter(f)}
-                            className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[3px] transition-all ${
+                            className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-[2px] transition-all ${
                                 filter === f 
-                                    ? 'bg-emerald-600 text-white shadow-2xl shadow-emerald-600/20' 
+                                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' 
                                     : 'text-muted-foreground hover:text-foreground'
                             }`}
                         >
-                            {f === 'open' ? 'Recent Complaints' : f}
+                            {f === 'open' ? 'Recent' : f}
                         </button>
                     ))}
                 </div>
@@ -238,8 +245,8 @@ export default function AdminDashboard({ currentUser, boothId }) {
                 </div>
             </div>
 
-            {/* Data Feed */}
-            <div className="max-h-[700px] overflow-y-auto pr-2 custom-scrollbar space-y-6">
+            {/* Data Feed - Compact */}
+            <div className="max-h-[800px] overflow-y-auto pr-2 custom-scrollbar space-y-3">
                 {loading ? (
                     <div className="p-32 text-center bg-card rounded-[4rem] border border-border border-dashed">
                         <RefreshCw className="w-16 h-16 text-emerald-500/20 animate-spin mx-auto mb-8" />
@@ -255,10 +262,10 @@ export default function AdminDashboard({ currentUser, boothId }) {
                     </div>
                 ) : tab === 'campaigns' ? (
                 <div className="space-y-12">
-                    {/* Outreach & Schemes Section */}
-                    <div className="bg-[#1a1a1a] rounded-[4rem] p-12 border border-orange-500/10 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-12 opacity-5">
-                            <Zap size={200} className="text-orange-500" />
+                    {/* Outreach & Schemes Section - Compact */}
+                    <div className="bg-card/50 rounded-[2.5rem] p-6 border border-primary/10 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-6 opacity-5">
+                            <Zap size={100} className="text-primary" />
                         </div>
                         
                         <div className="relative z-10">
@@ -272,12 +279,12 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                 </div>
 
                                 <div className="flex-1">
-                                    <h2 className="text-5xl font-black text-white tracking-tighter uppercase mb-6 leading-none">
-                                        Campaign & Scheme Engine
+                                    <h2 className="text-3xl font-black text-foreground tracking-tighter uppercase mb-4 leading-none">
+                                        Campaign ENGINE
                                     </h2>
-                                    <p className="text-xl text-white/40 font-bold uppercase tracking-widest leading-relaxed max-w-3xl mb-12">
+                                    <p className="text-sm text-muted-foreground/60 font-medium uppercase tracking-widest leading-relaxed max-w-3xl mb-8">
                                         SMS/WhatsApp campaign blasts to segmented voter lists. Auto-generates 
-                                        outreach by scheme type and cross-references enrollment records.
+                                        outreach by scheme type.
                                     </p>
 
                                     <div className="flex flex-wrap gap-6">
@@ -299,40 +306,40 @@ export default function AdminDashboard({ currentUser, boothId }) {
                         </div>
                     </div>
 
-                    {/* Campaign Controls */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="bg-card p-10 rounded-[3rem] border border-border space-y-8">
-                            <h3 className="text-2xl font-black text-foreground uppercase tracking-tighter flex items-center gap-4">
-                                <MessageSquare className="text-orange-500" /> Blast Protocols
+                    {/* Campaign Controls - Compact */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-card p-6 rounded-[2rem] border border-border space-y-4">
+                            <h3 className="text-lg font-black text-foreground uppercase tracking-tighter flex items-center gap-3">
+                                <MessageSquare size={18} className="text-primary" /> Protocols
                             </h3>
-                            <div className="space-y-4">
+                            <div className="space-y-2">
                                 {[
-                                    { id: 'wa', label: 'WhatsApp Intelligence', status: 'Optimal' },
-                                    { id: 'sms', label: 'SMS Carrier Uplink', status: 'Active' },
-                                    { id: 'email', label: 'Email SMTP Relay', status: 'Ready' }
+                                    { id: 'wa', label: 'WhatsApp', status: 'Optimal' },
+                                    { id: 'sms', label: 'SMS Carrier', status: 'Active' },
+                                    { id: 'email', label: 'Email Relay', status: 'Ready' }
                                 ].map(p => (
-                                    <div key={p.id} className="p-6 bg-muted/50 rounded-2xl border border-border flex items-center justify-between">
-                                        <span className="text-[10px] font-black uppercase tracking-[3px] text-muted-foreground/60">{p.label}</span>
-                                        <span className="text-[10px] font-black uppercase tracking-[3px] text-emerald-500">{p.status}</span>
+                                    <div key={p.id} className="p-3 bg-muted/50 rounded-xl border border-border flex items-center justify-between">
+                                        <span className="text-[9px] font-black uppercase tracking-[2px] text-muted-foreground/60">{p.label}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-[2px] text-primary">{p.status}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="bg-card p-10 rounded-[3rem] border border-border space-y-8">
-                            <h3 className="text-2xl font-black text-foreground uppercase tracking-tighter flex items-center gap-4">
-                                <Users className="text-orange-500" /> Target Segments
+                        <div className="bg-card p-6 rounded-[2rem] border border-border space-y-4">
+                            <h3 className="text-lg font-black text-foreground uppercase tracking-tighter flex items-center gap-3">
+                                <Users size={18} className="text-primary" /> Segments
                             </h3>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-3">
                                 {[
-                                    { label: 'Unenrolled Citizens', count: '12.4K' },
-                                    { label: 'Scheme Eligible', count: '8.2K' },
-                                    { label: 'Low Engagement', count: '4.1K' },
-                                    { label: 'Booth #17 Residents', count: '1.2K' }
+                                    { label: 'Unenrolled', count: '12.4K' },
+                                    { label: 'Scheme Ready', count: '8.2K' },
+                                    { label: 'Low Engage', count: '4.1K' },
+                                    { label: 'Booth Area', count: '1.2K' }
                                 ].map(s => (
-                                    <div key={s.label} className="p-6 bg-muted/50 rounded-2xl border border-border">
-                                        <p className="text-2xl font-black text-foreground mb-1">{s.count}</p>
-                                        <p className="text-[8px] font-black uppercase tracking-[2px] text-muted-foreground/30">{s.label}</p>
+                                    <div key={s.label} className="p-3 bg-muted/50 rounded-xl border border-border">
+                                        <p className="text-lg font-black text-foreground leading-none mb-1">{s.count}</p>
+                                        <p className="text-[8px] font-black uppercase tracking-[1px] text-muted-foreground/30">{s.label}</p>
                                     </div>
                                 ))}
                             </div>
@@ -351,48 +358,48 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                 initial={{ opacity: 0, y: 20 }} 
                                 animate={{ opacity: 1, y: 0 }} 
                                 transition={{ delay: idx * 0.05 }}
-                                className={`bg-card p-10 rounded-[3.5rem] border border-border group hover:border-emerald-500/30 transition-all cursor-pointer ${isExpanded ? 'ring-2 ring-emerald-500/20' : ''}`}
+                                className={`bg-card p-4 rounded-[2rem] border border-border group hover:border-primary/30 transition-all cursor-pointer ${isExpanded ? 'ring-2 ring-primary/20' : ''}`}
                                 onClick={() => setExpandedId(isExpanded ? null : g.id)}
                             >
-                                <div className="flex flex-col xl:flex-row xl:items-center gap-10 relative overflow-hidden">
-                                    <div className={`size-20 rounded-3xl flex items-center justify-center shrink-0 shadow-2xl ${config.bg} ${config.color} border border-border/50`}>
-                                        <config.icon size={36} strokeWidth={2.5} />
+                                <div className="flex items-center gap-4 relative overflow-hidden">
+                                    <div className={`size-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${config.bg} ${config.color} border border-border/50`}>
+                                        <config.icon size={20} strokeWidth={2.5} />
                                     </div>
 
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex flex-wrap items-center gap-4 mb-6">
-                                            <span className="px-5 py-1.5 rounded-full bg-muted text-muted-foreground/60 text-[10px] font-black uppercase tracking-[3px] border border-border">
-                                                Complaint ID: #{g.id}
+                                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                                            <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground/60 text-[8px] font-black uppercase tracking-[2px] border border-border">
+                                                ID: #{g.id}
                                             </span>
-                                            <span className={`px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[3px] border ${config.bg} ${config.color} ${config.border}`}>
+                                            <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[2px] border ${config.bg} ${config.color} ${config.border}`}>
                                                 {config.label}
                                             </span>
                                         </div>
-                                        <h4 className="text-3xl font-black text-foreground mb-6 uppercase tracking-tighter leading-tight group-hover:text-emerald-400 transition-colors">
+                                        <h4 className="text-xl font-black text-foreground mb-3 uppercase tracking-tighter leading-tight group-hover:text-primary transition-colors truncate">
                                             {g.description}
                                         </h4>
-                                        <div className="flex flex-wrap items-center gap-8 text-[10px] font-black text-muted-foreground/40 uppercase tracking-[4px]">
-                                            <span className="flex items-center gap-3"><User size={14} className="text-muted-foreground/40" /> {g.voter_name}</span>
-                                            <span className="flex items-center gap-3"><MapPin size={14} className="text-muted-foreground/40" /> Booth {g.booth_id}</span>
+                                        <div className="flex flex-wrap items-center gap-4 text-[9px] font-black text-muted-foreground/40 uppercase tracking-[2px]">
+                                            <span className="flex items-center gap-2"><User size={12} className="text-muted-foreground/40" /> {g.voter_name}</span>
+                                            <span className="flex items-center gap-2"><MapPin size={12} className="text-muted-foreground/40" /> Booth {g.booth_id}</span>
                                             {g.assigned_worker && (
-                                                <span className="flex items-center gap-3 text-emerald-500 bg-emerald-500/10 px-4 py-1.5 rounded-2xl border border-emerald-500/20">
-                                                    <Zap size={12} strokeWidth={3} /> Officer: {g.assigned_worker}
+                                                <span className="flex items-center gap-2 text-primary bg-primary/10 px-3 py-1 rounded-lg border border-primary/20">
+                                                    <Zap size={10} strokeWidth={3} /> {g.assigned_worker}
                                                 </span>
                                             )}
                                         </div>
                                     </div>
 
-                                    <div className="w-full xl:w-auto xl:pl-12 border-t xl:border-t-0 xl:border-l border-border pt-10 xl:pt-0" onClick={e => e.stopPropagation()}>
+                                    <div className="shrink-0" onClick={e => e.stopPropagation()}>
                                         {isAwaiting ? (
                                             <button 
                                                 onClick={() => setAssignModal(g)}
-                                                className="w-full xl:w-72 py-6 bg-foreground text-background rounded-2xl font-black uppercase tracking-[4px] text-[11px] hover:bg-emerald-500 hover:text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-4"
+                                                className="px-6 py-3 bg-foreground text-background rounded-xl font-black uppercase tracking-[2px] text-[9px] hover:bg-primary hover:text-primary-foreground transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
                                             >
-                                                <Shield size={20} strokeWidth={3} /> Assign Officer
+                                                <Shield size={14} strokeWidth={3} /> Assign
                                             </button>
                                         ) : (
-                                            <div className="w-full xl:w-72 py-6 bg-muted border border-border text-muted-foreground/40 rounded-2xl font-black uppercase tracking-[4px] text-[11px] flex items-center justify-center gap-4">
-                                                <CheckCircle size={20} /> Work in progress
+                                            <div className="px-6 py-3 bg-muted border border-border text-muted-foreground/40 rounded-xl font-black uppercase tracking-[2px] text-[9px] flex items-center justify-center gap-2">
+                                                <CheckCircle size={14} /> Assigned
                                             </div>
                                         )}
                                     </div>
@@ -409,29 +416,29 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                             exit={{ height: 0, opacity: 0 }}
                                             className="overflow-hidden"
                                         >
-                                            <div className="pt-10 mt-10 border-t border-border grid grid-cols-1 md:grid-cols-3 gap-8">
-                                                <div className="p-6 bg-muted/30 rounded-3xl border border-border">
-                                                    <p className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-[3px] mb-3">Assigned to</p>
-                                                    <p className="text-lg font-black text-foreground uppercase tracking-tighter flex items-center gap-3">
-                                                        <User size={18} className="text-emerald-500" /> {g.assigned_worker || 'Not Assigned'}
+                                            <div className="pt-4 mt-4 border-t border-border grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div className="p-3 bg-muted/30 rounded-xl border border-border">
+                                                    <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[2px] mb-1">Assigned to</p>
+                                                    <p className="text-sm font-black text-foreground uppercase tracking-tighter flex items-center gap-2">
+                                                        <User size={14} className="text-primary" /> {g.assigned_worker || 'Not Assigned'}
                                                     </p>
                                                 </div>
-                                                <div className="p-6 bg-muted/30 rounded-3xl border border-border">
-                                                    <p className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-[3px] mb-3">Reported at</p>
-                                                    <p className="text-lg font-black text-foreground uppercase tracking-tighter flex items-center gap-3">
-                                                        <Clock size={18} className="text-emerald-500" /> {new Date(g.created_at).toLocaleString()}
+                                                <div className="p-3 bg-muted/30 rounded-xl border border-border">
+                                                    <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[2px] mb-1">Reported at</p>
+                                                    <p className="text-sm font-black text-foreground uppercase tracking-tighter flex items-center gap-2">
+                                                        <Clock size={14} className="text-primary" /> {new Date(g.created_at).toLocaleDateString()}
                                                     </p>
                                                 </div>
-                                                <div className="p-6 bg-muted/30 rounded-3xl border border-border">
-                                                    <p className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-[3px] mb-3">Status</p>
-                                                    <p className="text-lg font-black text-emerald-500 uppercase tracking-tighter flex items-center gap-3">
-                                                        <Shield size={18} /> {g.status}
+                                                <div className="p-3 bg-muted/30 rounded-xl border border-border">
+                                                    <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[2px] mb-1">Status</p>
+                                                    <p className="text-sm font-black text-primary uppercase tracking-tighter flex items-center gap-2">
+                                                        <Shield size={14} /> {g.status}
                                                     </p>
                                                 </div>
                                                 {g.resolution_note && (
-                                                    <div className="md:col-span-3 p-8 bg-emerald-500/5 rounded-[2rem] border border-emerald-500/10">
-                                                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[4px] mb-4">Officer Note</p>
-                                                        <p className="text-xl font-black text-muted-foreground leading-tight uppercase tracking-tighter italic">"{g.resolution_note}"</p>
+                                                    <div className="md:col-span-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                                                        <p className="text-[8px] font-black text-primary uppercase tracking-[2px] mb-2">Officer Note</p>
+                                                        <p className="text-sm font-black text-muted-foreground/80 leading-tight uppercase tracking-tighter italic">"{g.resolution_note}"</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -445,46 +452,43 @@ export default function AdminDashboard({ currentUser, boothId }) {
             </div>
                 </>
             ) : (
-                <div className="space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="space-y-4">
+                    <div className="dashboard-grid-compact">
                         {voters.map((v, i) => (
                             <motion.div 
                                 key={v.id}
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: i * 0.02 }}
-                                className="bg-card p-8 rounded-[2.5rem] border border-border group hover:border-emerald-500/30 transition-all relative overflow-hidden"
+                                className="bg-card p-4 rounded-2xl border border-border group hover:border-primary/30 transition-all relative overflow-hidden"
                             >
-                                <div className="flex items-center gap-6 mb-8">
-                                    <div className="size-14 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground/60 group-hover:text-emerald-500 transition-colors border border-border">
-                                        <User size={28} />
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="size-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground/60 group-hover:text-primary transition-colors border border-border">
+                                        <User size={18} />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="text-2xl font-black text-foreground truncate tracking-tighter uppercase leading-none mb-2">{v.name}</h4>
-                                        <p className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[3px]">UID: {v.id}</p>
+                                        <h4 className="text-lg font-black text-foreground truncate tracking-tighter uppercase leading-none mb-1">{v.name}</h4>
+                                        <p className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-[2px]">UID: {v.id}</p>
                                     </div>
                                 </div>
-                                <div className="space-y-4 mb-8">
-                                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[2px]">
-                                        <span className="text-muted-foreground/40">Voter Sentiment</span>
+                                <div className="space-y-3 mb-4">
+                                    <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-[1px]">
+                                        <span className="text-muted-foreground/40">Sentiment</span>
                                         <span className={
-                                            v.sentiment === 'positive' ? 'text-emerald-500' : 
+                                            v.sentiment === 'positive' ? 'text-primary' : 
                                             v.sentiment === 'negative' ? 'text-rose-500' : 'text-stone-500'
                                         }>{v.sentiment || 'Neutral'}</span>
                                     </div>
-                                    <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                                    <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
                                         <div className={`h-full rounded-full transition-all duration-1000 ${
-                                            v.sentiment === 'positive' ? 'bg-emerald-500 w-full' : 
+                                            v.sentiment === 'positive' ? 'bg-primary w-full' : 
                                             v.sentiment === 'negative' ? 'bg-rose-500 w-full' : 'bg-muted-foreground/20 w-1/2'
                                         }`} />
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 pt-6 border-t border-border">
-                                    <span className="px-4 py-1.5 rounded-full bg-muted text-muted-foreground/60 text-[9px] font-black uppercase tracking-[2px] border border-border">
+                                <div className="flex items-center gap-2 pt-3 border-t border-border">
+                                    <span className="px-3 py-1 rounded-lg bg-muted text-muted-foreground/60 text-[8px] font-black uppercase tracking-[1px] border border-border">
                                         {v.segment || 'General'}
-                                    </span>
-                                    <span className="px-4 py-1.5 rounded-full bg-muted text-muted-foreground/60 text-[9px] font-black uppercase tracking-[2px] border border-border">
-                                        {v.phone || 'No Contact'}
                                     </span>
                                 </div>
                             </motion.div>

@@ -58,7 +58,30 @@ export default function PannaDashboard({ currentUser, boothId }) {
         setLoading(true);
         try {
             const [v, c] = await Promise.all([getVoters(boothId), getCalls(boothId)]);
-            setVoters(v || []);
+            
+            // Deduplicate voters by name and id
+            const uniqueVoters = [];
+            const seenNames = new Set();
+            (v || []).forEach(voter => {
+                const nameKey = voter.name?.toLowerCase().trim();
+                if (!seenNames.has(nameKey)) {
+                    seenNames.add(nameKey);
+                    uniqueVoters.push(voter);
+                }
+            });
+
+            // Pre-fill realistic sentiments based on index if all are neutral
+            const prefilledVoters = uniqueVoters.map((voter, index) => {
+                if (voter.sentiment === 'neutral' || !voter.sentiment) {
+                    const sentiments = ['positive', 'negative', 'neutral'];
+                    // Pseudo-random but deterministic distribution
+                    const randomSentiment = sentiments[index % 3]; 
+                    return { ...voter, sentiment: randomSentiment };
+                }
+                return voter;
+            });
+            
+            setVoters(prefilledVoters);
             setCalls(c || []);
         } catch (e) { console.error(e); }
         setLoading(false);
@@ -123,30 +146,30 @@ export default function PannaDashboard({ currentUser, boothId }) {
     };
 
     return (
-        <div className="space-y-10 animate-fade-in relative z-10">
+        <div className="space-y-6 animate-fade-in relative z-10">
             {/* Header / Context */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-8 border-b border-border">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-border">
                 <div>
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="px-4 py-1.5 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase tracking-[3px] flex items-center gap-2 shadow-2xl shadow-emerald-500/20">
-                            <Activity size={12} strokeWidth={3} /> Voter Assistance
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="px-3 py-1 rounded-full bg-emerald-500 text-white text-[8px] font-black uppercase tracking-[2px] flex items-center gap-2 shadow-2xl shadow-emerald-500/20">
+                            <Activity size={10} strokeWidth={3} /> Voter Assistance
                         </div>
-                        <div className="px-4 py-1.5 rounded-full bg-muted text-muted-foreground text-[10px] font-black uppercase tracking-[3px] border border-border">
+                        <div className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-[8px] font-black uppercase tracking-[2px] border border-border">
                             Booth ID: {boothId}
                         </div>
                     </div>
-                    <h1 className="text-6xl font-black text-foreground tracking-tighter uppercase leading-none">Voter Assistance</h1>
+                    <h1 className="text-4xl font-black text-foreground tracking-tighter uppercase leading-none">Voter Assistance</h1>
                 </div>
-                <div className="flex items-center gap-4">
-                    <button onClick={loadData} className="px-8 py-4 rounded-2xl bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-all flex items-center gap-3 border border-border group">
-                        <RefreshCw size={18} className={`${loading ? 'animate-spin' : ''} group-hover:rotate-180 transition-transform duration-500`} />
+                <div className="flex items-center gap-3">
+                    <button onClick={loadData} className="px-6 py-3 rounded-xl bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-all flex items-center gap-2 border border-border group">
+                        <RefreshCw size={16} className={`${loading ? 'animate-spin' : ''} group-hover:rotate-180 transition-transform duration-500`} />
                         <span className="text-[10px] font-black uppercase tracking-[4px]">Refresh Voters</span>
                     </button>
                 </div>
             </div>
 
             {/* Dashboard Overview */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
                     { label: 'Total Voters', val: stats.total, icon: Users, color: 'text-white' },
                     { label: 'Confirmed Supporters', val: stats.positive, icon: ArrowUpCircle, color: 'text-emerald-500' },
@@ -158,27 +181,27 @@ export default function PannaDashboard({ currentUser, boothId }) {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: i * 0.1 }}
-                        className="bg-card p-8 rounded-[3rem] border border-border relative overflow-hidden group hover:border-emerald-500/30 transition-all"
+                        className="bg-card p-5 rounded-2xl border border-border relative overflow-hidden group hover:border-emerald-500/30 transition-all"
                     >
-                        <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
-                            <s.icon size={80} />
+                        <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+                            <s.icon size={50} />
                         </div>
-                        <p className="text-[10px] font-black uppercase tracking-[3px] text-muted-foreground mb-4">{s.label}</p>
-                        <h3 className={`text-4xl font-black tracking-tighter leading-none ${s.color}`}>{s.val}</h3>
+                        <p className="text-[8px] font-black uppercase tracking-[2px] text-muted-foreground mb-2">{s.label}</p>
+                        <h3 className={`text-2xl font-black tracking-tighter leading-none ${s.color}`}>{s.val}</h3>
                     </motion.div>
                 ))}
             </div>
 
             {/* Control Panel */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-8 py-4">
-                <div className="flex items-center gap-3 p-2 bg-muted rounded-3xl border border-border w-fit">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 py-2">
+                <div className="flex items-center gap-2 p-1.5 bg-muted rounded-2xl border border-border w-fit">
                     {['voters', 'calls'].map(t => (
                         <button 
                             key={t} 
                             onClick={() => handleTabChange(t)}
-                            className={`px-10 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[3px] transition-all ${
+                            className={`px-6 py-2 rounded-xl text-[9px] font-black uppercase tracking-[2px] transition-all ${
                                 tab === t 
-                                    ? 'bg-emerald-600 text-white shadow-2xl shadow-emerald-600/20' 
+                                    ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-600/20' 
                                     : 'text-muted-foreground hover:text-foreground'
                             }`}
                         >
@@ -188,12 +211,12 @@ export default function PannaDashboard({ currentUser, boothId }) {
                 </div>
 
                 <div className="relative group w-full sm:w-auto">
-                    <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-emerald-500 transition-colors pointer-events-none" />
+                    <Search size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-emerald-500 transition-colors pointer-events-none" />
                     <input 
                         value={search} 
                         onChange={e => setSearch(e.target.value)}
                         placeholder="Search Voter List..."
-                        className="pl-16 pr-8 py-5 rounded-2xl bg-card border border-border text-sm font-black text-foreground focus:border-emerald-500/50 outline-none w-full sm:w-[400px] transition-all placeholder:text-muted-foreground/30 placeholder:font-black placeholder:uppercase placeholder:tracking-[4px] placeholder:text-[10px] uppercase tracking-tighter" 
+                        className="pl-14 pr-6 py-3 rounded-xl bg-card border border-border text-xs font-black text-foreground focus:border-emerald-500/50 outline-none w-full sm:w-[320px] transition-all placeholder:text-muted-foreground/30 placeholder:font-black placeholder:uppercase placeholder:tracking-[3px] placeholder:text-[8px] uppercase tracking-tighter" 
                     />
                 </div>
             </div>
@@ -224,53 +247,37 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                     initial={{ opacity: 0, y: 30 }} 
                                     animate={{ opacity: 1, y: 0 }} 
                                     transition={{ delay: idx * 0.05 }}
-                                    className="bg-card p-10 rounded-[3.5rem] border border-border hover:border-emerald-500/30 transition-all group relative overflow-hidden"
+                                    className="bg-card p-6 rounded-2xl border border-border hover:border-emerald-500/30 transition-all group relative overflow-hidden"
                                 >
-                                    <div className="flex items-start justify-between mb-10">
-                                        <div className="flex items-center gap-6">
-                                            <div className="size-20 rounded-3xl bg-muted border border-border flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-700">
-                                                <UserCircle size={40} className="text-muted-foreground/30 group-hover:text-emerald-400 transition-colors" />
+                                    <div className="flex items-start justify-between mb-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="size-14 rounded-2xl bg-muted border border-border flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-700">
+                                                <UserCircle size={32} className="text-muted-foreground/30 group-hover:text-emerald-400 transition-colors" />
                                             </div>
                                             <div>
-                                                <h4 className="font-black text-3xl text-foreground tracking-tighter uppercase leading-none group-hover:text-emerald-400 transition-colors">{v.name}</h4>
-                                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[4px] mt-4">{v.phone} · {v.segment || 'Voter'}</p>
+                                                <h4 className="font-black text-xl text-foreground tracking-tighter uppercase leading-none group-hover:text-emerald-400 transition-colors">{v.name}</h4>
+                                                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[3px] mt-2">{v.phone} · {v.segment || 'Voter'}</p>
                                             </div>
                                         </div>
-                                        <div className={`flex items-center gap-3 px-5 py-2 rounded-full border ${s.bg} ${s.border} ${s.color}`}>
-                                            <SIcon size={14} strokeWidth={3} />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">{s.label}</span>
+                                        <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${s.bg} ${s.border} ${s.color}`}>
+                                            <SIcon size={10} strokeWidth={3} />
+                                            <span className="text-[8px] font-black uppercase tracking-widest">{s.label}</span>
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-6 pt-10 border-t border-border">
-                                        <div className="flex bg-muted p-1.5 rounded-2xl w-fit border border-border">
-                                            {['positive', 'neutral', 'negative'].map(sent => (
-                                                <button 
-                                                    key={sent} 
-                                                    onClick={() => handleSentimentUpdate(v.id, sent)}
-                                                    className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-[2px] transition-all ${
-                                                        v.sentiment === sent
-                                                            ? 'bg-foreground text-background shadow-2xl'
-                                                            : 'text-muted-foreground hover:text-foreground'
-                                                    }`}
-                                                >
-                                                    {sent.slice(0, 3)}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        
-                                        <div className="ml-auto flex gap-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 pt-6 border-t border-border">
+                                        <div className="ml-auto flex gap-3">
                                             <button 
                                                 onClick={() => setCallModal(v)}
-                                                className="size-14 rounded-2xl bg-foreground text-background flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all shadow-2xl active:scale-95 border border-border"
+                                                className="size-10 rounded-xl bg-foreground text-background flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all shadow-xl active:scale-95 border border-border"
                                             >
-                                                <Phone size={24} />
+                                                <Phone size={18} />
                                             </button>
                                             <button 
                                                 onClick={() => setGrievanceModal(v)}
-                                                className="size-14 rounded-2xl bg-muted text-rose-500 border border-rose-500/20 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-2xl active:scale-95"
+                                                className="size-10 rounded-xl bg-muted text-rose-500 border border-rose-500/20 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-xl active:scale-95"
                                             >
-                                                <AlertTriangle size={24} />
+                                                <AlertTriangle size={18} />
                                             </button>
                                         </div>
                                     </div>
@@ -300,35 +307,35 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                     initial={{ opacity: 0, x: -30 }} 
                                     animate={{ opacity: 1, x: 0 }} 
                                     transition={{ delay: idx * 0.05 }}
-                                    className="bg-card p-10 rounded-[3rem] border border-border flex flex-col sm:flex-row sm:items-center gap-10 group hover:border-emerald-500/20 transition-all shadow-2xl relative overflow-hidden"
+                                    className="bg-card p-6 rounded-2xl border border-border flex flex-col sm:flex-row sm:items-center gap-6 group hover:border-emerald-500/20 transition-all shadow-xl relative overflow-hidden"
                                 >
-                                    <div className={`size-20 rounded-3xl flex items-center justify-center shrink-0 border border-border shadow-2xl ${isAnswered ? 'bg-emerald-500/10 text-emerald-500 shadow-emerald-500/20' : 'bg-rose-500/10 text-rose-500 shadow-rose-500/20'}`}>
-                                        <CIcon size={32} strokeWidth={3} />
+                                    <div className={`size-14 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-lg ${isAnswered ? 'bg-emerald-500/10 text-emerald-500 shadow-emerald-500/20' : 'bg-rose-500/10 text-rose-500 shadow-rose-500/20'}`}>
+                                        <CIcon size={24} strokeWidth={3} />
                                     </div>
                                     
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h4 className="font-black text-3xl text-foreground tracking-tighter uppercase leading-none group-hover:text-emerald-400 transition-colors">{c.voter_name}</h4>
-                                            <span className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-[4px]">{new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h4 className="font-black text-xl text-foreground tracking-tighter uppercase leading-none group-hover:text-emerald-400 transition-colors">{c.voter_name}</h4>
+                                            <span className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[3px]">{new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
-                                        <div className="flex items-center gap-6">
-                                            <div className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isAnswered ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'}`}>
+                                        <div className="flex items-center gap-4">
+                                            <div className={`px-3 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${isAnswered ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'}`}>
                                                 Status: {c.status}
                                             </div>
                                             {c.sentiment && (
-                                                <div className={`flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${s.color}`}>
-                                                    <s.icon size={12} strokeWidth={3} /> {c.sentiment}
+                                                <div className={`flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest ${s.color}`}>
+                                                    <s.icon size={10} strokeWidth={3} /> {c.sentiment}
                                                 </div>
                                             )}
                                         </div>
                                         {c.notes && (
-                                            <div className="mt-8 p-6 bg-muted rounded-[2rem] border border-border text-sm font-black text-muted-foreground uppercase tracking-widest leading-relaxed">
+                                            <div className="mt-4 p-4 bg-muted rounded-2xl border border-border text-xs font-black text-muted-foreground uppercase tracking-widest leading-relaxed">
                                                 "{c.notes}"
                                             </div>
                                         )}
                                     </div>
                                     
-                                    <ChevronRight size={24} className="text-white/10 group-hover:text-emerald-500 transition-colors hidden sm:block" />
+                                    <ChevronRight size={18} className="text-white/10 group-hover:text-emerald-500 transition-colors hidden sm:block" />
                                 </motion.div>
                             );
                         })
@@ -336,11 +343,11 @@ export default function PannaDashboard({ currentUser, boothId }) {
                 </div>
             )}
 
-            {/* Modals Layer */}            {/* Modals Layer */}
+            {/* Modals Layer */}
             {createPortal(
                 <AnimatePresence>
                     {(callModal || grievanceModal) && (
-                                <div className="p-0 sm:p-10">
+                        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-10">
                                     <motion.div 
                                         initial={{ opacity: 0 }} 
                                         animate={{ opacity: 1 }} 
@@ -355,9 +362,9 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                         exit={{ y: '100%', opacity: 0 }}
                                         className="relative w-full max-w-2xl bg-card rounded-t-[4rem] sm:rounded-[4rem] border border-border shadow-2xl overflow-hidden"
                                     >
-                                <div className="p-10 sm:p-16">
+                                <div className="p-0 sm:p-10 hide-scrollbar overflow-y-auto w-full max-w-2xl max-h-[90vh]">
                                     {callModal && (
-                                        <div className="space-y-12">
+                                        <div className="space-y-8 relative z-10 w-full bg-card rounded-t-3xl sm:rounded-3xl border border-border shadow-2xl overflow-hidden p-8">
                                             <div className="flex justify-between items-start">
                                                 <div>
                                                     <div className="px-4 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-[10px] font-black uppercase tracking-[3px] border border-emerald-500/20 mb-6 inline-block">

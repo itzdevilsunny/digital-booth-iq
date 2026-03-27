@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Mail, Fingerprint, ShieldCheck,
     Verified, Cpu, Radio,
-    ChevronRight, Key, UserCheck, ShieldClose
+    ChevronRight, Key, UserCheck, ShieldClose,
+    Users, ChevronDown, AlertCircle
 } from 'lucide-react';
+import { useUser } from '../../contexts/UserContext';
+import { getVoters, getUsers } from '../../api';
 
 const LoginPage = () => {
     const navigate = useNavigate();
+    const { login } = useUser();
     const [searchParams] = useSearchParams();
     const roleKey = searchParams.get('role') || 'citizen';
 
@@ -16,18 +20,62 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [error, setError] = useState(null);
+    const [demoUsers, setDemoUsers] = useState([]);
+    const [selectedDemoUser, setSelectedDemoUser] = useState(null);
+    const [showSelector, setShowSelector] = useState(false);
+
+    useEffect(() => {
+        const fetchDemoData = async () => {
+            try {
+                if (roleKey === 'citizen') {
+                    const voters = await getVoters(17);
+                    setDemoUsers(voters.slice(0, 10)); // Top 10 for demo
+                } else {
+                    const users = await getUsers();
+                    const filtered = users.filter(u => u.role === roleKey);
+                    setDemoUsers(filtered.length > 0 ? filtered : [{ id: `dummy-${roleKey}`, name: `Demo ${roleKey}`, role: roleKey }]);
+                }
+            } catch (e) {
+                console.error('Demo data fetch error:', e);
+                setDemoUsers([{ id: `dummy-${roleKey}`, name: `Demo ${roleKey}`, role: roleKey }]);
+            }
+        };
+        fetchDemoData();
+    }, [roleKey]);
 
     const handleLogin = (e) => {
         e.preventDefault();
         setLoading(true);
-        // Simulated Auth for Demo - Instant entry as requested
-        setTimeout(() => {
-            setLoading(false);
-            setShowSuccess(true);
-            setTimeout(() => {
-                navigate(`/${roleKey}`);
-            }, 800);
-        }, 1200);
+
+        const userToLogin = selectedDemoUser || {
+            id: email || `dummy-${roleKey}`,
+            name: email.split('@')[0] || `Demo ${roleKey}`,
+            role: roleKey,
+            email: email || `${roleKey}@boothiq.ai`
+        };
+
+        // Async Auth - Handle real token generation
+        (async () => {
+            try {
+                await login(userToLogin);
+                setLoading(false);
+                setShowSuccess(true);
+                setTimeout(() => {
+                    navigate(`/${roleKey}`);
+                }, 800);
+            } catch (err) {
+                console.error("Login failed:", err);
+                setLoading(false);
+                setError(`Login failed: ${err.response?.data?.detail || err.message}`);
+            }
+        })();
+    };
+
+    const handleDemoSelect = (user) => {
+        setSelectedDemoUser(user);
+        setEmail(user.email || user.id);
+        setShowSelector(false);
     };
 
     return (
@@ -139,6 +187,70 @@ const LoginPage = () => {
                         </h2>
                         <p className="text-[11px] font-bold text-white/40 uppercase tracking-[0.3em]">
                             Logging into <span className="text-emerald-500">{roleKey.replace('_', ' ')}</span> dashboard.
+                        </p>
+                    </div>
+
+                    {error && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mb-8 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-3"
+                        >
+                            <AlertCircle size={16} />
+                            <span>{error}</span>
+                        </motion.div>
+                    )}
+
+                    {/* Demo Selector */}
+                    <div className="mb-8">
+                        <div className="flex items-center justify-between px-2 mb-3">
+                            <label className="text-[10px] font-bold uppercase tracking-[4px] text-emerald-500/60">
+                                Demo {roleKey.replace('_', ' ')} Selector
+                            </label>
+                        </div>
+                        <div className="relative">
+                            <button 
+                                type="button"
+                                onClick={() => setShowSelector(!showSelector)}
+                                className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white/5 border border-white/5 hover:border-emerald-500/30 transition-all text-left group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Users size={18} className="text-white/20 group-hover:text-emerald-500 transition-colors" />
+                                    <span className="text-sm font-bold uppercase tracking-wider text-white/80">
+                                        {selectedDemoUser ? selectedDemoUser.name : `Select a ${roleKey.replace('_', ' ')} for demo`}
+                                    </span>
+                                </div>
+                                <ChevronDown size={18} className={`text-white/20 transition-transform duration-300 ${showSelector ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            <AnimatePresence>
+                                {showSelector && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className="absolute z-50 top-full mt-2 w-full max-h-60 overflow-y-auto bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl p-2 scrollbar-hide"
+                                    >
+                                        {demoUsers.map((user) => (
+                                            <button
+                                                key={user.id}
+                                                type="button"
+                                                onClick={() => handleDemoSelect(user)}
+                                                className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-emerald-500/10 transition-colors text-left group"
+                                            >
+                                                <div>
+                                                    <p className="text-sm font-bold text-white uppercase tracking-tight">{user.name}</p>
+                                                    <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{user.id}</p>
+                                                </div>
+                                                {selectedDemoUser?.id === user.id && <ShieldCheck size={16} className="text-emerald-500" />}
+                                            </button>
+                                        ))}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                        <p className="mt-3 px-2 text-[9px] font-bold text-white/20 uppercase tracking-widest leading-relaxed">
+                            Pick any {roleKey.replace('_', ' ')} to see their specific profile and data.
                         </p>
                     </div>
 

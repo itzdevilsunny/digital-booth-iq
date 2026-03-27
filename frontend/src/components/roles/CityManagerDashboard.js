@@ -24,36 +24,36 @@ const BoothCard = ({ booth, onClick }) => (
     <motion.div 
         layoutId={booth.id}
         onClick={onClick}
-        className="glass-panel group p-6 rounded-[2rem] border border-border transition-all cursor-pointer bg-card relative overflow-hidden hover:border-emerald-500/30"
+        className="glass-panel group p-4 rounded-2xl border border-border transition-all cursor-pointer bg-card relative overflow-hidden hover:border-emerald-500/30"
     >
-        <div className="flex items-start justify-between mb-8">
-            <div className={`size-12 rounded-2xl flex items-center justify-center shadow-sm ${booth.status === 'critical' ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
-                {booth.status === 'critical' ? <AlertTriangle size={20} /> : <CheckCircle2 size={20} />}
+        <div className="flex items-start justify-between mb-4">
+            <div className={`size-10 rounded-xl flex items-center justify-center shadow-sm ${booth.status === 'critical' ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}`}>
+                {booth.status === 'critical' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
             </div>
             <div className="text-right">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Booth ID</p>
-                <p className="text-xl font-display font-bold text-foreground">Booth {booth.booth_number}</p>
+                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Booth ID</p>
+                <p className="text-lg font-display font-bold text-foreground">Booth {booth.booth_number}</p>
             </div>
         </div>
 
-        <h3 className="text-2xl font-display font-bold text-foreground mb-1 group-hover:text-emerald-400 transition-colors uppercase tracking-tight">{booth.name}</h3>
-        <div className="flex items-center gap-2 mb-8">
+        <h3 className="text-xl font-display font-bold text-foreground mb-1 group-hover:text-emerald-400 transition-colors uppercase tracking-tight">{booth.name}</h3>
+        <div className="flex items-center gap-1.5 mb-4">
             <MapPin size={10} className="text-muted-foreground" />
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Booth Location</p>
+            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Booth Location</p>
         </div>
 
-        <div className="grid grid-cols-3 gap-6 mb-8 py-6 border-y border-border">
+        <div className="grid grid-cols-3 gap-4 mb-4 py-4 border-y border-border">
             <div>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Impact</p>
-                <p className="text-sm font-display font-bold text-foreground">{booth.turnout}%</p>
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Impact</p>
+                <p className="text-xs font-display font-bold text-foreground">{booth.turnout}%</p>
             </div>
             <div>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Issues</p>
-                <p className="text-sm font-display font-bold text-rose-500">{booth.issue_count}</p>
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Issues</p>
+                <p className="text-xs font-display font-bold text-rose-500">{booth.issue_count}</p>
             </div>
             <div>
-                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Sentiment</p>
-                <p className={`text-sm font-display font-bold ${booth.sentiment_score > 70 ? 'text-emerald-500' : 'text-muted-foreground'}`}>
+                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Sentiment</p>
+                <p className={`text-xs font-display font-bold ${booth.sentiment_score > 70 ? 'text-emerald-500' : 'text-muted-foreground'}`}>
                     {booth.sentiment_score}%
                 </p>
             </div>
@@ -66,8 +66,8 @@ const BoothCard = ({ booth, onClick }) => (
                 ))}
             </div>
             <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest">View Details</span>
-                <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                <span className="text-[9px] font-bold uppercase tracking-widest">View Details</span>
+                <ChevronRight size={12} className="group-hover:translate-x-1 transition-transform" />
             </div>
         </div>
     </motion.div>
@@ -173,37 +173,37 @@ export default function CityManagerDashboard({ currentUser }) {
     // Main Grid View
     if (!selectedBooth) {
         return (
-            <div className="space-y-12 animate-fade-in relative z-10 min-h-screen bg-background p-4 md:p-8">
+            <div className="space-y-6 animate-fade-in relative z-10 min-h-screen bg-background p-4 md:p-6">
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-8 border-b border-border">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="size-10 rounded-2xl bg-foreground text-background flex items-center justify-center shadow-lg">
-                                <Globe size={20} />
+                            <div className="size-8 rounded-xl bg-foreground text-background flex items-center justify-center shadow-md">
+                                <Globe size={16} />
                             </div>
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[4px]">City Management Dashboard</p>
+                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[3px]">City Management Dashboard</p>
                         </div>
-                        <h1 className="text-5xl font-display font-bold text-foreground tracking-tighter uppercase">City Dashboard</h1>
-                        <p className="text-muted-foreground text-xs font-medium mt-1 uppercase tracking-widest">Manager: {currentUser?.city_id || 'CAPITAL_NCR'}</p>
+                        <h1 className="text-3xl font-display font-bold text-foreground tracking-tighter uppercase mb-1">City Dashboard</h1>
+                        <p className="text-muted-foreground text-[10px] font-medium uppercase tracking-widest">Manager: {currentUser?.city_id || 'CAPITAL_NCR'}</p>
                     </div>
                     
-                    <div className="flex flex-col md:flex-row items-center gap-4">
+                    <div className="flex flex-col md:flex-row items-center gap-3">
                         <button 
                             onClick={handleAutoResolve}
                             disabled={resolving}
-                            className="px-6 py-4 bg-emerald-600 text-white rounded-2xl text-[10px] font-bold uppercase tracking-[2px] flex items-center gap-3 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
+                            className="px-5 py-3 bg-emerald-600 text-white rounded-xl text-[9px] font-bold uppercase tracking-[2px] flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-md shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
                         >
-                            {resolving ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                            {resolving ? <RefreshCw size={12} className="animate-spin" /> : <Sparkles size={12} />}
                             Smart Assignment
                         </button>
-                        <div className="relative group w-full md:w-80">
-                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" size={18} />
+                        <div className="relative group w-full md:w-64">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" size={14} />
                             <input 
                                 type="text" 
                                 placeholder="Search booth area..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-14 pr-8 py-4 bg-card border border-border rounded-[2rem] font-display font-bold text-sm tracking-tight text-foreground focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500/50 outline-none transition-all placeholder:text-muted-foreground/30"
+                                className="w-full pl-10 pr-4 py-3 bg-card border border-border rounded-xl font-display font-bold text-xs tracking-tight text-foreground focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500/50 outline-none transition-all placeholder:text-muted-foreground/30"
                             />
                         </div>
                     </div>
@@ -216,28 +216,28 @@ export default function CityManagerDashboard({ currentUser }) {
                             <Sparkles size={16} className="text-emerald-500" />
                             <h3 className="text-[10px] font-bold uppercase tracking-[4px] text-muted-foreground">High Priority Notifications</h3>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             {alerts.map((alert) => (
                                 <motion.div 
                                     key={alert.id}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className={`p-5 rounded-3xl border flex items-start gap-4 shadow-sm ${
+                                    className={`p-4 rounded-2xl border flex items-start gap-3 shadow-sm ${
                                         alert.type === 'critical' ? 'bg-rose-500/5 border-rose-500/20 text-rose-500' : 
                                         alert.type === 'warning' ? 'bg-amber-500/5 border-amber-500/20 text-amber-500' : 
                                         'bg-emerald-500/5 border-emerald-500/20 text-emerald-500'
                                     }`}
                                 >
-                                    <div className={`size-8 rounded-xl flex items-center justify-center shrink-0 ${
+                                    <div className={`size-6 rounded-lg flex items-center justify-center shrink-0 ${
                                         alert.type === 'critical' ? 'bg-rose-500 text-white' : 
                                         alert.type === 'warning' ? 'bg-amber-500 text-white' : 
                                         'bg-emerald-500 text-white'
                                     }`}>
-                                        <Zap size={14} />
+                                        <Zap size={10} />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-bold uppercase tracking-tight mb-1">{alert.title}</p>
-                                        <p className="text-[10px] font-medium leading-relaxed opacity-60">{alert.message}</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-tight mb-0.5">{alert.title}</p>
+                                        <p className="text-[9px] font-medium leading-tight opacity-60">{alert.message}</p>
                                     </div>
                                 </motion.div>
                             ))}
@@ -252,11 +252,11 @@ export default function CityManagerDashboard({ currentUser }) {
                     ))}
                     
                     {/* Placeholder Card */}
-                    <div className="border-2 border-dashed border-border rounded-[2.5rem] flex flex-col items-center justify-center p-8 opacity-20 hover:opacity-100 transition-opacity cursor-help bg-muted">
-                        <div className="size-12 rounded-full border-2 border-border flex items-center justify-center mb-4">
-                            <Layers size={20} className="text-muted-foreground" />
+                    <div className="border-2 border-dashed border-border rounded-2xl flex flex-col items-center justify-center p-6 opacity-20 hover:opacity-100 transition-opacity cursor-help bg-muted">
+                        <div className="size-10 rounded-full border-2 border-border flex items-center justify-center mb-3">
+                            <Layers size={16} className="text-muted-foreground" />
                         </div>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-center">Waiting for Booth Assignment...</p>
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest text-center">Waiting for Assignment...</p>
                     </div>
                 </div>
             </div>
@@ -265,47 +265,47 @@ export default function CityManagerDashboard({ currentUser }) {
 
     // Selected Booth Detail View (Strategic Intervention)
     return (
-        <div className="animate-fade-in space-y-8 relative z-10 min-h-screen bg-background p-4 md:p-8">
+        <div className="animate-fade-in space-y-6 relative z-10 min-h-screen bg-background p-4 md:p-6">
             {/* Action Bar */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-border">
-                <div className="flex items-center gap-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-border">
+                <div className="flex items-center gap-4">
                     <button 
                         onClick={() => {
                             setSelectedBooth(null);
                             setAnalysisResult(null);
                         }}
-                        className="size-12 rounded-2xl bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-all active:scale-95 flex items-center justify-center shadow-sm"
+                        className="size-10 rounded-xl bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-all active:scale-95 flex items-center justify-center shadow-sm"
                     >
-                        <Globe size={20} />
+                        <Globe size={16} />
                     </button>
                     <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Processing</p>
+                        <div className="flex items-center gap-2 mb-0.5">
+                            <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Processing</p>
                             <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         </div>
-                        <h2 className="text-4xl font-display font-bold text-foreground tracking-tight uppercase">{selectedBooth.name}</h2>
+                        <h2 className="text-2xl font-display font-bold text-foreground tracking-tight uppercase">{selectedBooth.name}</h2>
                     </div>
                 </div>
                 
                 <button 
                     onClick={() => handleAnalyze(selectedBooth.id)}
                     disabled={analyzing}
-                    className={`px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-3 transition-all ${analyzing ? 'bg-muted text-muted-foreground' : 'bg-foreground text-background shadow-2xl shadow-foreground/10 hover:scale-105 active:scale-95'}`}
+                    className={`px-6 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${analyzing ? 'bg-muted text-muted-foreground' : 'bg-foreground text-background shadow-lg shadow-foreground/10 hover:scale-105 active:scale-95'}`}
                 >
-                    {analyzing ? <RefreshCw className="animate-spin" size={16} /> : <BrainCircuit size={16} />}
+                    {analyzing ? <RefreshCw className="animate-spin" size={14} /> : <BrainCircuit size={14} />}
                     {analyzing ? 'Processing...' : 'Analyze Booth'}
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Booth Report */}
-                <div className="lg:col-span-4 space-y-6">
-                    <div className="glass-panel p-8 rounded-[3rem] border border-border shadow-sm relative overflow-hidden bg-card">
-                        <div className="flex items-center gap-3 mb-10">
-                            <div className="size-10 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center">
-                                <ShieldAlert size={20} />
+                <div className="lg:col-span-4 space-y-4">
+                    <div className="glass-panel p-6 rounded-2xl border border-border shadow-sm relative overflow-hidden bg-card">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="size-8 rounded-lg bg-orange-500/10 text-orange-500 flex items-center justify-center">
+                                <ShieldAlert size={16} />
                             </div>
-                            <h3 className="text-xl font-display font-bold text-foreground tracking-tight uppercase">Live Updates</h3>
+                            <h3 className="text-lg font-display font-bold text-foreground tracking-tight uppercase">Live Updates</h3>
                         </div>
 
                         <AnimatePresence mode="wait">
@@ -314,30 +314,30 @@ export default function CityManagerDashboard({ currentUser }) {
                                     initial={{ opacity: 0, scale: 0.98 }} 
                                     animate={{ opacity: 1, scale: 1 }} 
                                     exit={{ opacity: 0 }}
-                                    className="space-y-8"
+                                    className="space-y-5"
                                 >
-                                    <div className="p-6 rounded-[2rem] bg-muted border border-border font-medium leading-relaxed italic text-foreground/60 relative">
-                                        <div className="absolute -top-3 -left-3 size-8 rounded-full bg-emerald-500 text-black flex items-center justify-center shadow-sm">
-                                            <Sparkles size={14} />
+                                    <div className="p-5 rounded-2xl bg-muted border border-border text-sm font-medium leading-snug italic text-foreground/70 relative">
+                                        <div className="absolute -top-2 -left-2 size-6 rounded-full bg-emerald-500 text-black flex items-center justify-center shadow-sm">
+                                            <Sparkles size={12} />
                                         </div>
                                         "{analysisResult.recommendation}"
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-5 rounded-3xl bg-muted border border-border shadow-sm">
-                                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-2 text-center">Main Area Concern</p>
-                                            <p className="text-xs font-bold text-rose-500 uppercase tracking-wider text-center">{analysisResult.top_priority}</p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="p-4 rounded-xl bg-muted border border-border shadow-sm">
+                                            <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 text-center">Main Area Concern</p>
+                                            <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider text-center">{analysisResult.top_priority}</p>
                                         </div>
-                                        <div className="p-5 rounded-3xl bg-muted border border-border shadow-sm">
-                                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-2 text-center">Affected Voters</p>
-                                            <p className="text-xs font-bold text-foreground uppercase tracking-wider text-center">{analysisResult.affected_count} Households</p>
+                                        <div className="p-4 rounded-xl bg-muted border border-border shadow-sm">
+                                            <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 text-center">Affected Voters</p>
+                                            <p className="text-[10px] font-bold text-foreground uppercase tracking-wider text-center">{analysisResult.affected_count} Households</p>
                                         </div>
                                     </div>
                                 </motion.div>
                             ) : (
-                                <div className="py-20 text-center space-y-6 border-2 border-dashed border-border rounded-[2.5rem]">
-                                    <BarChart3 size={48} className="mx-auto text-muted-foreground/20" />
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[4px] max-w-[180px] mx-auto">
+                                <div className="py-12 text-center space-y-4 border-2 border-dashed border-border rounded-2xl">
+                                    <BarChart3 size={32} className="mx-auto text-muted-foreground/20" />
+                                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[3px] max-w-[160px] mx-auto">
                                         Start scanning to detect issues.
                                     </p>
                                 </div>
@@ -345,22 +345,22 @@ export default function CityManagerDashboard({ currentUser }) {
                         </AnimatePresence>
                     </div>
 
-                    <div className="glass-panel p-8 rounded-[3rem] border border-border shadow-sm bg-card text-foreground">
-                        <div className="flex items-center gap-3 mb-10">
-                            <Activity size={20} className="text-emerald-600" />
-                            <h3 className="text-xl font-display font-bold tracking-tight uppercase">Voter Statistics</h3>
+                    <div className="glass-panel p-6 rounded-2xl border border-border shadow-sm bg-card text-foreground">
+                        <div className="flex items-center gap-2 mb-6">
+                            <Activity size={16} className="text-emerald-600" />
+                            <h3 className="text-lg font-display font-bold tracking-tight uppercase">Voter Statistics</h3>
                         </div>
-                        <div className="space-y-8">
+                        <div className="space-y-5">
                             {[
                                 { label: 'Outreach Rate', value: '84%', trend: '+4%', color: 'text-emerald-600' },
                                 { label: 'Issue Resolution', value: 'High', trend: 'OPTIMAL', color: 'text-emerald-500' },
                                 { label: 'Interaction Score', value: 'Excellent', trend: 'STABLE', color: 'text-foreground' }
                             ].map((stat, i) => (
                                 <div key={i} className="flex items-center justify-between group">
-                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest group-hover:text-foreground transition-colors">{stat.label}</span>
+                                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest group-hover:text-foreground transition-colors">{stat.label}</span>
                                     <div className="text-right">
-                                        <p className="text-xl font-display font-bold leading-none">{stat.value}</p>
-                                        <p className={`text-[8px] font-bold uppercase tracking-widest mt-1 ${stat.color}`}>{stat.trend}</p>
+                                        <p className="text-lg font-display font-bold leading-none">{stat.value}</p>
+                                        <p className={`text-[7px] font-bold uppercase tracking-widest mt-1 ${stat.color}`}>{stat.trend}</p>
                                     </div>
                                 </div>
                             ))}
@@ -369,16 +369,16 @@ export default function CityManagerDashboard({ currentUser }) {
                 </div>
 
                 {/* Voter Segmentation Interface */}
-                <div className="lg:col-span-5 space-y-6">
-                    <div className="glass-panel p-8 rounded-[3rem] border border-border shadow-sm bg-card flex flex-col h-[700px]">
-                        <div className="flex items-center justify-between mb-10">
-                            <div className="flex items-center gap-3">
-                                <Users size={20} className="text-muted-foreground" />
-                                <h3 className="text-xl font-display font-bold text-foreground tracking-tight uppercase">Voter Distribution</h3>
+                <div className="lg:col-span-5 space-y-4">
+                    <div className="glass-panel p-6 rounded-2xl border border-border shadow-sm bg-card flex flex-col h-[550px]">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <Users size={16} className="text-muted-foreground" />
+                                <h3 className="text-lg font-display font-bold text-foreground tracking-tight uppercase">Voter Distribution</h3>
                             </div>
-                            <div className="flex gap-3">
+                            <div className="flex gap-2">
                                 <select 
-                                    className="px-4 py-2 bg-muted border border-border rounded-full text-[10px] font-bold uppercase tracking-widest text-muted-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                    className="px-3 py-1.5 bg-muted border border-border rounded-lg text-[9px] font-bold uppercase tracking-widest text-muted-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                                     value={voterFilter.sentiment}
                                     onChange={(e) => setVoterFilter(prev => ({ ...prev, sentiment: e.target.value }))}
                                 >
@@ -390,7 +390,7 @@ export default function CityManagerDashboard({ currentUser }) {
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto space-y-4 pr-4 custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                             <AnimatePresence>
                                 {filteredVoters.map((voter, idx) => (
                                     <motion.div 
@@ -405,25 +405,25 @@ export default function CityManagerDashboard({ currentUser }) {
                                                     : [...prev, voter.id]
                                             )
                                         }}
-                                        className={`p-6 rounded-[2rem] border transition-all cursor-pointer group relative overflow-hidden ${selectedVoters.includes(voter.id) ? 'bg-foreground border-foreground text-background shadow-xl translate-x-1' : 'bg-muted border-border hover:border-emerald-500/30'}`}
+                                        className={`p-4 rounded-xl border transition-all cursor-pointer group relative overflow-hidden ${selectedVoters.includes(voter.id) ? 'bg-foreground border-foreground text-background shadow-md translate-x-1' : 'bg-muted border-border hover:border-emerald-500/30'}`}
                                     >
                                         <div className="flex items-center justify-between relative z-10">
                                             <div>
-                                                <h4 className={`text-lg font-display font-bold leading-none mb-1 ${selectedVoters.includes(voter.id) ? 'text-background' : 'text-foreground group-hover:text-emerald-400'}`}>
+                                                <h4 className={`text-sm font-display font-bold leading-none mb-1 ${selectedVoters.includes(voter.id) ? 'text-background' : 'text-foreground group-hover:text-emerald-400'}`}>
                                                     {voter.name}
                                                 </h4>
-                                                <div className="flex items-center gap-3">
-                                                    <p className={`text-[9px] font-bold uppercase tracking-widest ${selectedVoters.includes(voter.id) ? 'text-background/40' : 'text-muted-foreground/40'}`}>
+                                                <div className="flex items-center gap-2">
+                                                    <p className={`text-[8px] font-bold uppercase tracking-widest ${selectedVoters.includes(voter.id) ? 'text-background/40' : 'text-muted-foreground/40'}`}>
                                                         {voter.segment || 'Regular Voter'}
                                                     </p>
                                                     <div className={`size-1 rounded-full ${voter.sentiment === 'positive' ? 'bg-emerald-500' : voter.sentiment === 'negative' ? 'bg-rose-500' : 'bg-border'}`} />
-                                                    <p className={`text-[9px] font-bold uppercase tracking-widest ${voter.sentiment === 'positive' ? 'text-emerald-500' : voter.sentiment === 'negative' ? 'text-rose-500' : 'text-muted-foreground/40'}`}>
+                                                    <p className={`text-[8px] font-bold uppercase tracking-widest ${voter.sentiment === 'positive' ? 'text-emerald-500' : voter.sentiment === 'negative' ? 'text-rose-500' : 'text-muted-foreground/40'}`}>
                                                         {voter.sentiment}
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className={`size-10 rounded-xl flex items-center justify-center transition-all ${selectedVoters.includes(voter.id) ? 'bg-emerald-500 text-white animate-fade-in' : 'bg-foreground/5 text-muted-foreground/20 group-hover:opacity-100'}`}>
-                                                {selectedVoters.includes(voter.id) ? <CheckCircle2 size={18} /> : <Target size={18} />}
+                                            <div className={`size-8 rounded-lg flex items-center justify-center transition-all ${selectedVoters.includes(voter.id) ? 'bg-emerald-500 text-white animate-fade-in' : 'bg-foreground/5 text-muted-foreground/20 group-hover:opacity-100'}`}>
+                                                {selectedVoters.includes(voter.id) ? <CheckCircle2 size={14} /> : <Target size={14} />}
                                             </div>
                                         </div>
                                     </motion.div>
@@ -431,57 +431,57 @@ export default function CityManagerDashboard({ currentUser }) {
                             </AnimatePresence>
                         </div>
                         
-                        <div className="mt-8 pt-8 border-t border-border flex items-center justify-between">
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[4px]">Voter Selection</p>
-                            <div className="px-5 py-2 rounded-full bg-foreground text-background text-xs font-display font-bold uppercase">
-                                {selectedVoters.length} Voters Selected
+                        <div className="mt-5 pt-5 border-t border-border flex items-center justify-between">
+                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[3px]">Voter Selection</p>
+                            <div className="px-3 py-1.5 rounded-full bg-foreground text-background text-[10px] font-display font-bold uppercase">
+                                {selectedVoters.length} Selected
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Engagement Action Panel */}
-                <div className="lg:col-span-3 space-y-6">
-                    <div className="glass-panel p-8 rounded-[3rem] border border-border shadow-sm bg-card sticky top-12">
-                        <div className="flex items-center gap-3 mb-10">
-                            <Target size={20} className="text-emerald-500" />
-                            <h3 className="text-xl font-display font-bold text-foreground tracking-tight uppercase">Actions</h3>
+                <div className="lg:col-span-3 space-y-4">
+                    <div className="glass-panel p-6 rounded-2xl border border-border shadow-sm bg-card sticky top-6">
+                        <div className="flex items-center gap-2 mb-6">
+                            <Target size={16} className="text-emerald-500" />
+                            <h3 className="text-lg font-display font-bold text-foreground tracking-tight uppercase">Actions</h3>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="space-y-5">
                             <div>
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 block">Message Text</label>
+                                <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-2 block">Message Text</label>
                                 <textarea 
                                     placeholder="Enter message for selected voters..."
                                     value={updateMessage}
                                     onChange={(e) => setUpdateMessage(e.target.value)}
-                                    className="w-full h-48 p-6 bg-muted border border-border rounded-[2rem] text-sm font-medium text-foreground placeholder:text-muted-foreground/20 focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all resize-none italic"
+                                    className="w-full h-32 p-4 bg-muted border border-border rounded-xl text-xs font-medium text-foreground placeholder:text-muted-foreground/20 focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all resize-none italic"
                                 />
                             </div>
                             
                             <button 
                                 onClick={handleSendUpdate}
                                 disabled={sendingUpdate || selectedVoters.length === 0}
-                                className={`w-full py-5 rounded-[2rem] text-[10px] font-bold uppercase tracking-[4px] flex items-center justify-center gap-3 transition-all ${sendingUpdate || selectedVoters.length === 0 ? 'bg-muted text-muted-foreground' : 'bg-emerald-600 text-white shadow-2xl shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98]'}`}
+                                className={`w-full py-3.5 rounded-xl text-[9px] font-bold uppercase tracking-[2px] flex items-center justify-center gap-2 transition-all ${sendingUpdate || selectedVoters.length === 0 ? 'bg-muted text-muted-foreground' : 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98]'}`}
                             >
-                                {sendingUpdate ? <RefreshCw className="animate-spin" size={18} /> : <Send size={18} />}
+                                {sendingUpdate ? <RefreshCw className="animate-spin" size={14} /> : <Send size={14} />}
                                 {sendingUpdate ? 'Sending...' : 'Send Message'}
                             </button>
 
-                            <div className="space-y-3 pt-6">
-                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-2 px-2">Additional Actions</p>
+                            <div className="space-y-2 pt-4">
+                                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-2 px-1">Additional Actions</p>
                                 {[
                                     { label: 'High Priority Task', icon: Layers },
                                     { label: 'Urgent Action', icon: ShieldAlert }
                                 ].map((action, i) => (
-                                    <button key={i} className="w-full p-4 rounded-3xl border border-border flex items-center justify-between text-muted-foreground hover:bg-muted hover:text-foreground transition-all group">
-                                        <div className="flex items-center gap-3">
-                                            <action.icon size={14} className="opacity-40 group-hover:opacity-100 transition-opacity" />
-                                            <span className="text-[10px] font-bold uppercase tracking-widest">{action.label}</span>
+                                    <button key={i} className="w-full p-3 rounded-xl border border-border flex items-center justify-between text-muted-foreground hover:bg-muted hover:text-foreground transition-all group">
+                                        <div className="flex items-center gap-2">
+                                            <action.icon size={12} className="opacity-40 group-hover:opacity-100 transition-opacity" />
+                                            <span className="text-[9px] font-bold uppercase tracking-widest">{action.label}</span>
                                         </div>
-                                        <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                                        <ChevronRight size={10} className="opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all" />
                                     </button>
-                                    ))}
+                                ))}
                             </div>
                         </div>
                     </div>

@@ -30,13 +30,13 @@ export function Hero() {
   return (
     <motion.header
       ref={heroRef}
-      className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-[#0c0c0c] pt-20"
+      className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-background pt-20 transition-colors duration-500"
       style={{ opacity: heroOpacity }}
     >
       {/* Stunning Ambient Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-emerald-500/10 blur-[150px] rounded-full mix-blend-screen animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-[700px] h-[700px] bg-white/5 blur-[120px] rounded-full" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary/10 blur-[150px] rounded-full mix-blend-screen animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-[700px] h-[700px] bg-muted/40 blur-[120px] rounded-full" />
       </div>
 
       <motion.div
@@ -50,7 +50,7 @@ export function Hero() {
       
       {/* Dynamic Digital Grid */}
       <div className="absolute inset-0 z-[1] opacity-[0.03] pointer-events-none" 
-        style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #10b981 1px, transparent 0)', backgroundSize: '32px 32px' }} 
+        style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, hsl(var(--primary)) 1px, transparent 0)', backgroundSize: '32px 32px' }} 
       />
 
       <div className="relative z-10 max-w-7xl mx-auto px-8 text-center flex flex-col items-center gap-12">
@@ -59,14 +59,14 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="inline-flex items-center gap-4 px-6 py-2.5 rounded-full border border-white/5 bg-white/5 backdrop-blur-3xl shadow-2xl"
+          className="inline-flex items-center gap-4 px-6 py-2.5 rounded-full border border-border bg-card/40 backdrop-blur-3xl shadow-2xl"
         >
           <div className="relative flex size-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
             <span className="relative inline-flex rounded-full size-2 bg-emerald-500 shadow-[0_0_10px_#10b981]" />
           </div>
-          <span className="text-[10px] font-bold text-white uppercase tracking-[4px] antialiased">
-            Intelligence Matrix Active
+          <span className="text-[10px] font-bold text-foreground uppercase tracking-[4px] antialiased transition-colors">
+            System Active
           </span>
         </motion.div>
 
@@ -78,8 +78,8 @@ export function Hero() {
             transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="text-7xl md:text-9xl font-black leading-[0.85] tracking-tighter"
           >
-            <span className="text-white block uppercase">Analyze.</span>
-            <span className="text-white/20 block uppercase">Strategize.</span>
+            <span className="text-foreground block uppercase">Analyze.</span>
+            <span className="text-foreground/20 block uppercase">Strategize.</span>
             <motion.span
               animate={glitch ? { skew: [0, -2, 2, 0], opacity: [1, 0.9, 1] } : {}}
               className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-emerald-600 to-emerald-400 italic inline-block drop-shadow-[0_0_30px_rgba(16,185,129,0.2)]"
@@ -93,42 +93,42 @@ export function Hero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="max-w-2xl text-lg md:text-xl text-white/40 font-medium leading-relaxed uppercase tracking-tight"
+          className="max-w-2xl text-lg md:text-xl text-muted-foreground/40 font-medium leading-relaxed uppercase tracking-tight"
         >
-          BoothIQ is the high-fidelity governance operating system for the modern representative. 
-          Real-time intelligence, automated grievance management, and sector control at your fingertips.
+          BoothIQ is the data-driven governance platform for the modern representative. 
+          Real-time updates, automated grievance management, and sector management at your fingertips.
         </motion.p>
 
-        {/* Premium Action Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="flex flex-wrap items-center justify-center gap-6 mt-10"
+      {/* Premium Action Grid */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.8 }}
+        className="flex flex-wrap items-center justify-center gap-6 mt-10"
+      >
+        <motion.button
+          whileHover={{ scale: 1.02, boxShadow: "0 0 60px hsla(var(--primary), 0.15)" }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => scrollTo("cta")}
+          className="h-[72px] px-12 rounded-[2rem] bg-primary text-primary-foreground text-xs font-bold uppercase tracking-[0.4em] shadow-2xl transition-all flex items-center justify-center gap-4 group cursor-pointer relative overflow-hidden"
         >
-          <motion.button
-            whileHover={{ scale: 1.02, boxShadow: "0 0 60px rgba(16,185,129,0.15)" }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => scrollTo("cta")}
-            className="h-18 px-12 rounded-[2rem] bg-emerald-600 text-white text-xs font-bold uppercase tracking-[0.4em] shadow-2xl transition-all flex items-center justify-center gap-4 group cursor-pointer relative overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-            <span className="relative z-10">Login Now</span>
-            <Icon name="arrow_forward" className="relative z-10 group-hover:translate-x-2 transition-transform duration-500 text-lg" />
-          </motion.button>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+          <span className="relative z-10">Login Now</span>
+          <Icon name="arrow_forward" className="relative z-10 group-hover:translate-x-2 transition-transform duration-500 text-lg" />
+        </motion.button>
 
-          <motion.button
-            whileHover={{ backgroundColor: "rgba(255,255,255,0.1)", borderColor: "rgba(255,255,255,0.3)" }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => scrollTo("capabilities")}
-            className="h-18 px-12 rounded-[2rem] border border-white/5 bg-white/5 backdrop-blur-xl text-white text-xs font-bold uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 group"
-          >
-            <div className="size-8 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
-              <Icon name="play_arrow" className="text-lg" />
-            </div>
-            Platform Demo
-          </motion.button>
-        </motion.div>
+        <motion.button
+          whileHover={{ backgroundColor: "var(--tag-bg-hover)", borderColor: "var(--border)" }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => scrollTo("capabilities")}
+          className="h-[72px] px-12 rounded-[2rem] border border-border bg-card/40 backdrop-blur-xl text-foreground text-xs font-bold uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 group"
+        >
+          <div className="size-8 rounded-full border border-border flex items-center justify-center group-hover:bg-foreground group-hover:text-background transition-all">
+            <Icon name="play_arrow" className="text-lg" />
+          </div>
+          Platform Demo
+        </motion.button>
+      </motion.div>
       </div>
 
       {/* Modern Scroll Vector */}
@@ -138,7 +138,7 @@ export function Hero() {
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         onClick={() => scrollTo("problem")}
       >
-        <span className="text-[10px] font-bold uppercase tracking-[0.6em] text-white/20">
+        <span className="text-[10px] font-bold uppercase tracking-[0.6em] text-muted-foreground/20">
           Live Updates
         </span>
         <div className="relative w-px h-16 bg-gradient-to-b from-emerald-500 to-transparent">

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Zap, ShieldCheck } from "lucide-react";
+import ThemeToggle from "../layout/ThemeToggle";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -24,7 +25,7 @@ export function Navbar() {
     <motion.nav
       className={`fixed top-0 z-[100] w-full transition-all duration-700 ${
         scrolled
-          ? "py-4 bg-[#0c0c0c]/80 backdrop-blur-3xl border-b border-white/5 shadow-2xl"
+          ? "py-4 bg-background/80 backdrop-blur-3xl border-b border-border shadow-2xl"
           : "py-8 bg-transparent border-b border-transparent"
       }`}
       initial={{ y: -100, opacity: 0 }}
@@ -39,14 +40,14 @@ export function Navbar() {
           whileTap={{ scale: 0.98 }}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >
-          <div className="size-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:bg-white group-hover:text-black transition-all">
+          <div className="size-11 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20 group-hover:bg-primary-foreground group-hover:text-primary transition-all">
             <Zap size={22} />
           </div>
           <div className="flex flex-col">
-            <h2 className="text-white text-2xl font-black leading-none tracking-tighter group-hover:text-emerald-400 transition-colors uppercase">
+            <h2 className="text-foreground text-2xl font-black leading-none tracking-tighter group-hover:text-primary transition-colors uppercase">
               BoothIQ
             </h2>
-            <span className="text-[9px] text-white/40 font-bold uppercase tracking-[0.4em]">
+            <span className="text-[9px] text-muted-foreground/40 font-bold uppercase tracking-[0.4em]">
               Insights Portal
             </span>
           </div>
@@ -62,27 +63,29 @@ export function Navbar() {
             <button
               key={item.label}
               onClick={() => scrollTo(item.target)}
-              className="text-[10px] font-bold uppercase tracking-[3px] text-white/40 hover:text-white transition-all duration-300 relative group"
+              className="text-[10px] font-bold uppercase tracking-[3px] text-muted-foreground/60 hover:text-foreground transition-all duration-300 relative group"
             >
               {item.label}
-              <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-emerald-500 transition-all duration-300 group-hover:w-full" />
+              <span className="absolute -bottom-2 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
             </button>
           ))}
-          <div className="w-px h-5 bg-white/10 mx-2" />
+          <div className="w-px h-5 bg-border mx-2" />
           <button
             onClick={() => navigate("/select-role")}
-            className="text-[10px] font-bold uppercase tracking-[3px] text-emerald-500 hover:text-white transition-colors antialiased shadow-sm"
+            className="text-[10px] font-bold uppercase tracking-[3px] text-primary hover:text-foreground transition-colors antialiased shadow-sm"
           >
             System Access
           </button>
         </div>
 
         {/* Global Controls */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-6">
+          <ThemeToggle className="hidden md:flex border-none bg-transparent hover:bg-muted" />
+
           <motion.button
             whileHover={{ x: -2 }}
             onClick={() => navigate("/select-role")}
-            className="hidden md:block text-[10px] font-bold uppercase tracking-[3px] text-white/40 hover:text-white transition-colors"
+            className="hidden md:block text-[10px] font-bold uppercase tracking-[3px] text-muted-foreground/40 hover:text-foreground transition-colors"
           >
             Portal Login
           </motion.button>
@@ -94,16 +97,19 @@ export function Navbar() {
             }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/select-role")}
-            className="px-8 py-4 rounded-[2rem] bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-[3px] shadow-2xl transition-all cursor-pointer relative overflow-hidden group border border-white/5"
+            className="px-8 py-4 rounded-[2rem] bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-[3px] shadow-2xl transition-all cursor-pointer relative overflow-hidden group border border-primary-foreground/5"
           >
-             <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+             <div className="absolute inset-0 bg-primary-foreground/20 opacity-0 group-hover:opacity-100 transition-opacity" />
              <span className="relative z-10">Login Now</span>
           </motion.button>
 
           {/* Mobile Access */}
-          <button onClick={() => navigate("/select-role")} className="lg:hidden size-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-emerald-600 transition-all">
-            <ShieldCheck size={22} />
-          </button>
+          <div className="lg:hidden flex items-center gap-2">
+            <ThemeToggle className="border-none bg-transparent" />
+            <button onClick={() => navigate("/select-role")} className="size-12 rounded-2xl bg-muted border border-border flex items-center justify-center text-foreground hover:bg-primary hover:text-primary-foreground transition-all">
+              <ShieldCheck size={22} />
+            </button>
+          </div>
         </div>
       </div>
     </motion.nav>

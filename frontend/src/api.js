@@ -7,6 +7,29 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' }
 });
 
+// Auth
+export const login = (data) => api.post('/auth/login', data).then(r => {
+  if (r.data.token) {
+    localStorage.setItem('token', r.data.token);
+    api.defaults.headers.common['Authorization'] = `Bearer ${r.data.token}`;
+  }
+  return r.data;
+});
+
+export const logout = () => {
+  localStorage.removeItem('token');
+  delete api.defaults.headers.common['Authorization'];
+};
+
+// Interceptor to attach token from localStorage if present
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Booths
 export const getBooths = () => api.get('/booths').then(r => r.data);
 
@@ -48,6 +71,10 @@ export const analyzeBooth = (boothId) => api.post('/manager/analyze', { booth_id
 export const sendTargetedUpdate = (data) => api.post('/manager/send-update', data).then(r => r.data);
 export const getManagerAlerts = () => api.get('/manager/automation-alerts').then(r => r.data);
 export const managerAutoResolve = () => api.post('/manager/auto-resolve').then(r => r.data);
+export const managerAutoAssign = (data) => api.post('/manager/auto-assign', data).then(r => r.data);
+export const getActionHistory = () => api.get('/manager/action-history').then(r => r.data);
+export const getBulletins = () => api.get('/bulletins').then(r => r.data);
+export const getConstituencySummary = () => api.get('/constituency/summary').then(r => r.data);
 
 // Schemes
 export const getSchemes = () => api.get('/schemes').then(r => r.data);

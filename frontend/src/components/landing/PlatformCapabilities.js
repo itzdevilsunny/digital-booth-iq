@@ -10,22 +10,22 @@ export function PlatformCapabilities() {
   ];
 
   return (
-    <section id="capabilities" className="py-32 bg-[#0c0c0c] border-t border-white/5 relative overflow-hidden">
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_100%_0%,rgba(16,185,129,0.05),transparent)]" />
+    <section id="capabilities" className="py-32 bg-background border-t border-border relative overflow-hidden">
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_100%_0%,hsla(var(--primary),0.05),transparent)]" />
       
       <div className="max-w-7xl mx-auto px-8 mb-20 flex flex-col md:flex-row md:items-end justify-between gap-8 relative z-10">
         <Reveal>
           <div className="flex flex-col">
-            <span className="text-emerald-500 font-bold text-[10px] font-mono uppercase tracking-[0.5em] mb-4 block opacity-60">
+            <span className="text-primary font-bold text-[10px] font-mono uppercase tracking-[0.5em] mb-4 block opacity-60">
               Key Features
             </span>
-            <h2 className="text-4xl md:text-5xl font-display font-black text-white tracking-tight uppercase">
+            <h2 className="text-4xl md:text-5xl font-display font-black text-foreground tracking-tight uppercase">
               Platform Capabilities
             </h2>
           </div>
         </Reveal>
         <Reveal delay={0.2}>
-          <p className="text-white/40 max-w-md font-display italic text-lg leading-relaxed uppercase tracking-tight">
+          <p className="text-muted-foreground/40 max-w-md font-display italic text-lg leading-relaxed uppercase tracking-tight">
             A comprehensive platform for leadership oversight and detailed ground execution.
           </p>
         </Reveal>
@@ -36,34 +36,34 @@ export function PlatformCapabilities() {
           <motion.div
             key={feature.title}
             variants={staggerChild}
-            whileHover={{ y: -8, backgroundColor: "rgba(255,255,255,0.02)" }}
-            className="glass-panel p-10 rounded-[2.5rem] border border-white/5 bg-[#141414] transition-all duration-500 group relative overflow-hidden"
+            whileHover={{ y: -8, backgroundColor: "hsla(var(--foreground), 0.02)" }}
+            className="glass-panel p-10 rounded-[2.5rem] border border-border bg-card transition-all duration-500 group relative overflow-hidden"
           >
             <motion.div
-              className="size-14 rounded-2xl bg-white/5 text-white/40 flex items-center justify-center mb-8 border border-white/5 group-hover:bg-emerald-500/10 group-hover:text-emerald-500 group-hover:border-emerald-500/20 transition-all duration-500"
+              className="size-14 rounded-2xl bg-muted text-muted-foreground/40 flex items-center justify-center mb-8 border border-border group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/20 transition-all duration-500"
               whileHover={{ rotate: 10 }}
             >
               <Icon name={feature.icon} size={24} />
             </motion.div>
-            <h3 className="text-2xl font-display font-bold text-white mb-4 group-hover:text-emerald-400 transition-colors uppercase tracking-tight">{feature.title}</h3>
-            <p className="text-[11px] text-white/30 font-medium leading-relaxed italic uppercase tracking-[2px]">{feature.description || feature.desc}</p>
+            <h3 className="text-2xl font-display font-bold text-foreground mb-4 group-hover:text-primary transition-colors uppercase tracking-tight">{feature.title}</h3>
+            <p className="text-[11px] text-muted-foreground/30 font-medium leading-relaxed italic uppercase tracking-[2px]">{feature.description || feature.desc}</p>
           </motion.div>
         ))}
 
         <motion.div
           variants={staggerChild}
-          whileHover={{ y: -8, backgroundColor: "rgba(255,255,255,0.02)" }}
-          className="lg:col-span-2 glass-panel p-10 rounded-[2.5rem] border border-white/5 bg-[#141414] transition-all duration-500 group relative overflow-hidden"
+          whileHover={{ y: -8, backgroundColor: "hsla(var(--foreground), 0.02)" }}
+          className="lg:col-span-2 glass-panel p-10 rounded-[2.5rem] border border-border bg-card transition-all duration-500 group relative overflow-hidden"
         >
           <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
             <div>
               <motion.div
-                className="size-14 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-8 border border-amber-500/20 group-hover:bg-amber-500 group-hover:text-black transition-all duration-500 shadow-lg"
+                className="size-14 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-8 border border-amber-500/20 group-hover:bg-amber-500 group-hover:text-amber-950 transition-all duration-500 shadow-lg"
               >
                 <Icon name="chat" size={24} />
               </motion.div>
-              <h3 className="text-2xl font-display font-bold text-white mb-4 uppercase tracking-tight">Campaign Communications</h3>
-              <p className="text-[11px] text-white/30 font-medium leading-relaxed italic uppercase tracking-[2px] max-w-md">
+              <h3 className="text-2xl font-display font-bold text-foreground mb-4 uppercase tracking-tight">Campaign Communications</h3>
+              <p className="text-[11px] text-muted-foreground/30 font-medium leading-relaxed italic uppercase tracking-[2px] max-w-md">
                 Deploy high-impact campaigns across WhatsApp and SMS directly from the admin dashboard. Personalized engagement at professional scale.
               </p>
             </div>

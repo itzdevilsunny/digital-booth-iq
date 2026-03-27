@@ -24,6 +24,7 @@ async def check_sarvam_limit():
         payload = {
             "model": "sarvam-m",
             "messages": [
+                {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Hi"}
             ]
         }

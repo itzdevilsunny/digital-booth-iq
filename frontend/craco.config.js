@@ -1,4 +1,5 @@
 // craco.config.js
+const { removePlugins, pluginByName } = require("@craco/craco");
 const path = require("path");
 require("dotenv").config();
 
@@ -23,20 +24,13 @@ if (config.enableHealthCheck) {
 }
 
 let webpackConfig = {
-  eslint: {
-    configure: {
-      extends: ["plugin:react-hooks/recommended"],
-      rules: {
-        "react-hooks/rules-of-hooks": "error",
-        "react-hooks/exhaustive-deps": "warn",
-      },
-    },
-  },
   webpack: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
     },
     configure: (webpackConfig) => {
+      // Remove ESLint plugin to avoid the "Cannot find ESLint plugin" error
+      removePlugins(webpackConfig, pluginByName("ESLintWebpackPlugin"));
 
       // Add ignored patterns to reduce watched directories
         webpackConfig.watchOptions = {
