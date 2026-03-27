@@ -14,7 +14,7 @@ export default function AIChatbot({ currentUser, boothId }) {
   const isCitizen = role === 'citizen';
 
   const [messages, setMessages] = useState([
-    { role: 'bot', content: `Namaste ${currentUser?.name || 'Citizen'}. I am ESarthi, your institutional AI assistant. How can I help you today?` }
+    { role: 'bot', content: `Namaste ${currentUser?.name || 'Citizen'}. I am ESarthi, your institutional AI assistant. How can I help you today?`, timestamp: new Date().toISOString() }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,7 +33,7 @@ export default function AIChatbot({ currentUser, boothId }) {
   const handleSend = async (text = input) => {
     if (!text.trim() || loading) return;
 
-    const userMessage = { role: 'user', content: text };
+    const userMessage = { role: 'user', content: text, timestamp: new Date().toISOString() };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setLoading(true);
@@ -45,7 +45,7 @@ export default function AIChatbot({ currentUser, boothId }) {
         booth_id: boothId || 17
       });
 
-      const botMessage = { role: 'bot', content: response.response };
+      const botMessage = { role: 'bot', content: response.response, timestamp: new Date().toISOString() };
       setMessages(prev => [...prev, botMessage]);
     } catch (e) {
       console.error(e);
@@ -176,6 +176,7 @@ export default function AIChatbot({ currentUser, boothId }) {
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="text-[8px] font-mono font-black text-muted-foreground uppercase tracking-widest">
                         {m.role === 'user' ? currentUser?.name || 'CITIZEN' : 'SYSTEM COMMAND'}
+                        {m.timestamp && <span className="ml-2 opacity-40">({new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})</span>}
                       </span>
                       {m.role === 'bot' && (
                         <button 

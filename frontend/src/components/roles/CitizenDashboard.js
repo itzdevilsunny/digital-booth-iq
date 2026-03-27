@@ -626,7 +626,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                                             <h4 className="text-base font-bold text-foreground truncate tracking-tight">{g.description}</h4>
                                                             <div className="flex items-center gap-4 mt-2">
                                                                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                                                                    <Calendar size={12} className="text-emerald-500" /> {new Date(g.created_at || Date.now()).toLocaleDateString()}
+                                                                    <Calendar size={12} className="text-emerald-500" /> {new Date(g.created_at || Date.now()).toLocaleDateString()} at {new Date(g.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                                 </span>
                                                                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                                                                     <MapPin size={12} className="text-emerald-500" /> {t('boothLabel')} {g.booth_id}
@@ -1221,8 +1221,8 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                 </div>
             </div>
 
-            {/* Desktop Sidebar (Only on dashboard/main views) */}
-            <div className={`hidden lg:block ${tab === 'profile' ? 'hidden' : ''}`}>
+            {/* Desktop Sidebar (Only on main dashboard view to reduce clutter) */}
+            <div className={`hidden lg:block ${tab !== 'dashboard' ? 'hidden' : ''}`}>
                 <VoterProfileSidebar 
                     user={currentUser} 
                     analytics={analytics} 

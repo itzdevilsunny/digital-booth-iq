@@ -134,8 +134,7 @@ const ConstituencyDashboard = ({ currentUser, boothId }) => {
                                         <Shield size={18} />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black text-foreground uppercase tracking-tight">{action.type.replace('_', ' ')}</p>
-                                        <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">{action.target} • {new Date(action.timestamp).toLocaleTimeString()}</p>
+                                        <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">{action.target} • {new Date(action.timestamp).toLocaleDateString()} at {new Date(action.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                                     </div>
                                 </div>
                                 <ArrowUpRight size={14} className="text-muted-foreground group-hover:text-indigo-500 transition-colors" />

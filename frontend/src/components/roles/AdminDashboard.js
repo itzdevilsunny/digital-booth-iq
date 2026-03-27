@@ -450,7 +450,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                                 <div className="p-3 bg-muted/30 rounded-xl border border-border">
                                                     <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[2px] mb-1">Reported at</p>
                                                     <p className="text-sm font-black text-foreground uppercase tracking-tighter flex items-center gap-2">
-                                                        <Clock size={14} className="text-primary" /> {new Date(g.created_at).toLocaleDateString()}
+                                                        <Clock size={14} className="text-primary" /> {new Date(g.created_at).toLocaleDateString()} at {new Date(g.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </p>
                                                 </div>
                                                 <div className="p-3 bg-muted/30 rounded-xl border border-border">

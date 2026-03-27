@@ -1267,33 +1267,17 @@ def normalize_voter_id(vid: Optional[Union[int, str]]) -> Optional[str]:
         return v_str[1:]
     return v_str
 
-@api_router.get("/grievances")
-async def get_grievances(
+async def fetch_grievances_internal(
     booth_id: Optional[Union[int, str]] = None, 
     assigned_to: Optional[str] = None, 
     voter_id: Optional[Union[int, str]] = None,
-    user: Optional[dict] = Depends(get_optional_user)
+    role: str = "citizen",
+    requested_voter_id: Optional[str] = None
 ):
-    """Get grievances - RBAC & Data Isolation enforced"""
-    # Handle Dummy Users for Demo - check first, before any auth checks
-    if not user and voter_id and "dummy" in str(voter_id).lower():
-        # Create a mock user context for the demo bypass
-        user = {
-            "id": str(voter_id),
-            "role": "citizen" if "citizen" in str(voter_id).lower() else "worker",
-            "name": f"Demo {str(voter_id).replace('dummy-', '').capitalize()}"
-        }
-
-    # Require auth for non-dummy requests
-    if not user:
-        raise HTTPException(status_code=401, detail="Authentication required")
-
-    # Security Check: Enforce data isolation based on role
-    role = user.get("role")
+    """Core logic for fetching grievances, decoupled from FastAPI Depends"""
     
     # Normalize requested voter_id and user ID
-    requested_voter_id = normalize_voter_id(voter_id)
-    user_id = normalize_voter_id(user.get("id"))
+    user_id = normalize_voter_id(voter_id)
     
     if role == "citizen":
         # Citizens can ONLY see their own grievances
@@ -1357,8 +1341,7 @@ async def get_grievances(
     if isinstance(data, list):
         supabase_grievances = data
     elif isinstance(data, dict) and "error" in data:
-        logger.error(f"Supabase grievances fetch error (Code {data.get('status_code')}): {data.get('error')}")
-        # Continue with empty list to allow fallback to MongoDB
+        logger.error(f"Supabase grievances fetch error: {data.get('error')}")
     
     # Merge with MongoDB data for hybrid richness
     mongo_grievances = []
@@ -1457,6 +1440,33 @@ async def get_grievances(
         result.append(g)
     
     return result
+
+@api_router.get("/grievances")
+async def get_grievances(
+    booth_id: Optional[Union[int, str]] = None, 
+    assigned_to: Optional[str] = None, 
+    voter_id: Optional[Union[int, str]] = None,
+    user: Optional[dict] = Depends(get_optional_user)
+):
+    """Entry point for grievances - RBAC & Data Isolation enforced"""
+    # Handle Dummy Users for Demo
+    if not user and voter_id and "dummy" in str(voter_id).lower():
+        user = {
+            "id": str(voter_id),
+            "role": "citizen" if "citizen" in str(voter_id).lower() else "worker",
+            "name": f"Demo {str(voter_id).replace('dummy-', '').capitalize()}"
+        }
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    return await fetch_grievances_internal(
+        booth_id=booth_id,
+        assigned_to=assigned_to,
+        voter_id=user.get("id"),
+        role=user.get("role", "citizen"),
+        requested_voter_id=normalize_voter_id(voter_id)
+    )
 
 
 @api_router.post("/upload")
@@ -1805,12 +1815,12 @@ async def get_bulletins():
 async def get_voter_services():
     """High-utility digital services for citizens"""
     return [
-        {"id": "s1", "name": "Voter ID Proxy", "icon": "badge", "description": "Encrypted digital identity for verification.", "status": "active"},
-        {"id": "s2", "name": "Booth Navigation", "icon": "near_me", "description": "AR-ready route to Booth #17 entrance.", "status": "active"},
-        {"id": "s3", "name": "Digital Voter Slip", "icon": "receipt_long", "description": "Instantly download your polling station pass.", "status": "active"},
-        {"id": "s4", "name": "Live Queue Latency", "icon": "timer", "description": "Real-time AI wait-time predictions.", "status": "active"},
-        {"id": "s5", "name": "Family Linkage", "icon": "family_history", "description": "Manage polling for your entire household.", "status": "active"},
-        {"id": "s6", "name": "Electoral Roll Audit", "icon": "fact_check", "description": "Verify your presence in the final list.", "status": "active"}
+        {"id": "s1", "name": "Voter ID Proxy", "icon": "badge", "description": "Encrypted digital identity for verification.", "status": "active", "official_link": "https://voters.eci.gov.in/"},
+        {"id": "s2", "name": "Booth Navigation", "icon": "near_me", "description": "AR-ready route to Booth #17 entrance.", "status": "active", "official_link": "https://voters.eci.gov.in/"},
+        {"id": "s3", "name": "Digital Voter Slip", "icon": "receipt_long", "description": "Instantly download your polling station pass.", "status": "active", "official_link": "https://voters.eci.gov.in/"},
+        {"id": "s4", "name": "Live Queue Latency", "icon": "timer", "description": "Real-time AI wait-time predictions.", "status": "active", "official_link": "https://voters.eci.gov.in/"},
+        {"id": "s5", "name": "Family Linkage", "icon": "family_history", "description": "Manage polling for your entire household.", "status": "active", "official_link": "https://voters.eci.gov.in/"},
+        {"id": "s6", "name": "Electoral Roll Audit", "icon": "fact_check", "description": "Verify your presence in the final list.", "status": "active", "official_link": "https://voters.eci.gov.in/"}
     ]
 
 # --- ROUTES: GOVERNMENT SCHEMES ---
@@ -1906,28 +1916,7 @@ async def get_applications(voter_id: str):
 
 # --- AI VOICE SERVICES (SARVAM AI Integration) ---
 
-@api_router.post("/ai/stt")
-async def speech_to_text(file: UploadFile = File(...)):
-    """Convert audio to text using Sarvam AI or Fallback"""
-    if not SARVAM_API_KEY:
-        return {"transcript": "System Note: Audio processed. (Sarvam Key Missing - Simulated Transcript for Demo)"}
-    
-    try:
-        content = await file.read()
-        async with httpx.AsyncClient() as client:
-            files = {'file': (file.filename, content, 'audio/mpeg')}
-            response = await client.post(
-                "https://api.sarvam.ai/v1/speech-to-text",
-                headers={'api-subscription-key': SARVAM_API_KEY},
-                files=files,
-                timeout=20.0
-            )
-            if response.status_code == 200:
-                return response.json()
-            return {"transcript": f"Transcription System: Processing error ({response.status_code}). Please try text input."}
-    except Exception as e:
-        logger.error(f"STT Error: {e}")
-        return {"transcript": "Transcription System: Network latency exceeded. Using manual input fallback."}
+# [Duplicate STT route removed for production stabilization]
 
 @api_router.post("/ai/tts")
 async def text_to_speech(text: str = Form(...), user_id: str = Form(...)):
@@ -2240,8 +2229,11 @@ async def manager_analyze(data: ManagerAnalyze, user: dict = Depends(get_current
     try:
         real_id = await resolve_booth_id(data.booth_id)
         
-        # Get grievances for this booth
-        grievances = await get_grievances(booth_id=real_id)
+        # Get grievances for this booth using internal helper
+        grievances = await fetch_grievances_internal(
+            booth_id=real_id,
+            role=user.get("role", "admin")
+        )
         
         if not grievances:
             return {"status": "no_data", "message": "No issues found in this sector to analyze."}
@@ -2315,8 +2307,8 @@ async def get_manager_alerts(user: dict = Depends(get_current_user)):
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 })
 
-        # 2. Detect Resource Bottlenecks (Unassigned Grievances)
-        grievances = await get_grievances()
+        # Use internal helper to avoid Depends error
+        grievances = await fetch_grievances_internal(role=user.get("role", "city_manager"))
         unassigned = [g for g in grievances if g.get("status") == "submitted"]
         if len(unassigned) > 5:
             alerts.append({
@@ -2348,8 +2340,11 @@ async def manager_auto_assign(data: dict):
         action_id = str(uuid.uuid4())
         timestamp = datetime.now(timezone.utc).isoformat()
         
-        # 1. Get unassigned grievances
-        grievances = await get_grievances(booth_id=data.get("booth_id"))
+        # Use internal helper
+        grievances = await fetch_grievances_internal(
+            booth_id=data.get("booth_id"),
+            role="admin"
+        )
         unassigned = [g for g in grievances if g.get("status") == "submitted"]
         
         # 2. Get available workers
@@ -2487,44 +2482,7 @@ async def get_constituency_summary(user: dict = Depends(get_current_user)):
         logger.error(f"Constituency summary error: {e}")
         return {"error": str(e)}
 
-@api_router.get("/voter-services")
-async def get_voter_services():
-    """Get list of available voter services with official links"""
-    services = [
-        {
-            "id": "VS-001",
-            "name": "Digital ID Request", 
-            "desc": "Request a digital copy of your institutional verification card.", 
-            "icon": "fingerprint",
-            "official_link": "https://voters.eci.gov.in/",
-            "more_info": "Your digital ID serves as a secondary verification token for local governance access."
-        },
-        {
-            "id": "VS-002",
-            "name": "Address Certification", 
-            "desc": "Official verification of local residency for scheme eligibility.", 
-            "icon": "home_pin",
-            "official_link": "https://myaadhaar.uidai.gov.in/update-address",
-            "more_info": "Institutional certification ensures you meet the residency requirements for localized welfare programs."
-        },
-        {
-            "id": "VS-003",
-            "name": "Family Tree Sync", 
-            "desc": "Verify and update your family unit nodes in the Knowledge Graph.", 
-            "icon": "account_tree",
-            "official_link": "https://voters.eci.gov.in/",
-            "more_info": "Syncing your family tree helps in identifying shared welfare eligibility and community mapping."
-        },
-        {
-            "id": "VS-004",
-            "name": "Election Day Alert", 
-            "desc": "Configure institutional notification protocols for upcoming cycles.", 
-            "icon": "notifications_active",
-            "official_link": "https://voters.eci.gov.in/app-voter-helpline",
-            "more_info": "Stay informed about your local booth status, queue times, and official announcements on election day."
-        }
-    ]
-    return services
+# [Duplicate get_voter_services removed]
 
 def sanitize_for_json(obj):
     """Recursive helper to convert non-serializable objects (like ObjectId, datetime) to strings"""
@@ -2568,7 +2526,11 @@ async def ai_chat(data: ChatRequest):
         # Fetch actual grievances for this booth
         grievances = []
         try:
-            grievances = await get_grievances(booth_id=data.booth_id)
+            grievances = await fetch_grievances_internal(
+                booth_id=data.booth_id,
+                role=user.get("role", "citizen") if user else "citizen",
+                voter_id=data.user_id
+            )
         except Exception as e:
             logger.error(f"Error fetching grievances context: {e}")
         system_grievances = grievances[:3] if grievances else []
@@ -2581,7 +2543,7 @@ async def ai_chat(data: ChatRequest):
             logger.error(f"Error fetching schemes context: {e}")
         
         # Define role-specific persona to ensure AI acts according to its audience
-        role = user.get("role", "citizen")
+        role = user.get("role", "citizen") if user else "citizen"
         role_personas = {
             "citizen": "You are the Citizen Service Assistant. Be empathetic, helpful, and focused on public welfare schemes and grievance tracking. Use encouraging, community-focused language.",
             "worker": "You are the Field Operations Advisor. Be tactical, direct, and authoritative. Focus on territory management, task completion, and on-ground execution. Provide quick, actionable advice for field visits.",

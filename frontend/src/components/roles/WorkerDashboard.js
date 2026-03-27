@@ -75,7 +75,7 @@ const TaskCard = ({ task, onStart, onResolve, delay }) => {
 
                 <div className="flex flex-wrap items-center gap-4 text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest">
                     <span className="flex items-center gap-1.5"><MapPin size={12} className="text-emerald-500" /> Booth {task.booth_id}</span>
-                    <span className="flex items-center gap-1.5"><Clock size={12} className="text-emerald-500" /> at {new Date(task.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="flex items-center gap-1.5"><Clock size={12} className="text-emerald-500" /> {new Date(task.created_at).toLocaleDateString()} at {new Date(task.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
             </div>
 

@@ -61,7 +61,7 @@ const VoterCard = ({ voter, onCheckIn, loading, onPush }) => {
                     <div className="text-right">
                         <p className="text-[8px] font-black text-emerald-500/50 uppercase tracking-[2px]">CHECKED IN AT</p>
                         <p className="text-[10px] font-bold text-emerald-500/80 uppercase">
-                            {voter.voted_at ? new Date(voter.voted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Live'}
+                            {voter.voted_at ? `${new Date(voter.voted_at).toLocaleDateString()} at ${new Date(voter.voted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Live'}
                         </p>
                     </div>
                 ) : (
@@ -105,7 +105,7 @@ export default function BLODashboard({ currentUser, boothId }) {
     const addAction = (msg) => {
         setActionHistory(prev => [{
             id: Date.now(),
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            time: `${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`,
             message: msg
         }, ...prev].slice(0, 5));
     };

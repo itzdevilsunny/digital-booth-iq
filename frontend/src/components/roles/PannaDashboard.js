@@ -316,7 +316,7 @@ export default function PannaDashboard({ currentUser, boothId }) {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between mb-2">
                                             <h4 className="font-black text-xl text-foreground tracking-tighter uppercase leading-none group-hover:text-emerald-400 transition-colors">{c.voter_name}</h4>
-                                            <span className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[3px]">{new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                            <span className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[3px]">{new Date(c.created_at).toLocaleDateString()} at {new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <div className={`px-3 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${isAnswered ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'}`}>

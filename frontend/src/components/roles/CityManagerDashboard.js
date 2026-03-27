@@ -248,7 +248,7 @@ export default function CityManagerDashboard({ currentUser, boothId }) {
                                         <Zap size={10} />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-tight mb-0.5">{alert.title}</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-tight mb-0.5">{alert.title} <span className="opacity-40 ml-2">({new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})</span></p>
                                         <p className="text-[9px] font-medium leading-tight opacity-60">{alert.message}</p>
                                     </div>
                                 </motion.div>

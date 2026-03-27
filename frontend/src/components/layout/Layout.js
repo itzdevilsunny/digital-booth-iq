@@ -47,15 +47,8 @@ const Layout = ({ children, title = "Dashboard", user }) => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* Search - Desktop */}
-                        <div className={`hidden lg:flex items-center gap-2.5 bg-muted px-4 py-2 rounded-xl border border-border focus-within:border-emerald-500/50 transition-all w-60 mr-2 group`}>
-                            <Search size={14} className={`text-muted-foreground group-focus-within:text-emerald-500 transition-colors`} />
-                            <input 
-                                type="text" 
-                                placeholder="Search records..." 
-                                className={`bg-transparent border-none outline-none text-[11px] w-full text-foreground placeholder:text-muted-foreground/50`}
-                            />
-                        </div>
+                        {/* Spacer for theme toggle alignment */}
+                        <div className="flex-1 lg:flex-none" />
 
                         {/* Theme Toggle */}
                         <ThemeToggle />
