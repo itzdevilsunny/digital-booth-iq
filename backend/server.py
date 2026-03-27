@@ -64,15 +64,18 @@ async def get_optional_user(authorization: str = Header(None)) -> Optional[dict]
     except Exception:
         return None
 
-# MongoDB connection
+# MongoDB connection with SSL stability for Cloud environments (Render/Atlas)
 mongo_url = os.environ['MONGO_URL']
-# Use tlsAllowInvalidCertificates=True to resolve SSL handshake failures in some cloud environments (like Render)
 client = AsyncIOMotorClient(
     mongo_url,
-    serverSelectionTimeoutMS=5000,
-    tlsAllowInvalidCertificates=True
+    serverSelectionTimeoutMS=20000,
+    connectTimeoutMS=20000,
+    socketTimeoutMS=20000,
+    tls=True,
+    tlsAllowInvalidCertificates=True,
+    retryWrites=False
 )
-db = client[os.environ['DB_NAME']]
+db = client[os.environ.get('DB_NAME', 'booth_iq')]
 
 # Supabase config
 # OpenAI Configuration
@@ -991,9 +994,9 @@ async def get_voters(booth_id: Union[int, str]):
     real_id = await resolve_booth_id(booth_id)
     # logger.info(f"Fetching voters for [Requested:{booth_id} -> Real:{real_id}]")
     
-    # Get base data and voted status from Supabase
+    # Get base data from Supabase (removed non-existent 'voted' columns from voters_eci)
     eci_data = await supabase_request("GET", "voters_eci", params={
-        "select": "id,name,phone,booth_id,address,gender,dob,voted,voted_at",
+        "select": "id,name,phone,booth_id,address,gender,dob",
         "booth_id": f"eq.{real_id}",
         "order": "name"
     })
@@ -1005,7 +1008,7 @@ async def get_voters(booth_id: Union[int, str]):
     if not eci_data or (isinstance(eci_data, dict) and "error" in eci_data):
         # Try finding ANY voters if booth specific fails, for demo robustness
         eci_data = await supabase_request("GET", "voters_eci", params={
-            "select": "id,name,phone,booth_id,address,gender,dob,voted,voted_at",
+            "select": "id,name,phone,booth_id,address,gender,dob",
             "limit": 50
         })
         
