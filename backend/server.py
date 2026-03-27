@@ -2758,40 +2758,74 @@ async def ai_chat(data: ChatRequest):
 
 @api_router.post("/ai/stt")
 async def speech_to_text(file: UploadFile = File(...), language_code: str = Form("hi-IN"), user_id: str = Form("anonymous")):
-    """Sarvam AI Speech-to-Text"""
-    # Rate limit removed
+    """Sarvam AI Speech-to-Text with OpenAI Whisper Fallback"""
     try:
         sarvam_key = os.environ.get('SARVAM_API_KEY')
-        if not sarvam_key:
-            raise HTTPException(status_code=500, detail="SARVAM_API_KEY not set")
+        transcript = ""
+        
+        if sarvam_key:
+            try:
+                async with httpx.AsyncClient() as client:
+                    files = {'file': (file.filename, await file.read(), file.content_type)}
+                    data = {'model': 'saaras:v1', 'language_code': language_code}
+                    headers = {'api-subscription-key': sarvam_key}
+                    
+                    response = await client.post(
+                        "https://api.sarvam.ai/speech-to-text",
+                        files=files,
+                        data=data,
+                        headers=headers,
+                        timeout=15.0
+                    )
+                    
+                    if response.status_code == 200:
+                        res_data = response.json()
+                        transcript = res_data.get("transcript") or res_data.get("text") or ""
+                        if transcript:
+                            logger.info(f"Sarvam STT Success: {transcript}")
+                            return {"transcript": transcript}
+                    else:
+                        logger.warning(f"Sarvam STT failed ({response.status_code}): {response.text}")
+            except Exception as e:
+                logger.error(f"Sarvam STT Exception: {e}")
+
+        # Fallback to OpenAI Whisper
+        logger.info("Attempting OpenAI Whisper fallback...")
+        await file.seek(0) # Reset file pointer for fallback read
+        audio_data = await file.read()
+        
+        # We need to save to a temp file because openai library expects a file-like object with a name or path
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+            tmp.write(audio_data)
+            tmp_path = tmp.name
             
-        async with httpx.AsyncClient() as client:
-            files = {'file': (file.filename, await file.read(), file.content_type)}
-            data = {'model': 'saaras:v1', 'language_code': language_code}
-            headers = {'api-subscription-key': sarvam_key}
-            
-            response = await client.post(
-                "https://api.sarvam.ai/speech-to-text",
-                files=files,
-                data=data,
-                headers=headers
-            )
-            
-            if response.status_code != 200:
-                logger.error(f"Sarvam STT Error: {response.text}")
-                return {"transcript": ""}
-                
-            return response.json()
+        try:
+            with open(tmp_path, "rb") as audio_file:
+                response = await openai_client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file
+                )
+                transcript = response.text
+                logger.info(f"OpenAI Whisper Success: {transcript}")
+                return {"transcript": transcript}
+        finally:
+            import os
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
     except Exception as e:
-        logger.error(f"STT Exception: {e}")
+        logger.error(f"STT Error: {e}")
         return {"transcript": ""}
 
 @api_router.post("/ai/tts")
 async def text_to_speech(text: str = Form(...), language_code: str = Form("hi-IN"), user_id: str = Form("anonymous")):
     """Sarvam AI Text-to-Speech"""
-    # Rate limit removed
     try:
         sarvam_key = os.environ.get('SARVAM_API_KEY')
+        if not sarvam_key:
+            return {"audio_content": ""}
+            
         async with httpx.AsyncClient() as client:
             headers = {
                 'api-subscription-key': sarvam_key,
@@ -2807,12 +2841,14 @@ async def text_to_speech(text: str = Form(...), language_code: str = Form("hi-IN
             response = await client.post(
                 "https://api.sarvam.ai/text-to-speech",
                 json=payload,
-                headers=headers
+                headers=headers,
+                timeout=15.0
             )
             
             if response.status_code == 200:
                 data = response.json()
                 return {"audio_content": data.get("audios", [""])[0]}
+            logger.error(f"Sarvam TTS Error: {response.text}")
             return {"audio_content": ""}
     except Exception as e:
         logger.error(f"TTS Exception: {e}")

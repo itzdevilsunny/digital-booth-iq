@@ -20,6 +20,7 @@ export default function AIChatbot({ currentUser, boothId }) {
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const scrollRef = useRef(null);
   const mediaRecorder = useRef(null);
   const audioChunks = useRef([]);
@@ -31,7 +32,7 @@ export default function AIChatbot({ currentUser, boothId }) {
   }, [messages]);
 
   const handleSend = async (text = input) => {
-    if (!text.trim() || loading) return;
+    if (!text || !text.trim() || loading) return;
 
     const userMessage = { role: 'user', content: text, timestamp: new Date().toISOString() };
     setMessages(prev => [...prev, userMessage]);
@@ -55,6 +56,8 @@ export default function AIChatbot({ currentUser, boothId }) {
   };
 
   const startRecording = async () => {
+// ... existing startRecording ...
+// (I will use a more precise replacement chunk below)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorder.current = new MediaRecorder(stream);
@@ -70,14 +73,22 @@ export default function AIChatbot({ currentUser, boothId }) {
         formData.append('file', audioBlob, 'voice.wav');
         formData.append('user_id', currentUser?.id || 'anonymous');
 
-        setLoading(true);
+        setIsTranscribing(true);
         try {
           const result = await speechToText(formData);
           if (result.transcript) {
-            handleSend(result.transcript);
+            // First show in input as requested
+            setInput(result.transcript);
+            // Then auto-send after a brief pause
+            setTimeout(() => {
+              handleSend(result.transcript);
+            }, 800);
           }
-        } catch (e) { console.error(e); }
-        setLoading(false);
+        } catch (e) { 
+          console.error(e);
+          setMessages(prev => [...prev, { role: 'bot', content: "Voice processing failed. Please try text input." }]);
+        }
+        setIsTranscribing(false);
       };
 
       mediaRecorder.current.start();
@@ -213,19 +224,21 @@ export default function AIChatbot({ currentUser, boothId }) {
                 <div className="flex-1 relative">
                   <input 
                     type="text" 
-                    value={input}
+                    value={isTranscribing ? "Transcribing..." : input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder="Inquire with ESarthi..."
-                    className="w-full pl-4 pr-12 py-3 rounded-xl text-xs font-bold bg-muted border border-border text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-muted-foreground/50"
+                    placeholder={isRecording ? "Listening..." : "Inquire with ESarthi..."}
+                    readOnly={isTranscribing}
+                    className={`w-full pl-4 pr-12 py-3 rounded-xl text-xs font-bold bg-muted border border-border text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-muted-foreground/50 ${isTranscribing ? 'animate-pulse' : ''}`}
                   />
                   <button 
                     onMouseDown={startRecording}
                     onMouseUp={stopRecording}
                     onMouseLeave={stopRecording}
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'text-muted-foreground hover:text-primary hover:bg-primary/10'}`}
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : isTranscribing ? 'bg-primary text-white animate-spin' : 'text-muted-foreground hover:text-primary hover:bg-primary/10'}`}
+                    disabled={isTranscribing}
                   >
-                    {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
+                    {isRecording ? <MicOff size={18} /> : isTranscribing ? <Loader2 size={18} /> : <Mic size={18} />}
                   </button>
                 </div>
                 <button 
