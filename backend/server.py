@@ -413,6 +413,49 @@ async def get_user_contact(user_id: str):
         logger.error(f"Error fetching contact info for {user_id}: {e}")
     return {"phone": None, "email": f"{user_id}@boothiq.ai", "name": "Citizen"}
 
+async def generate_ai_notification_message(event_type: str, data: dict) -> str:
+    """🧠 AI-Powered Notification Generator: Creates context-aware, professional messages (GPT-4o-mini)"""
+    try:
+        # Construct context for AI
+        # Handle non-serializable objects (like datetime) if any - though data should be plain dict
+        context_data = {k: str(v) if isinstance(v, (datetime, uuid.UUID)) else v for k, v in data.items()}
+        context = json.dumps(context_data, indent=2)
+        
+        prompt = f"""
+        Role: You are the BoothIQ Official Communication Officer.
+        Task: Generate a short, professional, and clear notification message for a {event_type} event.
+        Context Data: {context}
+        
+        Guidelines:
+        1. Keep it under 160 characters if possible (SMS optimization).
+        2. Use a reassuring, professional tone.
+        3. Include critical info like Reference IDs or Status.
+        4. Use Indian English/Hindi transliteration (Hinglish) style if it feels more personal, but keep it official.
+        5. DO NOT use generic placeholders; use the real data from the context.
+        
+        Return ONLY the final message string.
+        """
+        
+        response = await openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=150,
+            temperature=0.7
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        logger.error(f"AI Notification generation failed: {e}")
+        # Robust Fallback Logic
+        fallbacks = {
+            "grievance_submitted": f"Grievance Filed: Your {data.get('category', 'issue')} has been logged. Ref ID: {data.get('id', 'N/A')}",
+            "grievance_assigned": f"Update: Your {data.get('category', 'issue')} report (ID: {data.get('id')}) is assigned to {data.get('worker_name', 'an officer')}.",
+            "grievance_status": f"Status Update: Your {data.get('category', 'issue')} report is now {data.get('status', 'updated')}.",
+            "grievance_resolved": f"Resolved: Your {data.get('category', 'issue')} issue (ID: {data.get('id')}) has been fixed. Thank you!",
+            "scheme_application": f"Application Received: Your request for {data.get('scheme_id', 'the scheme')} is being processed.",
+            "call_logged": f"Thank you for the call! We've noted your feedback regarding {data.get('voter_name', 'your profile')}."
+        }
+        return fallbacks.get(event_type, "BoothIQ Update: There is a new activity on your profile.")
+
 async def send_notification(user_id: str, title: str, message: str, n_type: str = "info", metadata: dict = None):
     """Multi-channel notification dispatcher with real service integration"""
     notification = {
@@ -439,21 +482,16 @@ async def send_notification(user_id: str, title: str, message: str, n_type: str 
     # 3. Real Multi-Channel Dispatch
     # Resolve contact info if not in metadata
     contact = await get_user_contact(user_id)
-    user_email = (metadata or {}).get("email") or contact["email"]
-    user_phone = (metadata or {}).get("phone") or contact["phone"]
-    # Security: Fetch user contact details from DB - No hardcoded overrides
-    user_email = None
-    user_phone = None
     
-    try:
-        user_doc = await db.voters.find_one({"id": user_id}, {"_id": 0, "email": 1, "phone": 1})
-        if user_doc:
-            user_email = user_doc.get("email")
-            user_phone = user_doc.get("phone")
-    except Exception as e:
-        logger.error(f"Error fetching contact info for notification: {e}")
-
-    # Fallback to env for demo safety ONLY if no DB record found
+    # Use metadata overrides if provided
+    user_email = (metadata or {}).get("email")
+    user_phone = (metadata or {}).get("phone")
+    
+    # If not provided in metadata, use DB contact info
+    if not user_email: user_email = contact.get("email")
+    if not user_phone: user_phone = contact.get("phone")
+    
+    # Final Fallback to env for demo safety ONLY if no DB/passed record found
     if not user_email: user_email = os.environ.get("TEST_EMAIL")
     if not user_phone: user_phone = os.environ.get("TEST_PHONE")
     
@@ -1196,6 +1234,24 @@ async def create_call(data: CallCreate):
                 logger.error(f"Error updating voter sentiment: {e}")
                 pass
         
+        # --- NOTIFICATION HOOK: CALL LOGGED ---
+        try:
+            call_msg = await generate_ai_notification_message("call_logged", {
+                "voter_name": data.voter_name,
+                "status": data.status,
+                "notes": data.notes,
+                "sentiment": sentiment
+            })
+            
+            await send_notification(
+                user_id=str(data.voter_id),
+                title="Interaction Logged",
+                message=call_msg,
+                n_type="info"
+            )
+        except Exception as e:
+            logger.error(f"Notification Error in create_call: {e}")
+
         del call_doc["_id"]
         return call_doc
     except Exception as e:
@@ -1629,27 +1685,43 @@ async def create_grievance(data: GrievanceCreate):
         grievance["ai_priority"] = ai_result["priority"]
         
         # --- NOTIFICATION HOOK ---
-        # Notify Booth Staff and Voter
+        # Notify Booth Staff and Voter with AI-Generated Messages
         try:
+            # Generate AI message for the voter
+            voter_msg = await generate_ai_notification_message("grievance_submitted", {
+                "id": grievance_id_to_use,
+                "category": category,
+                "description": data.description,
+                "voter_name": data.voter_name or "Citizen"
+            })
+            
             # Notify the person who filed it
             await send_notification(
                 user_id=str(data.voter_id) if data.voter_id else "anonymous",
                 title="Grievance Filed Successfully",
-                message=f"Your {category} issue has been logged. Ref ID: {grievance_id_to_use}",
+                message=voter_msg,
                 n_type="success",
                 metadata={"phone": data.voter_phone}
             )
             
+            # Generate AI message for the admin
+            admin_msg = await generate_ai_notification_message("grievance_alert_admin", {
+                "id": grievance_id_to_use,
+                "category": category,
+                "booth_id": real_booth_id,
+                "priority": ai_result["priority"]
+            })
+            
             # Notify Booth Staff (Admins)
             await send_notification(
                 user_id="admin_1",
-                title="New Grievance Filed",
-                message=f"A new {category} issue has been reported in Booth {real_booth_id}.",
+                title="New Grievance Alert",
+                message=admin_msg,
                 n_type="warning",
                 metadata={"grievance_id": grievance_id_to_use}
             )
         except Exception as e:
-            logger.error(f"Notification Hook Error: {e}")
+            logger.error(f"Notification Hook Error in create_grievance: {e}")
         
         return grievance
     except HTTPException:
@@ -1764,19 +1836,19 @@ async def update_grievance(data: GrievanceUpdate, user: dict = Depends(get_curre
                 current_status = data.status or grievance.get("status", "updated")
                 
                 if v_id and v_id != "None":
-                    status_messages = {
-                        "assigned": f"Your {category} report has been assigned to a field officer for immediate action.",
-                        "in_progress": f"A field officer is now working on your {category} report.",
-                        "resolved": f"Success! Your {category} report has been resolved. Thank you for your cooperation.",
-                        "submitted": f"Your {category} report is currently under review by the booth management team."
-                    }
-                    
-                    msg = status_messages.get(current_status, f"The status of your {category} report has been updated to: {current_status}")
+                    # Use AI to generate a personalized status update message
+                    ai_status_msg = await generate_ai_notification_message("grievance_status", {
+                        "id": str(data.id),
+                        "category": category,
+                        "status": current_status,
+                        "voter_name": grievance.get("voter_name", "Citizen"),
+                        "resolution_note": data.resolution_note
+                    })
                     
                     await send_notification(
                         user_id=v_id,
                         title=f"Report Update: {current_status.upper()}",
-                        message=msg,
+                        message=ai_status_msg,
                         n_type="success" if current_status == "resolved" else "info",
                         metadata={"grievance_id": str(data.id), "status": current_status}
                     )
@@ -1890,13 +1962,23 @@ async def apply_scheme(data: SchemeApplication):
         }
         await db.scheme_applications.insert_one(application)
         
-        # Send real-time notification to user via WebSocket
-        await send_notification(
-            user_id=str(data.voter_id),
-            title="Application Logged",
-            message=f"Your application for {data.scheme_id} has been received.",
-            n_type="success"
-        )
+        # Use AI to generate a detailed confirmation message
+        try:
+            app_msg = await generate_ai_notification_message("scheme_application", {
+                "scheme_id": data.scheme_id,
+                "voter_id": data.voter_id,
+                "status": "submitted"
+            })
+            
+            # Send real-time notification to user via WebSocket and other channels
+            await send_notification(
+                user_id=str(data.voter_id),
+                title="Application Logged",
+                message=app_msg,
+                n_type="success"
+            )
+        except Exception as e:
+            logger.error(f"Notification Error in apply_scheme: {e}")
         
         return {"status": "success", "application_id": application["id"]}
     except Exception as e:
