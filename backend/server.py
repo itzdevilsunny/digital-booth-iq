@@ -8,6 +8,7 @@ from openai import AsyncOpenAI
 import json
 import logging
 import httpx
+import tempfile
 import jwt
 from pathlib import Path
 from pydantic import BaseModel
@@ -2795,7 +2796,6 @@ async def speech_to_text(file: UploadFile = File(...), language_code: str = Form
         audio_data = await file.read()
         
         # We need to save to a temp file because openai library expects a file-like object with a name or path
-        import tempfile
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
             tmp.write(audio_data)
             tmp_path = tmp.name
@@ -2810,7 +2810,6 @@ async def speech_to_text(file: UploadFile = File(...), language_code: str = Form
                 logger.info(f"OpenAI Whisper Success: {transcript}")
                 return {"transcript": transcript}
         finally:
-            import os
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
