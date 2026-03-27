@@ -508,7 +508,22 @@ export default function AdminDashboard({ currentUser, boothId }) {
                                                     </div>
                                                 )}
 
-                                                {g.resolution_note && (
+                                                {g.after_images && g.after_images.length > 0 && (
+                                                <div className="mt-6 p-6 bg-emerald-500/5 rounded-3xl border border-emerald-500/10">
+                                                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[3px] mb-4">
+                                                        Impact Evidence (After Images)
+                                                    </p>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        {g.after_images.map((img, i) => (
+                                                            <div key={i} className="aspect-video rounded-2xl overflow-hidden border border-emerald-500/20">
+                                                                <img src={img} alt="Resolution" className="w-full h-full object-cover" />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            
+                                            {g.resolution_note && (
                                                     <div className="md:col-span-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
                                                         <p className="text-[8px] font-black text-primary uppercase tracking-[2px] mb-2">Officer Note</p>
                                                         <p className="text-sm font-black text-muted-foreground/80 leading-tight uppercase tracking-tighter italic">"{g.resolution_note}"</p>

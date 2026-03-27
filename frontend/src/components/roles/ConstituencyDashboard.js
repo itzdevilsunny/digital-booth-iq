@@ -6,9 +6,16 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAnalytics, initiateCampaignBlast, managerAutoAssign, getActionHistory, getConstituencySummary } from '../../api';
+import { IntelligenceGraph } from '../intel/IntelligenceGraph';
 
 const ConstituencyDashboard = ({ currentUser, boothId }) => {
     const [tab, setTab] = useState('command');
+    
+    useEffect(() => {
+        if (window.location.pathname.endsWith('/intel')) {
+            setTab('intelligence');
+        }
+    }, []);
     const [loading, setLoading] = useState(true);
     const [stats, setAnalytics] = useState(null);
     const [summary, setSummary] = useState(null);
@@ -289,59 +296,26 @@ const ConstituencyDashboard = ({ currentUser, boothId }) => {
 
                 {tab === 'intelligence' && (
                     <div className="space-y-8">
-                        {/* Regional Sentiment Heatmap */}
-                        <div className="bg-card rounded-2xl border border-border p-6 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-                            <div className="relative z-10">
+                        {/* Regional Intelligence Network */}
+                        <div className="bg-card rounded-[2.5rem] border border-border p-8 relative overflow-hidden h-[600px] shadow-2xl">
+                            <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:30px_30px] opacity-10" />
+                            <div className="relative z-10 h-full flex flex-col">
                                 <div className="flex items-center justify-between mb-8">
                                     <div>
-                                        <h3 className="text-xl font-black text-foreground uppercase tracking-tighter flex items-center gap-3">
-                                            <Globe className="text-indigo-500" size={18} /> Issue Heatmap
+                                        <h3 className="text-2xl font-black text-foreground uppercase tracking-tighter flex items-center gap-3">
+                                            <Globe className="text-indigo-500" size={24} /> Regional Intelligence Hub
                                         </h3>
-                                        <p className="text-[9px] font-bold text-muted-foreground/20 uppercase tracking-[2px] mt-1">Booth-level tracking</p>
+                                        <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[4px] mt-1 ml-9">Advanced Neural Network Analysis</p>
                                     </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-1.5 text-[8px] font-black text-rose-500">
-                                            <div className="size-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" /> HIGH_ISSUE
-                                        </div>
-                                        <div className="flex items-center gap-1.5 text-[8px] font-black text-emerald-500">
-                                            <div className="size-1.5 rounded-full bg-emerald-500" /> OPTIMAL
+                                    <div className="flex items-center gap-6">
+                                        <div className="flex items-center gap-2 text-[9px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/5 px-3 py-1.5 rounded-full border border-emerald-500/10">
+                                            <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Grid
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-                                    {(summary?.heatmap || []).map((b) => (
-                                        <motion.div 
-                                            key={b.id}
-                                            whileHover={{ scale: 1.05 }}
-                                            className={`aspect-square rounded-xl border flex flex-col items-center justify-center relative group cursor-pointer transition-all duration-500 ${
-                                                b.sent === 'unhappy' 
-                                                ? 'bg-rose-500/10 border-rose-500/30 text-rose-500 shadow-md shadow-rose-500/5' 
-                                                : b.sent === 'happy' 
-                                                ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-500/40' 
-                                                : 'bg-muted border-border text-muted-foreground/50'
-                                            }`}
-                                        >
-                                            {b.sent === 'unhappy' && (
-                                                <div className="absolute top-2 right-2">
-                                                    <ShieldAlert size={12} className="animate-pulse" />
-                                                </div>
-                                            )}
-                                            <span className="text-[8px] font-black mb-1">BOOTH_{b.id}</span>
-                                            <span className={`text-xl font-black ${b.sent === 'unhappy' ? 'text-rose-400' : ''}`}>{b.val}%</span>
-                                            
-                                            {/* Tooltip Simulation */}
-                                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 translate-y-full w-48 p-4 bg-background border border-border rounded-xl opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
-                                                <p className="text-[10px] font-black uppercase text-foreground mb-2">Booth Information</p>
-                                                <p className="text-[9px] text-muted-foreground leading-tight italic">
-                                                    {b.sent === 'unhappy' 
-                                                        ? 'Critical infrastructure delays reported. High risk of swing.' 
-                                                        : 'Stable support. Consistent engagement with schemes.'}
-                                                </p>
-                                            </div>
-                                        </motion.div>
-                                    ))}
+                                <div className="flex-1 rounded-[2rem] overflow-hidden border border-white/5 bg-black/20">
+                                    <IntelligenceGraph boothId={boothId} />
                                 </div>
                             </div>
                         </div>

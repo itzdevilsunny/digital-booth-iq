@@ -34,7 +34,7 @@ const Sidebar = ({ user }) => {
         { id: 'schemes', label: 'Govt Schemes', icon: FileText, path: `/${role}/schemes`, hide: role !== 'citizen' },
         { id: 'voters', label: 'Voter Registry', icon: Users, path: `/${role}/voters`, hide: !['panna', 'admin'].includes(role) },
         { id: 'campaigns', label: 'Campaigns', icon: Zap, path: `/${role}/campaigns`, hide: role !== 'admin' },
-        { id: 'intelligence', label: 'Intelligence', icon: Globe, path: `/${role}`, hide: !['analyst', 'constituency'].includes(role) },
+        { id: 'intelligence', label: 'Intelligence', icon: Globe, path: `/${role}/intel`, hide: !['analyst', 'constituency'].includes(role) },
         { id: 'comms', label: 'Communications', icon: Activity, path: `/${role}/calls`, hide: role !== 'panna' },
     ];
 

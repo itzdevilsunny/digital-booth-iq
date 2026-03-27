@@ -659,7 +659,22 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                                                             </p>
                                                                         </div>
                                                                     </div>
-                                                                    {g.resolution_note && (
+                                                                    {g.after_images && g.after_images.length > 0 && (
+                                        <div className="mt-6 p-6 bg-emerald-500/5 rounded-[2.5rem] border border-emerald-500/10">
+                                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[3px] mb-4 flex items-center gap-2">
+                                                <ShieldCheck size={14} /> Impact Evidence (After Images)
+                                            </p>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                {g.after_images.map((img, i) => (
+                                                    <div key={i} className="aspect-video rounded-3xl overflow-hidden border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
+                                                        <img src={img} alt="Resolution" className="w-full h-full object-cover" />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    {g.resolution_note && (
                                                                         <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
                                                                             <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mb-1">{t('resolutionNote') || 'Resolution Note'}</p>
                                                                             <p className="text-sm text-emerald-800 dark:text-emerald-200 font-medium italic">"{g.resolution_note}"</p>

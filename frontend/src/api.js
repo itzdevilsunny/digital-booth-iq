@@ -63,7 +63,10 @@ export const uploadFile = (file) => {
 export const getAnalytics = (boothId) => api.get(`/analytics?booth_id=${boothId}`).then(r => r.data);
 
 // Knowledge Graph
-export const getGraphData = () => api.get('/graph-data').then(r => r.data);
+export const getGraphData = async (boothId, perspective = 'social') => {
+    const response = await api.get(`/graph-data?booth_id=${boothId}&perspective=${perspective}`);
+    return response.data;
+};
 export const filterVoters = (params) => {
   const query = new URLSearchParams(params).toString();
   return api.get(`/filter-voters?${query}`).then(r => r.data);

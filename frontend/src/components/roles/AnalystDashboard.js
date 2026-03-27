@@ -87,6 +87,19 @@ export default function AnalystDashboard({ currentUser, boothId }) {
         negative: { color: 'text-rose-500', bg: 'bg-rose-500', label: 'Negative', icon: TrendingDown }
     };
 
+    const isIntelView = window.location.pathname.endsWith('/intel');
+
+    if (isIntelView) {
+        return (
+            <div className="h-[calc(100vh-120px)] w-full">
+                <IntelligenceGraph 
+                    boothId={boothId} 
+                    onNodeSelect={(node) => setSelectedVoter(node)} 
+                />
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-8 pb-12 overflow-hidden">
             {/* Contextual Subheader */}

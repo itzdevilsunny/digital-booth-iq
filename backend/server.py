@@ -1993,52 +1993,86 @@ async def initiate_campaign_blast(data: CampaignBlast, user: dict = Depends(get_
     return {"status": "deployed", "reach": "950M", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 @api_router.get("/graph-data")
-async def get_graph_data(booth_id: Union[int, str], user: dict = Depends(get_current_user)):
-    """Extraction logic for the Intelligence Lead's Knowledge Graph (nodes & links)"""
+async def get_graph_data(booth_id: Union[int, str], perspective: str = "social", user: dict = Depends(get_current_user)):
+    """Extraction logic for the Intelligence Lead's Knowledge Graph with multiple perspectives"""
     if user.get("role") not in ["admin", "city_manager", "analyst", "constituency"]:
         raise HTTPException(status_code=403, detail="Unauthorized access to intelligence graph")
 
     real_id = await resolve_booth_id(booth_id)
     try:
-        # Fetch all voters for this booth from MongoDB (source of truth for connections)
+        # Fetch data from MongoDB
         voters = await db.voters.find({"booth_id": real_id}, {"_id": 0}).to_list(1000)
-        
         if not voters:
-            # Fallback for demo: return any voters if booth-specific query is empty
             voters = await db.voters.find({}, {"_id": 0}).limit(100).to_list(100)
 
         nodes = []
         links = []
-        seen_voter_ids = {str(v.get("id")) for v in voters}
-
-        for v in voters:
-            v_id = str(v.get("id"))
-            nodes.append({
-                "id": v_id,
-                "name": v.get("name", "Voter"),
-                "sentiment": v.get("sentiment", "neutral"),
-                "influence": v.get("influence_score", 1.0),
-                "role": v.get("role", "citizen"),
-                "isInfluencer": v.get("influence_score", 0) > 3.5
-            })
-
-            # Process links from connections
-            for conn in v.get("connections", []):
-                target_id = str(conn.get("to"))
-                if target_id in seen_voter_ids:
-                    # Avoid duplicate links by sorting IDs
-                    link_pair = tuple(sorted([v_id, target_id]))
+        
+        if perspective == "issues":
+            # Bipartite graph: Voters connected to Issue Categories
+            issue_nodes = {}
+            for v in voters:
+                v_id = str(v.get("id"))
+                nodes.append({
+                    "id": v_id,
+                    "name": v.get("name", "Voter"),
+                    "type": "voter",
+                    "sentiment": v.get("sentiment", "neutral")
+                })
+                
+                # Connect to reported issues
+                for g in v.get("grievances", []):
+                    cat = g.get("category", "other").capitalize()
+                    if cat not in issue_nodes:
+                        issue_nodes[cat] = f"issue_{cat.lower()}"
+                        nodes.append({
+                            "id": issue_nodes[cat],
+                            "name": cat,
+                            "type": "issue",
+                            "val": 15 # Larger size for issue nodes
+                        })
+                    
                     links.append({
                         "source": v_id,
-                        "target": target_id,
-                        "type": conn.get("type", "community")
+                        "target": issue_nodes[cat],
+                        "value": 2
                     })
+        elif perspective == "sentiment":
+            # Sentiment-focused social network
+            for v in voters:
+                v_id = str(v.get("id"))
+                sent = v.get("sentiment", "neutral")
+                nodes.append({
+                    "id": v_id,
+                    "name": v.get("name", "Voter"),
+                    "sentiment": sent,
+                    "influence": v.get("influence_score", 1.0) * (2 if sent == "negative" else 1), # Highlight negative influencers
+                    "isInfluencer": v.get("influence_score", 0) > 3.0
+                })
+                for conn in v.get("connections", []):
+                    links.append({"source": v_id, "target": str(conn.get("to")), "type": "influence"})
+        else: # Default: Social Fabric
+            seen_voter_ids = {str(v.get("id")) for v in voters}
+            for v in voters:
+                v_id = str(v.get("id"))
+                nodes.append({
+                    "id": v_id,
+                    "name": v.get("name", "Voter"),
+                    "sentiment": v.get("sentiment", "neutral"),
+                    "influence": v.get("influence_score", 1.0),
+                    "role": v.get("role", "citizen"),
+                    "isInfluencer": v.get("influence_score", 0) > 3.5
+                })
+                for conn in v.get("connections", []):
+                    target_id = str(conn.get("to"))
+                    if target_id in seen_voter_ids:
+                        links.append({"source": v_id, "target": target_id, "type": conn.get("type", "community")})
 
-        # Remove duplicate links (simplistic bidirectional check)
+        # Remove duplicate links
         unique_links = []
         seen_links = set()
         for l in links:
-            key = tuple(sorted([l["source"], l["target"]]))
+            key = tuple(sorted([str(l["source"]), str(l["target"])]))
             if key not in seen_links:
                 unique_links.append(l)
                 seen_links.add(key)
@@ -2046,14 +2080,11 @@ async def get_graph_data(booth_id: Union[int, str], user: dict = Depends(get_cur
         return {
             "nodes": nodes,
             "links": unique_links,
-            "metadata": {
-                "total_nodes": len(nodes),
-                "total_links": len(unique_links),
-                "booth_id": real_id
-            }
+            "perspective": perspective,
+            "metadata": {"total_nodes": len(nodes), "total_links": len(unique_links), "booth_id": real_id}
         }
     except Exception as e:
-        logger.error(f"Error generating graph data: {e}")
+        logger.error(f"Error generating {perspective} graph data: {e}")
         return {"nodes": [], "links": []}
 
 # --- ROUTES: ANALYTICS ---
@@ -2555,11 +2586,15 @@ async def ai_chat(data: ChatRequest):
         }
         active_persona = role_personas.get(role, role_personas["citizen"])
 
+        # Robust null-safe handling for user context
+        user_name = user.get('name', 'Citizen') if user else 'Citizen'
+        user_role = role.upper() if (user and user.get('role')) else 'CITIZEN'
+
         context_prompt = f"""
         {active_persona}
         
         Institutional Identity: BoothIQ AI (ESarthi)
-        User: {user.get('name', 'Citizen')} | Current Role Context: {role.upper()}
+        User: {user_name} | Current Role Context: {user_role}
         Voter Context: {json.dumps(sanitize_for_json(voter)) if voter else 'No direct registry match, but assisting as a local resident.'}
         Platform Data:
         - Active Grievances: {json.dumps(sanitize_for_json(system_grievances))} (Total: {len(grievances) if grievances else 0})

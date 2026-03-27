@@ -113,19 +113,20 @@ export default function WorkerDashboard({ currentUser }) {
     const [error, setError] = useState(null);
 
     const handleAfterImageUpload = async (e) => {
-        const files = Array.from(e.target.files);
-        if (!files.length) return;
-        
-        setUploadingAfter(true);
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploadingAfter(true); // Keep this for the specific upload state
         try {
-            // Mock upload for now, similar to CitizenDashboard logic
-            const newUrls = files.map(f => URL.createObjectURL(f));
-            setAfterImages(prev => [...prev, ...newUrls]);
-        } catch (err) {
-            console.error("Upload error:", err);
-            setError("Failed to upload evidence.");
+            // Real upload to Supabase storage
+            const { url } = await uploadFile(file, 'grievance-after-images');
+            setAfterImages(prev => [...prev, url]);
+        } catch (error) {
+            console.error('Upload failed:', error);
+            setError('Failed to upload image. Please try again.');
+        } finally {
+            setUploadingAfter(false);
         }
-        setUploadingAfter(false);
     };
 
     const loadData = useCallback(async () => {
