@@ -64,18 +64,22 @@ async def get_optional_user(authorization: str = Header(None)) -> Optional[dict]
     except Exception:
         return None
 
-# MongoDB connection with SSL stability for Cloud environments (Render/Atlas)
+# MongoDB connection with hardened SSL settings for Cloud environments (Render/Vercel/Atlas)
 mongo_url = os.environ['MONGO_URL']
+db_name = os.environ.get('DB_NAME', 'booth_iq')
+
+# Use tlsInsecure=True for maximum compatibility when cloud proxies interfere with handshake
 client = AsyncIOMotorClient(
     mongo_url,
-    serverSelectionTimeoutMS=20000,
-    connectTimeoutMS=20000,
-    socketTimeoutMS=20000,
+    serverSelectionTimeoutMS=30000,
+    connectTimeoutMS=30000,
+    socketTimeoutMS=30000,
     tls=True,
-    tlsAllowInvalidCertificates=True,
-    retryWrites=False
+    tlsInsecure=True,
+    retryWrites=False,
+    directConnection=False
 )
-db = client[os.environ.get('DB_NAME', 'booth_iq')]
+db = client[db_name]
 
 # Supabase config
 # OpenAI Configuration
