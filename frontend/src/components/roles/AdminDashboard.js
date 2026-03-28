@@ -77,7 +77,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
     };
 
     const [currentLanguage, setCurrentLanguage] = useState('en');
-    const t = translations[currentLanguage];
+    const t = (key) => translations[currentLanguage]?.[key] || key;
 
     const [grievances, setGrievances] = useState([]);
     const [workers, setWorkers] = useState([]);

@@ -105,7 +105,7 @@ const TaskCard = ({ task, onStart, onResolve, delay }) => {
 
 export default function WorkerDashboard({ currentUser }) {
     const [currentLanguage, setCurrentLanguage] = useState('en');
-    const t = translations[currentLanguage];
+    const t = (key) => translations[currentLanguage]?.[key] || key;
 
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
