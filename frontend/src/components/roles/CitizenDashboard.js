@@ -145,6 +145,7 @@ const ServiceGrid = ({ items, onSelect, activeTab }) => (
         const tabs = [
             { id: 'dashboard', label: t('monitorTab') || 'Monitor', icon: Activity },
             { id: 'report', label: t('reportTab') || 'Report', icon: AlertCircle },
+            { id: 'development', label: t('developmentTab') || 'Development', icon: TrendingUp },
             { id: 'voter-services', label: t('servicesTab') || 'Services', icon: Briefcase },
             { id: 'schemes', label: t('schemesTab') || 'Schemes', icon: FileText },
             { id: 'profile', label: 'Profile', icon: User },
@@ -460,6 +461,7 @@ export default function CitizenDashboard({ currentUser, boothId }) {
         assigned: { label: 'Assigned', icon: User, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/30', dot: 'bg-blue-500' },
         in_progress: { label: 'Working on it', icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900/30', dot: 'bg-emerald-500' },
         resolved: { label: t('statFixed'), icon: CheckCircle2, color: 'text-emerald-700', bg: 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-900/40', dot: 'bg-emerald-600' },
+        verified: { label: t('verified'), icon: BadgeCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10 border-emerald-500/20', dot: 'bg-emerald-500' },
     };
 
     return (
@@ -468,26 +470,28 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                 {/* Main Content Area */}
             <div className="flex-1 space-y-8 min-w-0">
                 {/* Pro Top Navigation & Welcome Bar */}
-                <div className="sticky top-0 z-30 space-y-4 pt-1 pb-4 bg-background/95 backdrop-blur-3xl -mx-2 px-2 transition-all duration-500">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="size-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-2xl shadow-emerald-500/20 rotate-3 group-hover:rotate-0 transition-transform duration-500 shrink-0">
-                                <Sparkles size={28} />
+                <div className="sticky top-0 z-30 space-y-3 md:space-y-4 pt-1 pb-3 md:pb-4 bg-background/95 backdrop-blur-3xl -mx-2 px-2 transition-all duration-500">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4">
+                        <div className="flex items-center gap-3 md:gap-4">
+                            <div className="size-10 md:size-14 rounded-xl md:rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-2xl shadow-emerald-500/20 rotate-3 group-hover:rotate-0 transition-transform duration-500 shrink-0">
+                                <Sparkles className="size-5 md:size-7" />
                             </div>
                             <div>
-                                <h1 className="text-3xl font-black text-foreground tracking-tighter leading-none mb-1">
+                                <h1 className="text-xl md:text-3xl font-black text-foreground tracking-tighter leading-none mb-1">
                                     {t('welcome')}, <span className="text-emerald-500">{currentUser?.name?.split(' ')[0] || 'Citizen'}</span>
                                 </h1>
                                 <div className="flex items-center gap-2">
-                                    <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                                    <p className="text-[10px] font-black uppercase tracking-[2px] text-muted-foreground">{t('portalActive')}</p>
+                                    <div className="size-1.5 md:size-2 rounded-full bg-emerald-500 animate-pulse" />
+                                    <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[2px] text-muted-foreground">{t('portalActive')}</p>
                                 </div>
                             </div>
                         </div>
                         
-                        <div className="flex items-center gap-4">
-                            <NotificationBell />
-                            <LanguageSelector currentLanguage={language} onLanguageChange={handleLanguageChange} />
+                        <div className="flex items-center justify-between md:justify-end gap-4">
+                            <div className="flex items-center gap-3">
+                                <NotificationBell />
+                                <LanguageSelector currentLanguage={language} onLanguageChange={handleLanguageChange} />
+                            </div>
                             <div className="hidden sm:flex items-center gap-2 bg-card border border-border px-4 py-2 rounded-full shadow-sm whitespace-nowrap">
                                 <MapPin size={12} className="text-emerald-500" />
                                 <span className="text-[10px] font-black text-foreground uppercase tracking-wider">Booth #{safeBoothId}</span>
@@ -495,22 +499,22 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                         </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
                         <ServiceTabs activeTab={tab} onSelect={handleTabChange} t={t} />
                         
                         {/* Summary Stats Row - Sleek Inline Version */}
-                        <div className="flex flex-1 items-center gap-3 overflow-x-auto no-scrollbar scrollbar-hide py-1">
-                            <div className="flex items-center gap-2 px-3 py-2 bg-card rounded-xl border border-border/50 group whitespace-nowrap hover:border-emerald-500/30 transition-colors">
+                        <div className="flex flex-1 items-center gap-2 md:gap-3 overflow-x-auto no-scrollbar scrollbar-hide py-1">
+                            <div className="flex items-center gap-2 px-2 py-1.5 md:px-3 md:py-2 bg-card rounded-xl border border-border/50 group whitespace-nowrap hover:border-emerald-500/30 transition-colors">
                                 <div className="size-1.5 rounded-full bg-emerald-500" />
-                                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{grievances.length} {t('issues')}</span>
+                                <span className="text-[8px] md:text-[9px] font-black text-muted-foreground uppercase tracking-widest">{grievances.length} {t('issues')}</span>
                             </div>
-                            <div className="flex items-center gap-2 px-3 py-2 bg-card rounded-xl border border-border/50 group whitespace-nowrap hover:border-amber-500/30 transition-colors">
+                            <div className="flex items-center gap-2 px-2 py-1.5 md:px-3 md:py-2 bg-card rounded-xl border border-border/50 group whitespace-nowrap hover:border-amber-500/30 transition-colors">
                                 <div className="size-1.5 rounded-full bg-amber-500" />
-                                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{schemes.length} {t('schemes')}</span>
+                                <span className="text-[8px] md:text-[9px] font-black text-muted-foreground uppercase tracking-widest">{schemes.length} {t('schemes')}</span>
                             </div>
-                            <div className="flex items-center gap-2 px-3 py-2 bg-card rounded-xl border border-border/50 group whitespace-nowrap hover:border-blue-500/30 transition-colors">
+                            <div className="flex items-center gap-2 px-2 py-1.5 md:px-3 md:py-2 bg-card rounded-xl border border-border/50 group whitespace-nowrap hover:border-blue-500/30 transition-colors">
                                 <div className="size-1.5 rounded-full bg-blue-500" />
-                                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{bulletins.length} {t('updates')}</span>
+                                <span className="text-[8px] md:text-[9px] font-black text-muted-foreground uppercase tracking-widest">{bulletins.length} {t('updates')}</span>
                             </div>
                         </div>
                     </div>
@@ -1036,9 +1040,9 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                 <div className="flex items-center justify-between px-1">
                                     <h3 className="text-2xl font-black text-foreground tracking-tighter uppercase flex items-center gap-4">
                                         <div className="size-1 bg-emerald-500 rounded-full" />
-                                        Manifesto Tracker
+                                        {t('manifestoTracker') || 'Manifesto Tracker'}
                                     </h3>
-                                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Election Cycle 2024-29</span>
+                                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{t('electionCycle') || 'Election Cycle 2024-29'}</span>
                                 </div>
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1104,15 +1108,15 @@ export default function CitizenDashboard({ currentUser, boothId }) {
                                 <div className="flex items-center justify-between px-1">
                                     <h3 className="text-2xl font-black text-foreground tracking-tighter uppercase flex items-center gap-4">
                                         <div className="size-1 bg-emerald-500 rounded-full" />
-                                        Impact Showcase
+                                        {t('impactShowcase') || 'Impact Showcase'}
                                     </h3>
-                                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Visual Verification</span>
+                                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{t('visualVerification') || 'Visual Verification'}</span>
                                 </div>
 
                                 <div className="space-y-10">
                                     {[
-                                        // Merge resolved grievances that have after_images with mock showcase items
-                                        ...grievances.filter(g => g.status === 'resolved' && g.after_images?.length > 0).map(g => ({
+                                        // Merge resolved/verified grievances that have after_images with mock showcase items
+                                        ...grievances.filter(g => ['resolved', 'verified'].includes(g.status) && g.after_images?.length > 0).map(g => ({
                                             id: `real-${g.id}`,
                                             title: g.description,
                                             before: "Initial report uploaded by citizen.",

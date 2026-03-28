@@ -6,8 +6,9 @@ import {
   CheckCircle2, RefreshCw, 
   ChevronRight, Clock, ShieldAlert,
   Zap, BadgeCheck, ClipboardList, Send, MapPin,
-  Shield, Activity, X, Image as ImageIcon, Sparkles, Film
+  Shield, Activity, X, Image as ImageIcon, Sparkles, Film, Globe
 } from 'lucide-react';
+import { translations, languages } from '../../translations';
 
 const STATUS_CONFIG = {
     submitted: { label: 'New Issue', icon: ShieldAlert, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
@@ -103,6 +104,9 @@ const TaskCard = ({ task, onStart, onResolve, delay }) => {
 };
 
 export default function WorkerDashboard({ currentUser }) {
+    const [currentLanguage, setCurrentLanguage] = useState('en');
+    const t = translations[currentLanguage];
+
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [resolveModal, setResolveModal] = useState(null);
@@ -200,28 +204,48 @@ export default function WorkerDashboard({ currentUser }) {
     return (
         <div className="space-y-6 animate-fade-in relative z-10 px-4 sm:px-0">
             {/* Header Info - Compact */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-border">
-                <div>
-                    <h1 className="text-2xl font-bold text-foreground tracking-tight uppercase leading-none">Field Officer Dashboard</h1>
-                    <div className="flex items-center gap-3 mt-2">
-                        <div className="flex items-center gap-1.5">
-                            <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse shadow-sm" />
-                            <p className="text-emerald-500 text-[9px] font-bold uppercase tracking-widest">Status: Active</p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 md:gap-4 pb-3 md:pb-4 border-b border-border">
+                <div className="flex items-center gap-6">
+                    <div>
+                        <h1 className="text-lg md:text-2xl font-bold text-foreground tracking-tight uppercase leading-none">{t ? t('fieldOfficerDashboard') : 'Field Officer Dashboard'}</h1>
+                        <div className="flex items-center gap-3 mt-2">
+                            <div className="flex items-center gap-1.5">
+                                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse shadow-sm" />
+                                <p className="text-emerald-500 text-[8px] md:text-[9px] font-bold uppercase tracking-widest">Status: Active</p>
+                            </div>
+                            <div className="size-1 rounded-full bg-muted-foreground/20" />
+                            <p className="text-muted-foreground text-[8px] md:text-[9px] font-bold uppercase tracking-widest">User: {currentUser?.name?.split(' ')[0]}</p>
                         </div>
-                        <div className="size-1 rounded-full bg-muted-foreground/20" />
-                        <p className="text-muted-foreground text-[9px] font-bold uppercase tracking-widest">User: {currentUser?.name}</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button 
-                        onClick={loadData} 
-                        className="p-2 rounded-lg bg-card text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 transition-all border border-border shadow-sm group active:scale-95"
-                    >
-                        <RefreshCw size={14} className={loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
-                    </button>
-                    <div className="px-3 py-1.5 bg-emerald-600/10 border border-emerald-500/20 rounded-lg">
-                        <p className="text-[8px] font-bold text-emerald-500 uppercase tracking-wider">Latency</p>
-                        <p className="text-sm font-bold text-foreground leading-none">24ms</p>
+                <div className="flex items-center justify-between md:justify-end gap-2">
+                    <div className="flex items-center gap-2">
+                        <div className="relative group mr-1">
+                            <select
+                                value={currentLanguage}
+                                onChange={(e) => setCurrentLanguage(e.target.value)}
+                                className="appearance-none bg-muted/50 border border-border text-[8px] md:text-[9px] font-black text-foreground rounded-full pl-3 pr-8 md:pl-4 md:pr-10 py-1.5 md:py-2 outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-sm cursor-pointer hover:border-emerald-500/50 transition-all uppercase tracking-widest"
+                            >
+                                {languages.map((lang) => (
+                                    <option key={lang.code} value={lang.code} className="bg-background text-foreground font-sans">
+                                        {lang.native}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+                                <Globe size={10} />
+                            </div>
+                        </div>
+                        <button 
+                            onClick={loadData} 
+                            className="p-1.5 md:p-2 rounded-lg bg-card text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 transition-all border border-border shadow-sm group active:scale-95"
+                        >
+                            <RefreshCw size={14} className={loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
+                        </button>
+                    </div>
+                    <div className="px-2 py-1 md:px-3 md:py-1.5 bg-emerald-600/10 border border-emerald-500/20 rounded-lg">
+                        <p className="text-[7px] md:text-[8px] font-bold text-emerald-500 uppercase tracking-wider leading-none">Latency</p>
+                        <p className="text-xs md:text-sm font-bold text-foreground leading-none mt-0.5">24ms</p>
                     </div>
                 </div>
             </div>
@@ -347,9 +371,9 @@ export default function WorkerDashboard({ currentUser }) {
                                     <div className="flex justify-between items-start mb-5">
                                         <div>
                                             <div className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-md text-[8px] font-bold uppercase tracking-wider border border-emerald-500/20 mb-3 inline-block">
-                                                Task Resolution
+                                                {t ? t('supervisorReview') : 'Supervisor Review'}
                                             </div>
-                                            <h4 className="text-xl font-bold text-foreground tracking-tight uppercase leading-none">Submit Resolution</h4>
+                                            <h4 className="text-xl font-bold text-foreground tracking-tight uppercase leading-none">{t ? t('submitResolution') : 'Submit Resolution'}</h4>
                                             <p className="text-[8px] font-mono font-bold uppercase tracking-widest text-muted-foreground mt-1.5">Task #: {resolveModal.id}</p>
                                         </div>
                                         <button onClick={() => setResolveModal(null)} className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-all border border-border">
@@ -377,7 +401,7 @@ export default function WorkerDashboard({ currentUser }) {
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-[8px] font-bold uppercase tracking-widest text-emerald-500 pl-1">Impact Evidence (After Images)</label>
+                                            <label className="text-[8px] font-bold uppercase tracking-widest text-emerald-500 pl-1">{t ? t('impactEvidence') : 'Impact Evidence (After Images)'}</label>
                                             <div className="flex flex-wrap gap-2">
                                                 {afterImages.map((url, idx) => (
                                                     <div key={idx} className="relative size-16 rounded-xl border border-border overflow-hidden bg-muted group/img shadow-sm">

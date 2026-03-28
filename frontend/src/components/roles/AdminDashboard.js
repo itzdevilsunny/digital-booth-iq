@@ -24,14 +24,17 @@ import {
     Globe,
     Sparkles,
     Film,
-    Image as ImageIcon
+    Image as ImageIcon,
+    ShieldCheck
 } from 'lucide-react';
+import { translations, languages } from '../../translations';
 
 const STATUS_CONFIG = {
     submitted: { label: 'Open', icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
     assigned: { label: 'Assigned', icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
     in_progress: { label: 'Working', icon: Activity, color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20' },
     resolved: { label: 'Resolved', icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+    verified: { label: 'Verified', icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-600/10', border: 'border-emerald-600/20' },
 };
 
 const MetricCard = ({ label, value, icon: Icon, color, trend, delay }) => (
@@ -73,6 +76,9 @@ export default function AdminDashboard({ currentUser, boothId }) {
         return 'dashboard';
     };
 
+    const [currentLanguage, setCurrentLanguage] = useState('en');
+    const t = translations[currentLanguage];
+
     const [grievances, setGrievances] = useState([]);
     const [workers, setWorkers] = useState([]);
     const [voters, setVoters] = useState([]);
@@ -100,7 +106,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
         setLoading(true);
         try {
             const results = await Promise.allSettled([
-                getGrievances(), // Fetch all grievances for admin
+                getGrievances({ booth_id: safeBoothId }), // Fetch grievances for this booth
                 getUsersByRole('worker'),
                 getVoters(safeBoothId) // Keep booth-specific for voter context
             ]);
@@ -158,6 +164,18 @@ export default function AdminDashboard({ currentUser, boothId }) {
         setSubmitting(false);
     };
 
+    const handleVerify = async (grievanceId) => {
+        setSubmitting(true);
+        try {
+            await updateGrievance({
+                id: String(grievanceId),
+                status: 'verified'
+            });
+            loadData();
+        } catch (e) { console.error(e); }
+        setSubmitting(false);
+    };
+
     const filtered = grievances.filter(g => {
         if (filter === 'all') return true;
         if (filter === 'open') return g.status === 'submitted';
@@ -167,12 +185,12 @@ export default function AdminDashboard({ currentUser, boothId }) {
     return (
         <div className="space-y-6 animate-fade-in relative z-10">
             {/* Header / Sub-nav - Compact */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-border">
-                <div>
-                    <div className="flex items-center gap-4 mb-4">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 md:gap-4 pb-3 md:pb-4 border-b border-border">
+                <div className="min-w-0">
+                    <div className="flex items-center gap-2 md:gap-4 mb-3 md:mb-4 overflow-x-auto no-scrollbar pb-1">
                         <button 
                             onClick={() => handleTabChange('dashboard')}
-                            className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[3px] flex items-center gap-2 transition-all ${
+                            className={`px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-[2px] md:tracking-[3px] flex items-center gap-2 transition-all whitespace-nowrap ${
                                 tab === 'dashboard' ? 'bg-emerald-500 text-black shadow-2xl' : 'bg-muted text-muted-foreground hover:text-foreground'
                             }`}
                         >
@@ -180,7 +198,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                         </button>
                         <button 
                             onClick={() => handleTabChange('voters')}
-                            className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[3px] flex items-center gap-2 transition-all ${
+                            className={`px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-[2px] md:tracking-[3px] flex items-center gap-2 transition-all whitespace-nowrap ${
                                 tab === 'voters' ? 'bg-emerald-500 text-black shadow-2xl' : 'bg-muted text-muted-foreground hover:text-foreground'
                             }`}
                         >
@@ -188,18 +206,34 @@ export default function AdminDashboard({ currentUser, boothId }) {
                         </button>
                         <button 
                             onClick={() => handleTabChange('campaigns')}
-                            className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[3px] flex items-center gap-2 transition-all ${
+                            className={`px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-[2px] md:tracking-[3px] flex items-center gap-2 transition-all whitespace-nowrap ${
                                 tab === 'campaigns' ? 'bg-orange-500 text-black shadow-2xl' : 'bg-muted text-muted-foreground hover:text-foreground'
                             }`}
                         >
                             <Zap size={12} strokeWidth={3} /> Campaigns
                         </button>
                     </div>
-                    <h1 className="text-4xl font-black text-foreground tracking-tighter uppercase leading-none">
+                    <h1 className="text-2xl md:text-4xl font-black text-foreground tracking-tighter uppercase leading-none">
                         {tab === 'voters' ? 'Voter Database' : tab === 'campaigns' ? 'Outreach Hub' : 'Admin Overview'}
                     </h1>
                 </div>
                 <div className="flex items-center gap-4">
+                    <div className="relative group mr-2">
+                        <select
+                            value={currentLanguage}
+                            onChange={(e) => setCurrentLanguage(e.target.value)}
+                            className="appearance-none bg-muted/50 border border-border text-[9px] font-black text-foreground rounded-full pl-4 pr-10 py-2 outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-sm cursor-pointer hover:border-emerald-500/50 transition-all uppercase tracking-widest"
+                        >
+                            {languages.map((lang) => (
+                                <option key={lang.code} value={lang.code} className="bg-background text-foreground font-sans">
+                                    {lang.native}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+                            <Globe size={10} />
+                        </div>
+                    </div>
                     <button onClick={loadData} className="px-8 py-4 rounded-2xl bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-all flex items-center gap-3 border border-border group">
                         <RefreshCw size={18} className={`${loading ? 'animate-spin' : ''} group-hover:rotate-180 transition-transform duration-500`} />
                         <span className="text-[10px] font-black uppercase tracking-[4px]">Refresh</span>
@@ -211,79 +245,265 @@ export default function AdminDashboard({ currentUser, boothId }) {
                 <>
                     {/* Metric Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <MetricCard 
-                    label="Open Complaints" 
-                    value={grievances.filter(g => g.status === 'submitted').length} 
-                    icon={AlertCircle} 
-                    color="#f59e0b"
-                    trend="+2 new"
-                    delay={0.1}
-                />
-                <MetricCard 
-                    label="Assigned" 
-                    value={grievances.filter(g => g.status === 'assigned' || g.status === 'in_progress').length} 
-                    icon={Activity} 
-                    color="#c9a84c"
-                    delay={0.2}
-                />
-                <MetricCard 
-                    label="Resolved" 
-                    value={grievances.filter(g => g.status === 'resolved').length} 
-                    icon={CheckCircle} 
-                    color="#10b981"
-                    delay={0.3}
-                />
-                <MetricCard 
-                    label="Workers Online" 
-                    value={workers.length} 
-                    icon={Users} 
-                    color="#3b82f6"
-                    delay={0.4}
-                />
-            </div>
-
-            {/* Tactical Control Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2">
-                <div className="flex flex-wrap items-center gap-2 p-1.5 bg-muted/30 rounded-2xl border border-border w-fit">
-                    {['all', 'open', 'assigned', 'resolved'].map(f => (
-                        <button 
-                            key={f} 
-                            onClick={() => setFilter(f)}
-                            className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-[2px] transition-all ${
-                                filter === f 
-                                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' 
-                                    : 'text-muted-foreground hover:text-foreground'
-                            }`}
-                        >
-                            {f === 'open' ? 'Recent' : f}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <div className="px-6 py-3 rounded-full bg-emerald-500/5 border border-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-[4px] flex items-center gap-3">
-                        <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                        Live Sync
+                        <MetricCard 
+                            label={t ? t('openIssues') : "Open Complaints"} 
+                            value={grievances.filter(g => g.status === 'submitted').length} 
+                            icon={AlertCircle} 
+                            color="#f59e0b"
+                            trend="+2 new"
+                            delay={0.1}
+                        />
+                        <MetricCard 
+                            label={t ? t('pendingVerification') : "Pending Review"} 
+                            value={grievances.filter(g => g.status === 'resolved').length} 
+                            icon={Activity} 
+                            color="#c9a84c"
+                            delay={0.2}
+                        />
+                        <MetricCard 
+                            label={t ? t('verifiedBySupervisor') : "Verified"} 
+                            value={grievances.filter(g => g.status === 'verified').length} 
+                            icon={ShieldCheck} 
+                            color="#10b981"
+                            delay={0.3}
+                        />
+                        <MetricCard 
+                            label="Workers Online" 
+                            value={workers.length} 
+                            icon={Users} 
+                            color="#3b82f6"
+                            delay={0.4}
+                        />
                     </div>
-                </div>
-            </div>
 
-            {/* Data Feed - Compact */}
-            <div className="max-h-[800px] overflow-y-auto pr-2 custom-scrollbar space-y-3">
-                {loading ? (
-                    <div className="p-32 text-center bg-card rounded-[4rem] border border-border border-dashed">
-                        <RefreshCw className="w-16 h-16 text-emerald-500/20 animate-spin mx-auto mb-8" />
-                        <p className="text-[11px] font-black uppercase tracking-[5px] text-muted-foreground/30">Loading data...</p>
-                    </div>
-                ) : filtered.length === 0 ? (
-                    <div className="p-24 text-center bg-card rounded-[4rem] border border-border">
-                        <div className="size-24 rounded-[2.5rem] bg-muted/50 flex items-center justify-center mx-auto mb-10 border border-border">
-                            <LayoutDashboard className="text-muted-foreground/30" size={48} />
+                    {/* Tactical Control Bar */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2">
+                        <div className="flex flex-wrap items-center gap-2 p-1.5 bg-muted/30 rounded-2xl border border-border w-fit">
+                            {['all', 'open', 'assigned', 'resolved'].map(f => (
+                                <button 
+                                    key={f} 
+                                    onClick={() => setFilter(f)}
+                                    className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-[2px] transition-all ${
+                                        filter === f 
+                                            ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' 
+                                            : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                >
+                                    {f === 'open' ? 'Recent' : f}
+                                </button>
+                            ))}
                         </div>
-                        <h4 className="text-4xl font-black text-foreground mb-4 uppercase tracking-tighter">All Clear</h4>
-                        <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">No issues reported in this booth. Status: Normal.</p>
+
+                        <div className="flex items-center gap-4">
+                            <div className="px-6 py-3 rounded-full bg-emerald-500/5 border border-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-[4px] flex items-center gap-3">
+                                <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                                Live Sync
+                            </div>
+                        </div>
                     </div>
-                ) : tab === 'campaigns' ? (
+
+                    {/* Data Feed - Compact */}
+                    <div className="max-h-[800px] overflow-y-auto pr-2 custom-scrollbar space-y-3">
+                        {loading ? (
+                            <div className="p-32 text-center bg-card rounded-[4rem] border border-border border-dashed">
+                                <RefreshCw className="w-16 h-16 text-emerald-500/20 animate-spin mx-auto mb-8" />
+                                <p className="text-[11px] font-black uppercase tracking-[5px] text-muted-foreground/30">Loading data...</p>
+                            </div>
+                        ) : filtered.length === 0 ? (
+                            <div className="p-24 text-center bg-card rounded-[4rem] border border-border">
+                                <div className="size-24 rounded-[2.5rem] bg-muted/50 flex items-center justify-center mx-auto mb-10 border border-border">
+                                    <LayoutDashboard className="text-muted-foreground/30" size={48} />
+                                </div>
+                                <h4 className="text-4xl font-black text-foreground mb-4 uppercase tracking-tighter">All Clear</h4>
+                                <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest max-w-sm mx-auto">No issues reported in this booth. Status: Normal.</p>
+                            </div>
+                        ) : (
+                            filtered.map((g, idx) => {
+                                const config = STATUS_CONFIG[g.status] || STATUS_CONFIG.submitted;
+                                const isAwaiting = g.status === 'submitted';
+                                const isExpanded = expandedId === g.id;
+
+                                return (
+                                    <motion.div 
+                                        key={g.id} 
+                                        initial={{ opacity: 0, y: 20 }} 
+                                        animate={{ opacity: 1, y: 0 }} 
+                                        transition={{ delay: idx * 0.05 }}
+                                        className={`bg-card p-4 rounded-[2rem] border border-border group hover:border-primary/30 transition-all cursor-pointer ${isExpanded ? 'ring-2 ring-primary/20' : ''}`}
+                                        onClick={() => setExpandedId(isExpanded ? null : g.id)}
+                                    >
+                                        <div className="flex items-center gap-4 relative overflow-hidden">
+                                            <div className={`size-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${config.bg} ${config.color} border border-border/50`}>
+                                                <config.icon size={20} strokeWidth={2.5} />
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex flex-wrap items-center gap-2 mb-3">
+                                                    <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground/60 text-[8px] font-black uppercase tracking-[2px] border border-border">
+                                                        ID: #{g.id}
+                                                    </span>
+                                                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[2px] border ${config.bg} ${config.color} ${config.border}`}>
+                                                        {config.label}
+                                                    </span>
+                                                </div>
+                                                <h4 className="text-xl font-black text-foreground mb-3 uppercase tracking-tighter leading-tight group-hover:text-primary transition-colors truncate">
+                                                    {g.description}
+                                                </h4>
+                                                <div className="flex flex-wrap items-center gap-4 text-[9px] font-black text-muted-foreground/40 uppercase tracking-[2px]">
+                                                    <span className="flex items-center gap-2"><User size={12} className="text-muted-foreground/40" /> {g.voter_name}</span>
+                                                    <span className="flex items-center gap-2"><MapPin size={12} className="text-muted-foreground/40" /> Booth {g.booth_id}</span>
+                                                    {g.assigned_worker && (
+                                                        <span className="flex items-center gap-2 text-primary bg-primary/10 px-3 py-1 rounded-lg border border-primary/20">
+                                                            <Zap size={10} strokeWidth={3} /> {g.assigned_worker}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="shrink-0" onClick={e => e.stopPropagation()}>
+                                                {isAwaiting ? (
+                                                    <button 
+                                                        onClick={() => setAssignModal(g)}
+                                                        className="px-6 py-3 bg-foreground text-background rounded-xl font-black uppercase tracking-[2px] text-[9px] hover:bg-primary hover:text-primary-foreground transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                                                    >
+                                                        <Shield size={14} strokeWidth={3} /> Assign
+                                                    </button>
+                                                ) : (
+                                                    <div className="px-6 py-3 bg-muted border border-border text-muted-foreground/40 rounded-xl font-black uppercase tracking-[2px] text-[9px] flex items-center justify-center gap-2">
+                                                        <CheckCircle size={14} /> Assigned
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="ml-4">
+                                                <ChevronRight size={24} className={`text-stone-700 transition-all ${isExpanded ? 'rotate-90 text-emerald-500' : ''}`} />
+                                            </div>
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {isExpanded && (
+                                                <motion.div 
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    className="overflow-hidden"
+                                                >
+                                                    <div className="pt-4 mt-4 border-t border-border grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        <div className="p-3 bg-muted/30 rounded-xl border border-border">
+                                                            <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[2px] mb-1">Assigned to</p>
+                                                            <p className="text-sm font-black text-foreground uppercase tracking-tighter flex items-center gap-2">
+                                                                <User size={14} className="text-primary" /> 
+                                                                {g.assigned_worker || (g.status !== 'submitted' ? 'Assigned Personnel' : 'Not Assigned')}
+                                                            </p>
+                                                        </div>
+                                                        <div className="p-3 bg-muted/30 rounded-xl border border-border">
+                                                            <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[2px] mb-1">Reported at</p>
+                                                            <p className="text-sm font-black text-foreground uppercase tracking-tighter flex items-center gap-2">
+                                                                <Clock size={14} className="text-primary" /> {new Date(g.created_at).toLocaleDateString()} at {new Date(g.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </p>
+                                                        </div>
+                                                        <div className="p-3 bg-muted/30 rounded-xl border border-border">
+                                                            <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[2px] mb-1">Status</p>
+                                                            <p className="text-sm font-black text-primary uppercase tracking-tighter flex items-center gap-2">
+                                                                <Shield size={14} /> {g.status}
+                                                            </p>
+                                                        </div>
+
+                                                        {/* AI Vision & Media Feed */}
+                                                        {(g.ai_vision_details || (g.attachments && g.attachments.length > 0)) && (
+                                                            <div className="md:col-span-3 space-y-4 pt-4 border-t border-border">
+                                                                <div className="flex items-center justify-between">
+                                                                    <h5 className="text-[10px] font-black text-foreground uppercase tracking-[3px] flex items-center gap-2">
+                                                                        <ImageIcon size={14} className="text-primary" /> Evidence & AI Insight
+                                                                    </h5>
+                                                                </div>
+                                                                
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    {/* Media Grid */}
+                                                                    {g.attachments && g.attachments.length > 0 && (
+                                                                        <div className="grid grid-cols-4 gap-2">
+                                                                            {g.attachments.map((url, i) => (
+                                                                                <div key={i} className="aspect-square rounded-xl border border-border overflow-hidden bg-muted group relative">
+                                                                                    {url.match(/\.(mp4|webm|ogg)$/) ? (
+                                                                                        <div className="w-full h-full flex items-center justify-center text-primary bg-primary/5">
+                                                                                            <Film size={20} />
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <img src={url} alt="Evidence" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                                                                                    )}
+                                                                                    <a href={url} target="_blank" rel="noreferrer" className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                                        <Send size={14} className="text-white" />
+                                                                                    </a>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* AI Analysis Box */}
+                                                                    {g.ai_vision_details && (
+                                                                        <div className="p-4 bg-primary/5 rounded-2xl border border-primary/20 relative overflow-hidden">
+                                                                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                                                                                <Sparkles size={40} className="text-primary" />
+                                                                            </div>
+                                                                            <p className="text-[8px] font-black text-primary uppercase tracking-[3px] mb-2 flex items-center gap-2">
+                                                                                <Sparkles size={12} /> AI Vision Analysis
+                                                                            </p>
+                                                                            <p className="text-xs font-bold text-foreground leading-relaxed uppercase tracking-tight italic">
+                                                                                {g.ai_vision_details}
+                                                                            </p>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {g.after_images && g.after_images.length > 0 && (
+                                                            <div className="mt-6 p-6 bg-emerald-500/5 rounded-3xl border border-emerald-500/10">
+                                                                <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[3px] mb-4">
+                                                                    Impact Evidence (After Images)
+                                                                </p>
+                                                                <div className="grid grid-cols-2 gap-4">
+                                                                    {g.after_images.map((img, i) => (
+                                                                        <div key={i} className="aspect-video rounded-2xl overflow-hidden border border-emerald-500/20">
+                                                                            <img src={img} alt="Resolution" className="w-full h-full object-cover" />
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                                <div className="mt-6 flex justify-end">
+                                                                    <button 
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleVerify(g.id);
+                                                                        }}
+                                                                        disabled={submitting || g.status === 'verified'}
+                                                                        className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-black uppercase tracking-[2px] text-[10px] hover:bg-emerald-500 transition-all shadow-xl active:scale-95 flex items-center gap-2"
+                                                                    >
+                                                                        {g.status === 'verified' ? (
+                                                                            <><ShieldCheck size={14} /> Verified</>
+                                                                        ) : (
+                                                                            <><CheckCircle size={14} /> Verify & Close</>
+                                                                        )}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    
+                                                        {g.resolution_note && (
+                                                            <div className="md:col-span-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                                                                <p className="text-[8px] font-black text-primary uppercase tracking-[2px] mb-2">Officer Note</p>
+                                                                <p className="text-sm font-black text-muted-foreground/80 leading-tight uppercase tracking-tighter italic">"{g.resolution_note}"</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </motion.div>
+                                );
+                            })
+                        )}
+                    </div>
+                </>
+            ) : tab === 'campaigns' ? (
                 <div className="space-y-12">
                     {/* Outreach & Schemes Section - Compact */}
                     <div className="bg-card/50 rounded-[2.5rem] p-6 border border-primary/10 relative overflow-hidden">
@@ -369,177 +589,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                         </div>
                     </div>
                 </div>
-            ) : (
-                    filtered.map((g, idx) => {
-                        const config = STATUS_CONFIG[g.status] || STATUS_CONFIG.submitted;
-                        const isAwaiting = g.status === 'submitted';
-                        const isExpanded = expandedId === g.id;
-
-                        return (
-                            <motion.div 
-                                key={g.id} 
-                                initial={{ opacity: 0, y: 20 }} 
-                                animate={{ opacity: 1, y: 0 }} 
-                                transition={{ delay: idx * 0.05 }}
-                                className={`bg-card p-4 rounded-[2rem] border border-border group hover:border-primary/30 transition-all cursor-pointer ${isExpanded ? 'ring-2 ring-primary/20' : ''}`}
-                                onClick={() => setExpandedId(isExpanded ? null : g.id)}
-                            >
-                                <div className="flex items-center gap-4 relative overflow-hidden">
-                                    <div className={`size-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${config.bg} ${config.color} border border-border/50`}>
-                                        <config.icon size={20} strokeWidth={2.5} />
-                                    </div>
-
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex flex-wrap items-center gap-2 mb-3">
-                                            <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground/60 text-[8px] font-black uppercase tracking-[2px] border border-border">
-                                                ID: #{g.id}
-                                            </span>
-                                            <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[2px] border ${config.bg} ${config.color} ${config.border}`}>
-                                                {config.label}
-                                            </span>
-                                        </div>
-                                        <h4 className="text-xl font-black text-foreground mb-3 uppercase tracking-tighter leading-tight group-hover:text-primary transition-colors truncate">
-                                            {g.description}
-                                        </h4>
-                                        <div className="flex flex-wrap items-center gap-4 text-[9px] font-black text-muted-foreground/40 uppercase tracking-[2px]">
-                                            <span className="flex items-center gap-2"><User size={12} className="text-muted-foreground/40" /> {g.voter_name}</span>
-                                            <span className="flex items-center gap-2"><MapPin size={12} className="text-muted-foreground/40" /> Booth {g.booth_id}</span>
-                                            {g.assigned_worker && (
-                                                <span className="flex items-center gap-2 text-primary bg-primary/10 px-3 py-1 rounded-lg border border-primary/20">
-                                                    <Zap size={10} strokeWidth={3} /> {g.assigned_worker}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="shrink-0" onClick={e => e.stopPropagation()}>
-                                        {isAwaiting ? (
-                                            <button 
-                                                onClick={() => setAssignModal(g)}
-                                                className="px-6 py-3 bg-foreground text-background rounded-xl font-black uppercase tracking-[2px] text-[9px] hover:bg-primary hover:text-primary-foreground transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
-                                            >
-                                                <Shield size={14} strokeWidth={3} /> Assign
-                                            </button>
-                                        ) : (
-                                            <div className="px-6 py-3 bg-muted border border-border text-muted-foreground/40 rounded-xl font-black uppercase tracking-[2px] text-[9px] flex items-center justify-center gap-2">
-                                                <CheckCircle size={14} /> Assigned
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="ml-4">
-                                        <ChevronRight size={24} className={`text-stone-700 transition-all ${isExpanded ? 'rotate-90 text-emerald-500' : ''}`} />
-                                    </div>
-                                </div>
-
-                                <AnimatePresence>
-                                    {isExpanded && (
-                                        <motion.div 
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden"
-                                        >
-                                            <div className="pt-4 mt-4 border-t border-border grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                <div className="p-3 bg-muted/30 rounded-xl border border-border">
-                                                    <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[2px] mb-1">Assigned to</p>
-                                                    <p className="text-sm font-black text-foreground uppercase tracking-tighter flex items-center gap-2">
-                                                        <User size={14} className="text-primary" /> 
-                                                        {g.assigned_worker || (g.status !== 'submitted' ? 'Assigned Personnel' : 'Not Assigned')}
-                                                    </p>
-                                                </div>
-                                                <div className="p-3 bg-muted/30 rounded-xl border border-border">
-                                                    <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[2px] mb-1">Reported at</p>
-                                                    <p className="text-sm font-black text-foreground uppercase tracking-tighter flex items-center gap-2">
-                                                        <Clock size={14} className="text-primary" /> {new Date(g.created_at).toLocaleDateString()} at {new Date(g.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </p>
-                                                </div>
-                                                <div className="p-3 bg-muted/30 rounded-xl border border-border">
-                                                    <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[2px] mb-1">Status</p>
-                                                    <p className="text-sm font-black text-primary uppercase tracking-tighter flex items-center gap-2">
-                                                        <Shield size={14} /> {g.status}
-                                                    </p>
-                                                </div>
-
-                                                {/* AI Vision & Media Feed */}
-                                                {(g.ai_vision_details || (g.attachments && g.attachments.length > 0)) && (
-                                                    <div className="md:col-span-3 space-y-4 pt-4 border-t border-border">
-                                                        <div className="flex items-center justify-between">
-                                                            <h5 className="text-[10px] font-black text-foreground uppercase tracking-[3px] flex items-center gap-2">
-                                                                <ImageIcon size={14} className="text-primary" /> Evidence & AI Insight
-                                                            </h5>
-                                                        </div>
-                                                        
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            {/* Media Grid */}
-                                                            {g.attachments && g.attachments.length > 0 && (
-                                                                <div className="grid grid-cols-4 gap-2">
-                                                                    {g.attachments.map((url, i) => (
-                                                                        <div key={i} className="aspect-square rounded-xl border border-border overflow-hidden bg-muted group relative">
-                                                                            {url.match(/\.(mp4|webm|ogg)$/) ? (
-                                                                                <div className="w-full h-full flex items-center justify-center text-primary bg-primary/5">
-                                                                                    <Film size={20} />
-                                                                                </div>
-                                                                            ) : (
-                                                                                <img src={url} alt="Evidence" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                                                                            )}
-                                                                            <a href={url} target="_blank" rel="noreferrer" className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                                <Send size={14} className="text-white" />
-                                                                            </a>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            )}
-
-                                                            {/* AI Analysis Box */}
-                                                            {g.ai_vision_details && (
-                                                                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/20 relative overflow-hidden">
-                                                                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                                                                        <Sparkles size={40} className="text-primary" />
-                                                                    </div>
-                                                                    <p className="text-[8px] font-black text-primary uppercase tracking-[3px] mb-2 flex items-center gap-2">
-                                                                        <Sparkles size={12} /> AI Vision Analysis
-                                                                    </p>
-                                                                    <p className="text-xs font-bold text-foreground leading-relaxed uppercase tracking-tight italic">
-                                                                        {g.ai_vision_details}
-                                                                    </p>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {g.after_images && g.after_images.length > 0 && (
-                                                <div className="mt-6 p-6 bg-emerald-500/5 rounded-3xl border border-emerald-500/10">
-                                                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[3px] mb-4">
-                                                        Impact Evidence (After Images)
-                                                    </p>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        {g.after_images.map((img, i) => (
-                                                            <div key={i} className="aspect-video rounded-2xl overflow-hidden border border-emerald-500/20">
-                                                                <img src={img} alt="Resolution" className="w-full h-full object-cover" />
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                            
-                                            {g.resolution_note && (
-                                                    <div className="md:col-span-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
-                                                        <p className="text-[8px] font-black text-primary uppercase tracking-[2px] mb-2">Officer Note</p>
-                                                        <p className="text-sm font-black text-muted-foreground/80 leading-tight uppercase tracking-tighter italic">"{g.resolution_note}"</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </motion.div>
-                        );
-                    })
-                )}
-            </div>
-                </>
-            ) : (
+            ) : tab === 'voters' ? (
                 <div className="space-y-4">
                     <div className="dashboard-grid-compact">
                         {voters.map((v, i) => (
@@ -583,7 +633,7 @@ export default function AdminDashboard({ currentUser, boothId }) {
                         ))}
                     </div>
                 </div>
-            )}
+            ) : null}
 
             {/* Deployment Modal */}
             {createPortal(
