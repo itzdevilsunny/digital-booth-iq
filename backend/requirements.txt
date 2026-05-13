@@ -1,5 +1,4 @@
 fastapi
-uvicorn
 python-dotenv
 motor
 openai
@@ -13,7 +12,6 @@ bcrypt
 pyjwt
 passlib
 cryptography
-google-genai
 google-generativeai
 litellm
 pandas
