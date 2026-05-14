@@ -7,6 +7,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAnalytics, initiateCampaignBlast, managerAutoAssign, getActionHistory, getConstituencySummary } from '../../api';
 import { IntelligenceGraph } from '../intel/IntelligenceGraph';
+import { toast } from 'sonner';
 
 const ConstituencyDashboard = ({ currentUser, boothId }) => {
     const [tab, setTab] = useState('command');
@@ -347,7 +348,7 @@ const ConstituencyDashboard = ({ currentUser, boothId }) => {
                             </div>
 
                             <button 
-                                onClick={() => alert('Alert dispatched to all field workers in active sectors.')}
+                                onClick={() => toast.success('Alert dispatched to all field workers in active sectors.')}
                                 className="w-full py-4 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-[3px] text-xs shadow-xl shadow-indigo-600/10 hover:bg-indigo-500 transition-all group flex items-center justify-center gap-3">
                                 <MessageSquare size={16} /> Send Alert
                             </button>
