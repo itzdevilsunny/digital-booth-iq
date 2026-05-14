@@ -104,10 +104,10 @@ export const NotificationProvider = ({ children, userId }) => {
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
 
-      // Backend calls - sequential for now to avoid overloading, or could be a bulk endpoint
-      for (const n of unreadNotifications) {
-        await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/notifications/${n.id}/read`, { method: 'PATCH' });
-      }
+      // Backend calls in parallel for maximum speed
+      await Promise.all(unreadNotifications.map(n => 
+        fetch(`${process.env.REACT_APP_BACKEND_URL}/api/notifications/${n.id}/read`, { method: 'PATCH' })
+      ));
     } catch (e) {
       console.error('Error marking all as read:', e);
       fetchHistory(); // Sync back with server on error

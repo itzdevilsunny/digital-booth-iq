@@ -56,17 +56,19 @@ const MetricCard = ({ label, value, icon: Icon, color, trend, delay }) => (
 export default function AnalystDashboard({ currentUser, boothId }) {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [selectedVoter, setSelectedVoter] = useState(null);
 
-    const loadData = useCallback(async (showLoading = true) => {
+    const loadData = useCallback(async (showLoading = true, force = false) => {
         if (showLoading) setLoading(true);
+        else setRefreshing(true);
+        
         try {
-            const res = await getAnalytics(boothId);
+            const res = await getAnalytics(boothId, force);
             setStats(res);
         } catch (e) { 
             console.error('Analytics Fetch Error:', e);
-            // Fallback empty stats to avoid blank screen if API fails
-            setStats({
+            setStats(prev => prev || {
                 total_voters: 0,
                 sentiment_distribution: { positive: 0, neutral: 0, negative: 0 },
                 total_issues: 0,
@@ -77,7 +79,8 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                 error: true
             });
         } finally {
-            if (showLoading) setLoading(false);
+            setLoading(false);
+            setRefreshing(false);
         }
     }, [boothId]);
 
@@ -171,12 +174,17 @@ export default function AnalystDashboard({ currentUser, boothId }) {
                     <div className="flex items-center gap-4">
                         <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[5px]">Booth ID: {boothId}</p>
                         <span className="size-1 rounded-full bg-border" />
-                        <p className="text-emerald-500/50 text-[9px] font-black uppercase tracking-[3px]">Real-time Network Analysis</p>
+                        <div className="flex items-center gap-2">
+                            <div className={`size-1.5 rounded-full ${refreshing ? 'bg-emerald-500 animate-ping' : 'bg-emerald-500/40'}`} />
+                            <p className="text-emerald-500/50 text-[9px] font-black uppercase tracking-[3px]">
+                                {refreshing ? 'Syncing Intel...' : 'Real-time Analysis'}
+                            </p>
+                        </div>
                     </div>
                 </div>
                 
                 <div className="flex items-center gap-4">
-                    <button onClick={loadData} className="px-6 py-3 bg-muted rounded-xl border border-border hover:border-emerald-500/50 transition-all active:scale-95 flex items-center gap-3">
+                    <button onClick={() => loadData(true, true)} className="px-6 py-3 bg-muted rounded-xl border border-border hover:border-emerald-500/50 transition-all active:scale-95 flex items-center gap-3">
                         <RefreshCw size={14} className={`text-muted-foreground ${loading ? 'animate-spin' : ''}`} />
                         <span className="text-[9px] font-black text-foreground uppercase tracking-[2px]">Refresh Data</span>
                     </button>

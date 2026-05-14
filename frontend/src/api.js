@@ -38,7 +38,8 @@ export const getUsers = () => api.get('/users').then(r => r.data);
 export const getUsersByRole = (role) => api.get(`/users/role/${role}`).then(r => r.data);
 
 // Voters
-export const getVoters = (boothId) => api.get(`/voters?booth_id=${boothId}`).then(r => r.data);
+export const getVoters = (boothId, force = false) => 
+  getCached(`voters_${boothId}`, () => api.get(`/voters?booth_id=${boothId}`).then(r => r.data), force);
 export const getVoterProfile = (voterId) => api.get(`/voters-profile/${voterId}`).then(r => r.data);
 export const updateVoter = (data) => api.patch('/voters', data).then(r => r.data);
 export const initiateCampaignBlast = (data) => api.post('/campaigns/blast', data).then(r => r.data);
@@ -59,14 +60,28 @@ export const uploadFile = (file) => {
   }).then(r => r.data);
 };
 
+// Tactical Client-side Cache for high-frequency syncs
+const cache = new Map();
+const CACHE_TTL = 30000; // 30s
+
+const getCached = (key, fetcher, force = false) => {
+  const cached = cache.get(key);
+  if (!force && cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+    return Promise.resolve(cached.data);
+  }
+  return fetcher().then(data => {
+    cache.set(key, { data, timestamp: Date.now() });
+    return data;
+  });
+};
+
 // Analytics
-export const getAnalytics = (boothId) => api.get(`/analytics?booth_id=${boothId}`).then(r => r.data);
+export const getAnalytics = (boothId, force = false) => 
+  getCached(`analytics_${boothId}`, () => api.get(`/analytics?booth_id=${boothId}`).then(r => r.data), force);
 
 // Knowledge Graph
-export const getGraphData = async (boothId, perspective = 'social') => {
-    const response = await api.get(`/graph-data?booth_id=${boothId}&perspective=${perspective}`);
-    return response.data;
-};
+export const getGraphData = (boothId, perspective = 'social', force = false) => 
+  getCached(`graph_${boothId}_${perspective}`, () => api.get(`/graph-data?booth_id=${boothId}&perspective=${perspective}`).then(r => r.data), force);
 export const filterVoters = (params) => {
   const query = new URLSearchParams(params).toString();
   return api.get(`/filter-voters?${query}`).then(r => r.data);

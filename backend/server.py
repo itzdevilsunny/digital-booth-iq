@@ -17,6 +17,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import time
 import base64
+import asyncio
 from dotenv import load_dotenv
 
 ROOT_DIR = Path(__file__).parent
@@ -2258,20 +2259,20 @@ async def get_analytics(booth_id: Union[int, str], user: dict = Depends(get_curr
     real_id = await resolve_booth_id(booth_id)
     # logger.info(f"Fetching analytics for [Requested:{booth_id} -> Real:{real_id}]")
     try:
-        # Voter stats
-        voters = await supabase_request("GET", "voters", params={
-            "select": "eci_voter_id,sentiment"
-        })
+        # Parallel fetch from Supabase
+        tasks = [
+            supabase_request("GET", "voters", params={"select": "eci_voter_id,sentiment"}),
+            supabase_request("GET", "voters_eci", params={"select": "id", "booth_id": f"eq.{real_id}"}),
+            supabase_request("GET", "grievances", params={"select": "id,status,category,booth_id", "booth_id": f"eq.{real_id}"})
+        ]
         
-        eci_voters = await supabase_request("GET", "voters_eci", params={
-            "select": "id",
-            "booth_id": f"eq.{real_id}"
-        })
+        voters, eci_voters, grievances = await asyncio.gather(*tasks)
         
         if (isinstance(voters, dict) and "error" in voters) or (isinstance(eci_voters, dict) and "error" in eci_voters):
-            logger.error(f"Supabase data fetch failed: voters={voters}, eci={eci_voters}")
-            voters = []
-            eci_voters = []
+            logger.error(f"Supabase parallel fetch error: voters={voters}, eci={eci_voters}")
+            voters = voters if isinstance(voters, list) else []
+            eci_voters = eci_voters if isinstance(eci_voters, list) else []
+            grievances = grievances if isinstance(grievances, list) else []
         
         if not eci_voters:
             # Hybrid Fallback for analytics
@@ -2341,12 +2342,7 @@ async def get_analytics(booth_id: Union[int, str], user: dict = Depends(get_curr
                 if s in sentiment_dist:
                     sentiment_dist[s] += 1
         
-        # Grievance stats
-        grievances = await supabase_request("GET", "grievances", params={
-            "select": "id,status,category,booth_id",
-            "booth_id": f"eq.{real_id}"
-        })
-        
+        # Main block grievances already fetched in parallel above
         if isinstance(grievances, dict) and "error" in grievances:
             logger.error(f"Supabase error in grievances fetch: {grievances}")
             grievances = []
