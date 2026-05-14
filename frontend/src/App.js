@@ -19,8 +19,15 @@ import { getUsers } from './api';
 
 const RoleRoute = ({ children, role, title }) => {
     const { user, loading } = useUser();
-    
-    if (loading) return null; // Or a loading spinner
+
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+            <div className="flex flex-col items-center gap-4">
+                <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[3px]">Syncing Command...</p>
+            </div>
+        </div>
+    );
     if (!user) return <Navigate to="/select-role" />;
     
     // Check if user role matches or is admin (optional: depends on security policy)

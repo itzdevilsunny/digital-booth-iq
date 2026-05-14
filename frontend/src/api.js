@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || 'https://booth-iq-api.vercel.app'}/api`;
 
 const api = axios.create({
   baseURL: API,
