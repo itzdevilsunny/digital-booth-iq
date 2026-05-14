@@ -142,6 +142,8 @@ export default function CityManagerDashboard({ currentUser, boothId }) {
     const [isBroadcasting, setIsBroadcasting] = useState(false);
     const [broadcastMessage, setBroadcastMessage] = useState('');
     const [sendingBroadcast, setSendingBroadcast] = useState(false);
+    const [optimizationLogs, setOptimizationLogs] = useState([]);
+    const [showOptimizationModal, setShowOptimizationModal] = useState(false);
 
     const [sentimentData] = useState([
         { time: '08:00', score: 62 },
@@ -159,12 +161,22 @@ export default function CityManagerDashboard({ currentUser, boothId }) {
     
     const handleOptimizeDeployment = async () => {
         setIsOptimizing(true);
+        setOptimizationLogs([]);
+        setShowOptimizationModal(true);
+        
         try {
-            // Global optimization (no specific booth ID)
             const result = await managerAutoAssign({});
+            
+            if (result.reasoning) {
+                // Simulate sequential reasoning steps for better UX
+                for (const step of result.reasoning) {
+                    setOptimizationLogs(prev => [...prev, { msg: step, time: new Date().toLocaleTimeString() }]);
+                    await new Promise(r => setTimeout(r, 1200));
+                }
+            }
+
             if (result.status === 'success' || result.status === 'demo_success') {
-                toast.success(result.message || "Regional deployment optimized successfully");
-                // Refresh data to reflect changes
+                setOptimizationLogs(prev => [...prev, { msg: "Deployment calibration complete. Strategic units mobilized.", time: new Date().toLocaleTimeString(), type: 'success' }]);
                 await loadBooths(true);
             } else {
                 toast.error("Optimization failed: " + result.message);
@@ -245,6 +257,14 @@ export default function CityManagerDashboard({ currentUser, boothId }) {
             try {
                 const data = JSON.parse(event.data);
                 setPulseLogs(prev => [data, ...prev.slice(0, 5)]);
+                
+                if (data.type === 'broadcast') {
+                    toast.success(data.msg, { 
+                        icon: '📢', 
+                        duration: 8000,
+                        className: 'bg-[#0f172a] text-white border-indigo-500' 
+                    });
+                }
             } catch (e) { console.error("SSE Parse Error", e); }
         };
 
@@ -366,8 +386,9 @@ export default function CityManagerDashboard({ currentUser, boothId }) {
             <div className={`space-y-6 animate-fade-in relative z-10 min-h-screen max-w-full overflow-x-hidden ${isCrisisMode ? 'bg-red-950/20' : 'bg-background'} p-4 md:p-6 pb-24 transition-colors duration-1000`}>
                 {/* Ambient Crisis Background */}
                 {isCrisisMode && (
-                    <div className="fixed inset-0 pointer-events-none overflow-hidden">
+                    <div className="fixed inset-0 pointer-events-none overflow-hidden z-[99]">
                         <div className="absolute top-0 left-0 w-full h-full bg-red-600/5 animate-pulse" />
+                        <div className="absolute inset-0 bg-[linear-gradient(rgba(220,38,38,0.1)_1px,transparent_1px)] bg-[size:100%_4px] animate-scanline" />
                         <div className="absolute top-1/4 -left-1/4 w-1/2 h-1/2 bg-red-500/10 blur-[150px] rounded-full animate-pulse" />
                         <div className="absolute bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-orange-500/10 blur-[150px] rounded-full animate-pulse-slow" />
                     </div>
@@ -539,23 +560,40 @@ export default function CityManagerDashboard({ currentUser, boothId }) {
                                     </div>
                                 </div>
 
-                                <div className="bg-indigo-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-500/20">
-                                    <div className="relative z-10 flex flex-col h-full">
-                                        <p className="text-[10px] font-bold text-indigo-200 uppercase tracking-[3px] mb-1">Strategic Note</p>
-                                        <h3 className="text-2xl font-display font-bold mb-6 uppercase tracking-tight">Voter Engagement Spike Detected</h3>
-                                        <p className="text-xs text-indigo-100/80 leading-relaxed mb-8 flex-1 italic">
-                                            "Sentiment index reached 82% in the last 2 hours. This surge is correlated with the recent regional infrastructure briefing. Recommendation: Accelerate field unit deployment in North Block to capitalize on positive momentum."
-                                        </p>
-                                        <button 
-                                            onClick={handleOptimizeDeployment}
-                                            disabled={isOptimizing}
-                                            className="w-full py-4 bg-white text-indigo-600 rounded-2xl text-[10px] font-black uppercase tracking-[2px] hover:bg-indigo-50 transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2"
-                                        >
-                                            {isOptimizing ? <RefreshCw className="animate-spin" size={12} /> : null}
-                                            {isOptimizing ? 'Optimizing...' : 'Optimize Deployment'}
-                                        </button>
+                                <div className="bg-[#6366f1] rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl shadow-indigo-500/30">
+                                    {/* Abstract BG Pattern */}
+                                    <div className="absolute top-0 right-0 p-10 opacity-10">
+                                        <Zap size={140} className="text-white" />
                                     </div>
-                                    <div className="absolute -bottom-10 -right-10 size-40 bg-white/10 blur-3xl rounded-full" />
+                                    
+                                    <div className="relative z-10 flex flex-col h-full">
+                                        <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-10">AI Insights</h2>
+                                        
+                                        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/10 mb-8">
+                                            <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[4px] mb-4">Strategic Pulse</p>
+                                            <p className="text-xl font-bold text-white leading-relaxed italic">
+                                                "Water Infrastructure focus recommended for Sector 9. 12% improvement potential detected."
+                                            </p>
+                                        </div>
+
+                                        <div className="flex gap-3 mt-auto">
+                                            <button 
+                                                onClick={async () => {
+                                                    try {
+                                                        const msg = "TACTICAL DIRECTIVE: Prioritize all Water Infrastructure related grievances in Sector 9 immediately for 12% efficiency gain.";
+                                                        await managerBroadcast({ message: msg });
+                                                        toast.success("Strategic Directive mobilized to all field units.");
+                                                    } catch (e) { toast.error("Command sync failed."); }
+                                                }}
+                                                className="flex-1 py-5 bg-white text-[#6366f1] rounded-2xl text-[10px] font-black uppercase tracking-[3px] hover:shadow-2xl transition-all active:scale-95 flex items-center justify-center"
+                                            >
+                                                Quick Action
+                                            </button>
+                                            <button className="size-16 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center hover:bg-white/20 transition-all">
+                                                <ChevronRight size={24} className="rotate-[-45deg]" />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -852,22 +890,16 @@ export default function CityManagerDashboard({ currentUser, boothId }) {
 
                     {activeTab === 'intelligence' && (
                         <motion.div 
-                            key="intelligence"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="h-[calc(100vh-280px)] border border-border rounded-3xl overflow-hidden shadow-2xl relative bg-card/50 backdrop-blur-xl"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="h-[calc(100vh-180px)] border border-border rounded-3xl overflow-hidden shadow-2xl relative bg-[#020617]"
                         >
-                            <div className="absolute top-6 left-6 z-10 flex items-center gap-3">
-                                <div className="px-4 py-2 bg-foreground text-background rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-xl">
-                                    <BrainCircuit size={14} />
-                                    Regional Knowledge Fabric
-                                </div>
-                                <div className="px-4 py-2 bg-card border border-border rounded-xl text-[9px] font-bold text-muted-foreground uppercase tracking-widest shadow-lg">
-                                    Analyzing 1000+ Connection Nodes
-                                </div>
-                            </div>
-                            <IntelligenceGraph boothId={17} perspective="social" />
+                            <IntelligenceGraph 
+                                boothId={boothId || 17} 
+                                perspective="social" 
+                                booths={booths}
+                                onBoothChange={(val) => setBoothId(val)}
+                            />
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -1227,6 +1259,89 @@ export default function CityManagerDashboard({ currentUser, boothId }) {
                                         {sendingBroadcast ? 'Broadcasting...' : 'Execute Broadcast'}
                                     </button>
                                 </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* AI Optimization Intelligence Modal */}
+            <AnimatePresence>
+                {showOptimizationModal && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-background/95 backdrop-blur-xl"
+                        onClick={() => !isOptimizing && setShowOptimizationModal(false)}
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.95, y: 30 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.95, y: 30 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full max-w-2xl bg-card border border-border rounded-[3.5rem] shadow-2xl overflow-hidden relative"
+                        >
+                            <div className="absolute top-0 right-0 p-8">
+                                <button 
+                                    onClick={() => setShowOptimizationModal(false)}
+                                    disabled={isOptimizing}
+                                    className="p-2 hover:bg-muted rounded-full transition-colors disabled:opacity-0"
+                                >
+                                    <X size={20} className="text-muted-foreground" />
+                                </button>
+                            </div>
+
+                            <div className="p-12">
+                                <div className="flex items-center gap-6 mb-12">
+                                    <div className="size-16 rounded-[2rem] bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-600/30">
+                                        <BrainCircuit size={32} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-3xl font-black text-foreground tracking-tighter uppercase leading-none mb-2">Tactical Engine</h2>
+                                        <div className="flex items-center gap-2">
+                                            <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                            <p className="text-[10px] font-black text-indigo-500 uppercase tracking-[4px]">Regional Calibration Active</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 mb-12 min-h-[300px]">
+                                    {optimizationLogs.length === 0 && (
+                                        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground/30">
+                                            <RefreshCw className="animate-spin mb-4" size={32} />
+                                            <p className="text-[10px] font-black uppercase tracking-[4px]">Initializing Strategic Pipeline...</p>
+                                        </div>
+                                    )}
+                                    {optimizationLogs.map((log, i) => (
+                                        <motion.div 
+                                            key={i}
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            className={`p-5 rounded-2xl border flex items-start gap-4 ${
+                                                log.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-muted/50 border-border'
+                                            }`}
+                                        >
+                                            <div className={`size-8 rounded-xl flex items-center justify-center shrink-0 ${
+                                                log.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-indigo-600 text-white'
+                                            }`}>
+                                                {log.type === 'success' ? <CheckCircle2 size={14} /> : <Zap size={14} />}
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-[11px] font-bold tracking-tight leading-relaxed">{log.msg}</p>
+                                                <p className="text-[8px] font-black opacity-30 uppercase mt-1">{log.time}</p>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </div>
+
+                                <button 
+                                    onClick={() => setShowOptimizationModal(false)}
+                                    disabled={isOptimizing}
+                                    className="w-full py-5 bg-foreground text-background rounded-2xl text-[10px] font-black uppercase tracking-[4px] hover:opacity-90 transition-all shadow-xl disabled:opacity-50"
+                                >
+                                    {isOptimizing ? 'Optimization in Progress...' : 'Acknowledge Calibration'}
+                                </button>
                             </div>
                         </motion.div>
                     </motion.div>

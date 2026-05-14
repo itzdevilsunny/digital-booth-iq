@@ -43,6 +43,7 @@ export const getVoters = (boothId, force = false) =>
 export const getVoterProfile = (voterId) => api.get(`/voters-profile/${voterId}`).then(r => r.data);
 export const updateVoter = (data) => api.patch('/voters', data).then(r => r.data);
 export const initiateCampaignBlast = (data) => api.post('/campaigns/blast', data).then(r => r.data);
+export const getPersuasionStrategy = (voterId) => api.get(`/voters/${voterId}/persuasion-strategy`).then(r => r.data);
 
 // Calls
 export const getCalls = (boothId) => api.get(`/calls?booth_id=${boothId}`).then(r => r.data);

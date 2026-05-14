@@ -17,6 +17,29 @@ const STATUS_CONFIG = {
     resolved: { label: 'Issue Resolved', icon: BadgeCheck, color: 'text-muted-foreground', bg: 'bg-muted/10', border: 'border-border/10' },
 };
 
+const RegionalPulse = ({ message }) => (
+    <div className="bg-foreground rounded-[2rem] p-6 text-background relative overflow-hidden shadow-2xl shadow-foreground/20">
+        <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+        <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+            <div className="shrink-0 flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/40">
+                    <Globe size={20} />
+                </div>
+                <div>
+                    <h4 className="text-[10px] font-black uppercase tracking-[3px]">Regional Context</h4>
+                    <p className="text-[9px] font-bold opacity-40 uppercase tracking-widest">Live Strategic Feed</p>
+                </div>
+            </div>
+            <div className="flex-1 p-3 bg-white/5 rounded-xl border border-white/10">
+                <p className="text-[10px] font-medium italic opacity-70 leading-relaxed uppercase">
+                    "{message || "Waiting for regional strategic synchronization..."}"
+                </p>
+            </div>
+        </div>
+    </div>
+);
+
+
 const TaskCard = ({ task, onStart, onResolve, delay }) => {
     const config = STATUS_CONFIG[task.status] || STATUS_CONFIG.assigned;
     const isResolved = task.status === 'resolved';
@@ -110,6 +133,7 @@ export default function WorkerDashboard({ currentUser }) {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [resolveModal, setResolveModal] = useState(null);
+    const [regionalBroadcast, setRegionalBroadcast] = useState(null);
     const [resolutionNote, setResolutionNote] = useState('');
     const [afterImages, setAfterImages] = useState([]);
     const [uploadingAfter, setUploadingAfter] = useState(false);
@@ -161,7 +185,24 @@ export default function WorkerDashboard({ currentUser }) {
         setLoading(false);
     }, [currentUser?.id]);
 
-    useEffect(() => { loadData(); }, [loadData]);
+    useEffect(() => { 
+        loadData(); 
+        
+        // --- LIVE OPERATIONAL SYNC: SSE Pulse ---
+        const baseUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+        const eventSource = new EventSource(`${baseUrl}/api/manager/pulse-stream`);
+        
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'broadcast') {
+                    setRegionalBroadcast(data.msg);
+                }
+            } catch (e) { console.error("SSE Parse Error", e); }
+        };
+
+        return () => eventSource.close();
+    }, [loadData]);
 
     const handleStartWork = async (taskId) => {
         setError(null);
@@ -203,6 +244,8 @@ export default function WorkerDashboard({ currentUser }) {
 
     return (
         <div className="space-y-6 animate-fade-in relative z-10 px-4 sm:px-0">
+            <RegionalPulse message={regionalBroadcast} />
+            
             {/* Header Info - Compact */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 md:gap-4 pb-3 md:pb-4 border-b border-border">
                 <div className="flex items-center gap-6">
@@ -250,31 +293,35 @@ export default function WorkerDashboard({ currentUser }) {
                 </div>
             </div>
 
+            {/* Regional Pulse */}
+            <RegionalPulse />
+
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                    { label: 'Pending Tasks', val: activeTasks.length, icon: Zap, color: '#10b981' },
-                    { label: 'Completed Tasks', val: completedTasks.length, icon: BadgeCheck, color: '#10b981' },
-                    { label: 'System Status', val: 'Online', icon: Shield, color: '#10b981' },
-                    { label: 'Efficiency', val: '98%', icon: Activity, color: '#10b981' }
+                    { label: 'Pending Tasks', val: activeTasks.length, icon: Zap, color: 'text-emerald-500', bg: 'bg-emerald-500/5', border: 'border-emerald-500/20' },
+                    { label: 'Completed Tasks', val: completedTasks.length, icon: BadgeCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/5', border: 'border-emerald-500/20' },
+                    { label: 'System Status', val: 'Online', icon: Shield, color: 'text-indigo-500', bg: 'bg-indigo-500/5', border: 'border-indigo-500/20' },
+                    { label: 'Efficiency', val: '98%', icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/5', border: 'border-emerald-500/20' }
                 ].map((s, i) => (
                     <motion.div 
                         key={i} 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="bg-card p-3 rounded-2xl border border-border shadow-sm flex items-center justify-between group hover:border-emerald-500/30 transition-all"
+                        className={`${s.bg} p-4 rounded-2xl border ${s.border} shadow-sm flex items-center justify-between group hover:scale-[1.02] transition-all`}
                     >
                         <div>
-                            <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5 transition-colors">{s.label}</p>
-                            <p className="text-xl font-bold text-foreground tracking-tight group-hover:text-emerald-500 transition-colors uppercase leading-none">{s.val}</p>
+                            <p className="text-[8px] font-black uppercase tracking-[2px] text-muted-foreground/60 mb-1">{s.label}</p>
+                            <p className="text-2xl font-black text-foreground tracking-tighter uppercase leading-none">{s.val}</p>
                         </div>
-                        <div className="size-8 rounded-lg bg-emerald-600/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 group-hover:scale-110 transition-transform">
-                            <s.icon size={14} strokeWidth={2.5} />
+                        <div className={`size-10 rounded-xl flex items-center justify-center ${s.color} bg-white shadow-sm border border-border group-hover:rotate-12 transition-transform`}>
+                            <s.icon size={20} strokeWidth={2.5} />
                         </div>
                     </motion.div>
                 ))}
             </div>
+
 
             {error && (
                 <motion.div 

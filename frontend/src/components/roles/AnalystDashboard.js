@@ -197,9 +197,9 @@ export default function AnalystDashboard({ currentUser, boothId }) {
             {/* Tactical Metrics Group */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard label="Constituents" value={stats.total_voters} icon={Users} color="#1a1a1a" trend="+1.2%" delay={0.1} />
-                <MetricCard label="Active Gaps" value={stats.total_issues} icon={AlertTriangle} color="#f59e0b" trend="-4.8%" delay={0.2} />
-                <MetricCard label="Sentiment Health" value={`${sentPcts.find(s => s.key === 'positive')?.pct || 0}%`} icon={ShieldCheck} color="#10b981" delay={0.3} />
-                <MetricCard label="Engagements" value={stats.total_calls} icon={PhoneCall} color="#6366f1" trend="+14%" delay={0.4} />
+                <MetricCard label="Tactical Gaps" value={stats.total_issues} icon={AlertTriangle} color="#f59e0b" trend="-4.8%" delay={0.2} />
+                <MetricCard label="AI Sentiment" value={`${sentPcts.find(s => s.key === 'positive')?.pct || 0}%`} icon={BrainCircuit} color="#10b981" delay={0.3} />
+                <MetricCard label="Engagements" value={stats.total_calls} icon={Activity} color="#6366f1" trend="+14%" delay={0.4} />
             </div>
 
             {/* Strategic Intelligence View: 3 Columns for full bird's-eye view */}
@@ -395,36 +395,38 @@ export default function AnalystDashboard({ currentUser, boothId }) {
             </div>
 
             {/* Public Sentiment Summary - Horizontal Bar */}
-            <div className="bg-card p-8 rounded-[3rem] border border-border relative overflow-hidden group">
+            <div className="bg-card p-10 rounded-[3.5rem] border border-border relative overflow-hidden group shadow-sm">
                 <div className="absolute top-0 right-0 p-12 opacity-[0.02] group-hover:scale-125 transition-transform duration-1000">
                     <Database size={200} />
                 </div>
                 
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 relative z-10">
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                            <Target size={24} className="text-emerald-500" />
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-12 relative z-10">
+                    <div className="space-y-3 min-w-[300px]">
+                        <div className="flex items-center gap-4">
+                            <div className="size-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-600/20">
+                                <Activity size={20} />
+                            </div>
                             <h3 className="text-3xl font-black text-foreground tracking-tighter uppercase leading-none">Voter Sentiment Audit</h3>
                         </div>
-                        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[5px]">Constituency-wide Public Mood Synthesis</p>
+                        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[5px] pl-14">Regional Mood Synthesis</p>
                     </div>
 
-                    <div className="flex-1 max-w-2xl w-full">
-                        <div className="flex justify-between items-end mb-4">
+                    <div className="flex-1 w-full space-y-6">
+                        <div className="flex justify-between items-end">
                              {sentPcts.map((s, idx) => (
-                                 <div key={s.key} className="flex flex-col items-center gap-1">
-                                     <span className="text-2xl font-black text-foreground tracking-tighter leading-none">{s.pct}%</span>
-                                     <span className={`text-[8px] font-black uppercase tracking-[2px] ${SENTIMENT_CONFIG[s.key].color}`}>{s.key}</span>
+                                 <div key={s.key} className="flex flex-col items-start gap-1">
+                                     <span className="text-3xl font-black text-foreground tracking-tighter leading-none">{s.pct}%</span>
+                                     <span className={`text-[9px] font-black uppercase tracking-[2px] ${SENTIMENT_CONFIG[s.key].color}`}>{SENTIMENT_CONFIG[s.key].label}</span>
                                  </div>
                              ))}
                         </div>
-                        <div className="h-4 w-full rounded-full bg-muted overflow-hidden flex border border-border">
+                        <div className="h-5 w-full rounded-full bg-muted overflow-hidden flex border border-border shadow-inner">
                             {sentPcts.map((s, idx) => (
                                 <motion.div 
                                     key={s.key}
                                     initial={{ width: 0 }}
                                     animate={{ width: `${s.pct}%` }}
-                                    className={`h-full ${SENTIMENT_CONFIG[s.key].bg}`}
+                                    className={`h-full ${SENTIMENT_CONFIG[s.key].bg} transition-all duration-1000`}
                                 />
                             ))}
                         </div>

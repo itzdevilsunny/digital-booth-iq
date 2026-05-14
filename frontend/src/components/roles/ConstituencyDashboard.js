@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
     Zap, Globe, Users, Target, Activity, 
     TrendingUp, MapPin, ChevronRight, MessageSquare,
-    Shield, ShieldAlert, BarChart3, Clock, ArrowUpRight, RefreshCw
+    Shield, ShieldAlert, BarChart3, Clock, ArrowUpRight, RefreshCw, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAnalytics, initiateCampaignBlast, managerAutoAssign, getActionHistory, getConstituencySummary } from '../../api';
@@ -22,16 +22,24 @@ const ConstituencyDashboard = ({ currentUser, boothId }) => {
     const [aiCampaignState, setAiCampaignState] = useState('idle');
     const [actionHistory, setActionHistory] = useState([]);
     const [selectedAction, setSelectedAction] = useState(null);
+    const [isOptimizing, setIsOptimizing] = useState(false);
 
     useEffect(() => {
         Promise.all([
             getAnalytics(boothId),
             getActionHistory(),
             getConstituencySummary()
-        ]).then(([analyticsData, historyData, summaryData]) => {
+        ])
+        .then(([analyticsData, historyData, summaryData]) => {
             setAnalytics(analyticsData);
             setActionHistory(historyData);
             setSummary(summaryData);
+        })
+        .catch(err => {
+            console.error("Dashboard Load Error:", err);
+            // Fallback to empty states to prevent white screen
+        })
+        .finally(() => {
             setLoading(false);
         });
     }, [boothId]);
@@ -45,12 +53,29 @@ const ConstituencyDashboard = ({ currentUser, boothId }) => {
         setSummary(newSummary);
     };
 
+    const handleOptimize = async () => {
+        setIsOptimizing(true);
+        try {
+            await managerAutoAssign({});
+            await refreshHistory();
+            alert("Regional deployment optimized. Strategic units rerouted.");
+        } catch (e) { console.error(e); }
+        setIsOptimizing(false);
+    };
+
     const metrics = [
-        { label: 'Total Turnout', value: summary?.metrics?.total_turnout || '68.4%', change: '+4.2%', icon: Activity, color: 'text-indigo-400' },
-        { label: 'Active Issues', value: summary?.metrics?.active_issues || '0', change: 'Live', icon: Target, color: 'text-emerald-400' },
-        { label: 'Citizen Sentiment', value: summary?.metrics?.citizen_sentiment || 'Stable', change: '82%', icon: TrendingUp, color: 'text-amber-400' },
-        { label: 'System Latency', value: summary?.metrics?.system_latency || '24ms', change: 'Optimal', icon: Zap, color: 'text-indigo-500' }
+        { label: 'Total Turnout', value: summary?.metrics?.total_turnout || '68.4%', change: '+4.2%', icon: Activity, color: 'text-indigo-600', bg: 'bg-indigo-500/5', border: 'border-indigo-500/20' },
+        { label: 'Active Issues', value: summary?.metrics?.active_issues || '0', change: 'Live', icon: Target, color: 'text-emerald-600', bg: 'bg-emerald-500/5', border: 'border-emerald-500/20' },
+        { label: 'Citizen Sentiment', value: summary?.metrics?.citizen_sentiment || 'Stable', change: '82%', icon: TrendingUp, color: 'text-amber-600', bg: 'bg-amber-500/5', border: 'border-amber-500/20' },
+        { label: 'System Latency', value: summary?.metrics?.system_latency || '24ms', change: 'Optimal', icon: Zap, color: 'text-indigo-600', bg: 'bg-indigo-500/5', border: 'border-indigo-500/20' }
     ];
+
+    const commandSteps = [
+        { id: 1, label: 'Regional Pulse', status: 'active', desc: 'Syncing constituency data nodes...' },
+        { id: 2, label: 'Tactic Engine', status: 'pending', desc: 'Evaluating optimal deployment paths.' },
+        { id: 3, label: 'Field Sync', status: 'pending', desc: 'Awaiting sector feedback loops.' }
+    ];
+
 
     return (
         <div className="space-y-6 pb-20">
@@ -84,6 +109,14 @@ const ConstituencyDashboard = ({ currentUser, boothId }) => {
                             {t}
                         </button>
                     ))}
+                    <button 
+                        onClick={handleOptimize}
+                        disabled={isOptimizing}
+                        className="ml-4 px-4 py-2 bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-[2px] flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                    >
+                        {isOptimizing ? <RefreshCw size={10} className="animate-spin" /> : <Sparkles size={10} />}
+                        Regional Optimization
+                    </button>
                 </div>
             </div>
 
@@ -95,21 +128,49 @@ const ConstituencyDashboard = ({ currentUser, boothId }) => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className="bg-card p-5 rounded-2xl border border-border relative overflow-hidden group"
+                        className={`${m.bg} p-6 rounded-[2rem] border ${m.border} relative overflow-hidden group hover:scale-[1.02] transition-all`}
                     >
-                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <m.icon size={40} />
+                        <div className="absolute top-0 right-0 p-5 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <m.icon size={44} className={m.color} />
                         </div>
-                        <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[2px] mb-2">{m.label}</p>
+                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[3px] mb-3">{m.label}</p>
                         <div className="flex items-end justify-between relative z-10">
-                            <h3 className="text-2xl font-black text-foreground tracking-tighter">{m.value}</h3>
-                            <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full bg-muted border border-border ${m.color}`}>
+                            <h3 className="text-3xl font-black text-foreground tracking-tighter">{m.value}</h3>
+                            <span className={`text-[9px] font-black px-3 py-1 rounded-full bg-white border border-border shadow-sm ${m.color}`}>
                                 {m.change}
                             </span>
                         </div>
                     </motion.div>
                 ))}
             </div>
+
+            {/* Tactical Command Chain */}
+            <div className="bg-foreground rounded-[2.5rem] p-8 text-background relative overflow-hidden shadow-2xl shadow-foreground/20">
+                <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+                <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
+                    <div className="shrink-0">
+                        <h4 className="text-[10px] font-black uppercase tracking-[4px] opacity-40 mb-2">Regional Command</h4>
+                        <p className="text-2xl font-black tracking-tighter uppercase italic">Logic Chain</p>
+                    </div>
+                    <div className="flex-1 flex flex-wrap gap-6 md:gap-12">
+                        {commandSteps.map((step, i) => (
+                            <div key={step.id} className="flex items-center gap-4 group">
+                                <div className={`size-10 rounded-full border-2 flex items-center justify-center font-black text-xs transition-all ${step.status === 'active' ? 'bg-emerald-500 border-emerald-400 text-white shadow-lg shadow-emerald-500/40' : 'border-white/20 text-white/40'}`}>
+                                    {step.id}
+                                </div>
+                                <div>
+                                    <p className={`text-[10px] font-black uppercase tracking-widest ${step.status === 'active' ? 'text-white' : 'text-white/40'}`}>{step.label}</p>
+                                    <p className="text-[8px] font-medium text-white/30 uppercase tracking-tighter">{step.desc}</p>
+                                </div>
+                                {i < commandSteps.length - 1 && (
+                                    <div className="hidden lg:block w-12 h-px bg-white/10 mx-2" />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
 
             {/* Strategic Action History */}
             <div className="bg-card rounded-2xl border border-border p-6">
@@ -295,12 +356,12 @@ const ConstituencyDashboard = ({ currentUser, boothId }) => {
                 )}
 
                 {tab === 'intelligence' && (
-                    <div className="space-y-8">
-                        {/* Regional Intelligence Network */}
-                        <div className="bg-card rounded-[2.5rem] border border-border p-8 relative overflow-hidden h-[600px] shadow-2xl">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-140px)]">
+                        {/* Regional Intelligence Network - Main Area */}
+                        <div className="lg:col-span-2 bg-card rounded-[2.5rem] border border-border p-6 relative overflow-hidden flex flex-col shadow-2xl">
                             <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:30px_30px] opacity-10" />
-                            <div className="relative z-10 h-full flex flex-col">
-                                <div className="flex items-center justify-between mb-8">
+                            <div className="relative z-10 flex-1 flex flex-col min-h-0">
+                                <div className="flex items-center justify-between mb-4">
                                     <div>
                                         <h3 className="text-2xl font-black text-foreground uppercase tracking-tighter flex items-center gap-3">
                                             <Globe className="text-indigo-500" size={24} /> Regional Intelligence Hub
@@ -314,15 +375,16 @@ const ConstituencyDashboard = ({ currentUser, boothId }) => {
                                     </div>
                                 </div>
 
-                                <div className="flex-1 rounded-[2rem] overflow-hidden border border-white/5 bg-black/20">
+                                <div className="flex-1 rounded-[2rem] overflow-hidden border border-white/5 bg-black/20 min-h-0 relative">
                                     <IntelligenceGraph boothId={boothId} />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="grid md:grid-cols-2 gap-8">
+                        {/* Side Panel - Issues and Insights */}
+                        <div className="flex flex-col gap-6 overflow-y-auto pr-2 scrollbar-hide pb-10">
                             {/* Critical Intervention Areas */}
-                            <div className="bg-card rounded-2xl border border-border p-6 text-foreground">
+                            <div className="bg-card rounded-3xl border border-border p-6 text-foreground shrink-0 shadow-lg">
                                 <h3 className="text-lg font-black uppercase tracking-tighter mb-6 flex items-center gap-3">
                                     <ShieldAlert className="text-rose-500" size={18} /> Urgent Issues
                                 </h3>
@@ -335,11 +397,11 @@ const ConstituencyDashboard = ({ currentUser, boothId }) => {
                                                     <div className="size-1 rounded-full bg-rose-500" />
                                                     <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{area.loc}</span>
                                                 </div>
-                                                <p className="text-base font-black uppercase tracking-tight">{area.issue}</p>
+                                                <p className="text-sm font-black uppercase tracking-tight">{area.issue}</p>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-xl font-black text-rose-500 leading-none mb-1">{area.risk}</p>
-                                                <p className="text-[7px] font-black text-muted-foreground/30 uppercase tracking-widest">Priority Score</p>
+                                            <div className="text-right shrink-0 ml-4">
+                                                <p className="text-lg font-black text-rose-500 leading-none mb-1">{area.risk}</p>
+                                                <p className="text-[7px] font-black text-muted-foreground/40 uppercase tracking-widest">Priority</p>
                                             </div>
                                         </div>
                                     ))}
@@ -347,45 +409,45 @@ const ConstituencyDashboard = ({ currentUser, boothId }) => {
                             </div>
 
                             {/* AI Strategic Reasoning */}
-                            <div className="bg-indigo-600 rounded-2xl p-6 text-white relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-4 opacity-20">
-                                    <Zap size={60} />
+                            <div className="bg-[#6366f1] rounded-3xl p-6 text-white relative overflow-hidden shrink-0 shadow-xl shadow-indigo-500/30">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <Zap size={80} />
                                 </div>
-                                <div className="relative z-10">
-                                    <h3 className="text-xl font-black uppercase tracking-tighter mb-4 leading-none">AI Insights</h3>
-                                    <div className="space-y-4">
-                                        <div className="p-4 bg-white/10 rounded-xl border border-white/10 backdrop-blur-md">
-                                            <p className="text-[8px] font-black uppercase tracking-[2px] mb-2 opacity-60">Strategic Pulse</p>
-                                            <p className="text-sm font-bold leading-tight italic">
-                                                "Water Infrastructure focus recommended for Sector 9. 12% improvement potential detected."
-                                            </p>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button 
-                                                onClick={async () => {
-                                                    try {
-                                                        const res = await managerAutoAssign({ booth_id: 17 });
-                                                        setSelectedAction(res.action);
-                                                        refreshHistory();
-                                                    } catch (e) {
-                                                        alert('Strategic action initiated. Field units notified via SMS/Email.');
-                                                    }
-                                                }}
-                                                className="flex-1 py-3 bg-white text-indigo-600 rounded-xl font-black uppercase tracking-[2px] text-[8px] hover:bg-indigo-50 transition-all">
-                                                Quick Action
-                                            </button>
-                                            <button 
-                                                onClick={() => setSelectedAction({
-                                                    type: 'STRATEGIC_BRIEF',
-                                                    target: 'Sector 9',
-                                                    details: 'Detailed infrastructure analysis for Sector 9 reveals a 12% drop in water pressure over the last 48 hours. Sentiment is shifting towards critical. Immediate deployment of 3 tankers and 2 technicians recommended.',
-                                                    timestamp: new Date().toISOString(),
-                                                    status: 'viewing'
-                                                })}
-                                                className="px-4 py-3 bg-white/10 border border-white/20 rounded-xl hover:bg-white/20 transition-all">
-                                                <ArrowUpRight size={16} />
-                                            </button>
-                                        </div>
+                                <div className="relative z-10 flex flex-col h-full">
+                                    <h3 className="text-2xl font-black uppercase tracking-tighter mb-6 leading-none">AI Insights</h3>
+                                    
+                                    <div className="p-5 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-md mb-6">
+                                        <p className="text-[9px] font-black uppercase tracking-[3px] mb-3 text-indigo-200">Strategic Pulse</p>
+                                        <p className="text-sm font-bold leading-relaxed italic">
+                                            "Water Infrastructure focus recommended for Sector 9. 12% improvement potential detected."
+                                        </p>
+                                    </div>
+                                    
+                                    <div className="flex gap-2 mt-auto">
+                                        <button 
+                                            onClick={async () => {
+                                                try {
+                                                    const res = await managerAutoAssign({ booth_id: 17 });
+                                                    setSelectedAction(res.action);
+                                                    refreshHistory();
+                                                } catch (e) {
+                                                    alert('Strategic action initiated. Field units notified via SMS/Email.');
+                                                }
+                                            }}
+                                            className="flex-1 py-4 bg-white text-indigo-600 rounded-xl font-black uppercase tracking-[2px] text-[9px] hover:shadow-xl transition-all active:scale-95">
+                                            Quick Action
+                                        </button>
+                                        <button 
+                                            onClick={() => setSelectedAction({
+                                                type: 'STRATEGIC_BRIEF',
+                                                target: 'Sector 9',
+                                                details: 'Detailed infrastructure analysis for Sector 9 reveals a 12% drop in water pressure over the last 48 hours. Sentiment is shifting towards critical. Immediate deployment of 3 tankers and 2 technicians recommended.',
+                                                timestamp: new Date().toISOString(),
+                                                status: 'viewing'
+                                            })}
+                                            className="px-5 py-4 bg-white/10 border border-white/20 rounded-xl hover:bg-white/20 transition-all">
+                                            <ArrowUpRight size={16} />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
