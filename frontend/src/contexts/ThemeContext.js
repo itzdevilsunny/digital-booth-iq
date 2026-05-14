@@ -12,11 +12,18 @@ export const useTheme = () => {
 
 export const ThemeProvider = ({ children }) => {
     // Check localStorage or system preference
-    const [theme, setTheme] = useState(() => {
+    const [theme, setTheme] = useState('light'); // Initialize with a stable default for hydration safety
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
         const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) return savedTheme;
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    });
+        if (savedTheme) {
+            setTheme(savedTheme);
+        } else if (window && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            setTheme('dark');
+        }
+    }, []);
 
     useEffect(() => {
         // Apply theme to the root element

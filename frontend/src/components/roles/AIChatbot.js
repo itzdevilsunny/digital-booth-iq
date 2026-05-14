@@ -13,9 +13,18 @@ export default function AIChatbot({ currentUser, boothId }) {
   const role = location.pathname.split('/')[1] || 'citizen';
   const isCitizen = role === 'citizen';
 
-  const [messages, setMessages] = useState([
-    { role: 'bot', content: `Namaste ${currentUser?.name || 'Citizen'}. I am ESarthi, your institutional AI assistant. How can I help you today?`, timestamp: new Date().toISOString() }
-  ]);
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    // Initialize messages after mount to ensure stable hydration
+    setMessages([
+      { 
+        role: 'bot', 
+        content: `Namaste ${currentUser?.name || 'Citizen'}. I am ESarthi, your institutional AI assistant. How can I help you today?`, 
+        timestamp: new Date().toISOString() 
+      }
+    ]);
+  }, [currentUser?.name]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);

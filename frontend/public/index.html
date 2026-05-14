@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" suppressHydrationWarning>
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -24,7 +24,28 @@
         Learn how to configure a non-root public URL by running `npm run build`.
         -->
         <title>BoothIQ | Intelligence Unit</title>
-        <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
+        <script>
+            // Suppress Vercel-injected Speed Insights warnings and known Performance API bugs
+            const originalWarn = console.warn;
+            console.warn = (...args) => {
+                if (args[0] && typeof args[0] === 'string' && 
+                    (args[0].includes('Deprecated API for given entry type') || 
+                     args[0].includes('preloaded but not used'))) {
+                    return;
+                }
+                originalWarn.apply(console, args);
+            };
+            
+            window.addEventListener("error", function(e) {
+                if (e.error instanceof DOMException && (
+                    (e.error.name === "DataCloneError" && e.message?.includes("PerformanceServerTiming")) ||
+                    (e.message?.includes("Minified React error #418"))
+                )) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                }
+            }, true);
+        </script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
