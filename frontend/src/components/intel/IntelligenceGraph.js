@@ -15,6 +15,8 @@ export const IntelligenceGraph = ({ boothId, perspective: initialPerspective = '
     const [persuasionStrategy, setPersuasionStrategy] = useState(null);
     const [loadingStrategy, setLoadingStrategy] = useState(false);
     const [hoverNode, setHoverNode] = useState(null);
+    const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
+    const [broadcastMsg, setBroadcastMsg] = useState('');
     const fgRef = useRef();
     const containerRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -356,21 +358,67 @@ export const IntelligenceGraph = ({ boothId, perspective: initialPerspective = '
                             {label}
                         </button>
                     ))}
-                    <button 
-                        onClick={async () => {
-                            const msg = prompt("Enter Tactical Directive for this Sector:");
-                            if (msg) {
-                                try {
-                                    await managerBroadcast({ message: `SECTOR ${boothId} DIRECTIVE: ${msg}` });
-                                    toast.success("Sector-specific directive issued.");
-                                } catch (e) { console.error(e); }
-                            }
-                        }}
-                        className="px-4 py-1.5 bg-emerald-500 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all flex items-center gap-2"
-                    >
-                        <Send size={10} />
-                        Sector Broadcast
-                    </button>
+                    <div className="relative">
+                        <button 
+                            onClick={() => setIsBroadcastOpen(true)}
+                            className="px-4 py-1.5 bg-emerald-500 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all flex items-center gap-2"
+                        >
+                            <Send size={10} />
+                            Sector Broadcast
+                        </button>
+
+                        {/* Non-blocking Broadcast Modal to fix INP Issue */}
+                        <AnimatePresence>
+                            {isBroadcastOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                    className="absolute top-full mt-3 right-0 bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 p-5 rounded-2xl shadow-2xl z-50 w-80"
+                                >
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-[2px] flex items-center gap-2">
+                                            <Zap size={12} />
+                                            Tactical Directive
+                                        </h4>
+                                        <button onClick={() => setIsBroadcastOpen(false)} className="text-white/40 hover:text-white">
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                    <textarea
+                                        value={broadcastMsg}
+                                        onChange={(e) => setBroadcastMsg(e.target.value)}
+                                        placeholder="Enter secure directive for this sector..."
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-500/50 resize-none h-24 mb-4 custom-scrollbar"
+                                        autoFocus
+                                    />
+                                    <div className="flex gap-2 justify-end">
+                                        <button 
+                                            onClick={() => setIsBroadcastOpen(false)} 
+                                            className="px-4 py-2 text-[9px] font-black text-white/50 uppercase tracking-widest hover:text-white transition-colors hover:bg-white/5 rounded-lg"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button 
+                                            onClick={async () => {
+                                                if (broadcastMsg) {
+                                                    try {
+                                                        await managerBroadcast({ message: `SECTOR ${boothId} DIRECTIVE: ${broadcastMsg}` });
+                                                        toast.success("Sector-specific directive issued.");
+                                                        setBroadcastMsg('');
+                                                        setIsBroadcastOpen(false);
+                                                    } catch (e) { console.error(e); }
+                                                }
+                                            }} 
+                                            className="px-5 py-2 bg-emerald-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
+                                        >
+                                            Transmit
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
             </div>
 
