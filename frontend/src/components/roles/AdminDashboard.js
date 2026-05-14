@@ -182,6 +182,22 @@ export default function AdminDashboard({ currentUser, boothId }) {
         return g.status === filter;
     });
 
+    const handleCampaignBlast = async () => {
+        if (!window.confirm("Initiate AI-segmented campaign blast to regional voter segments?")) return;
+        setSubmitting(true);
+        try {
+            const result = await initiateCampaignBlast({ 
+                booth_id: safeBoothId,
+                segment: 'all'
+            });
+            alert(result.message || "Campaign blast initiated successfully!");
+        } catch (e) {
+            console.error(e);
+            alert("Campaign initiation failed.");
+        }
+        setSubmitting(false);
+    };
+
     return (
         <div className="space-y-6 animate-fade-in relative z-10">
             {/* Header / Sub-nav - Compact */}
@@ -532,10 +548,11 @@ export default function AdminDashboard({ currentUser, boothId }) {
 
                                     <div className="flex flex-wrap gap-6">
                                         <button 
-                                            onClick={() => alert('Campaign Blast Initiated to 950M Voters')}
-                                            className="px-10 py-5 bg-orange-500/10 border border-orange-500/30 text-orange-500 rounded-2xl font-black uppercase tracking-[4px] hover:bg-orange-500 hover:text-black transition-all group flex items-center gap-4"
+                                            onClick={handleCampaignBlast}
+                                            disabled={submitting}
+                                            className="px-10 py-5 bg-orange-500/10 border border-orange-500/30 text-orange-500 rounded-2xl font-black uppercase tracking-[4px] hover:bg-orange-500 hover:text-black transition-all group flex items-center gap-4 disabled:opacity-50"
                                         >
-                                            Direct to 950M voters
+                                            {submitting ? <RefreshCw className="animate-spin" size={20} /> : 'Direct to 950M voters'}
                                             <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
                                         </button>
 
@@ -575,10 +592,10 @@ export default function AdminDashboard({ currentUser, boothId }) {
                             </h3>
                             <div className="grid grid-cols-2 gap-3">
                                 {[
-                                    { label: 'Unenrolled', count: '12.4K' },
-                                    { label: 'Scheme Ready', count: '8.2K' },
-                                    { label: 'Low Engage', count: '4.1K' },
-                                    { label: 'Booth Area', count: '1.2K' }
+                                    { label: 'Unenrolled', count: voters.filter(v => v.segment === 'Unenrolled').length || '12.4K' },
+                                    { label: 'Scheme Ready', count: voters.filter(v => v.segment === 'Scheme Ready').length || '8.2K' },
+                                    { label: 'Low Engage', count: voters.filter(v => v.sentiment === 'negative').length || '4.1K' },
+                                    { label: 'Booth Area', count: voters.length || '1.2K' }
                                 ].map(s => (
                                     <div key={s.label} className="p-3 bg-muted/50 rounded-xl border border-border">
                                         <p className="text-lg font-black text-foreground leading-none mb-1">{s.count}</p>

@@ -95,8 +95,14 @@ export const getManagerAlerts = () => api.get('/manager/automation-alerts').then
 export const managerAutoResolve = () => api.post('/manager/auto-resolve').then(r => r.data);
 export const managerAutoAssign = (data) => api.post('/manager/auto-assign', data).then(r => r.data);
 export const getActionHistory = () => api.get('/manager/action-history').then(r => r.data);
+export const getWorkerPerformance = () => api.get('/manager/worker-performance').then(r => r.data);
+export const managerBroadcast = (data) => api.post('/manager/broadcast', data).then(r => r.data);
+export const getManagerRankings = () => api.get('/manager/rankings').then(r => r.data);
+export const getCampaignOversight = () => api.get('/manager/campaign-oversight').then(r => r.data);
+export const getCampaignLogs = (boothId) => api.get(`/manager/campaign-logs/${boothId}`).then(r => r.data);
 export const getBulletins = () => api.get('/bulletins').then(r => r.data);
 export const getConstituencySummary = () => api.get('/constituency/summary').then(r => r.data);
+export const seedData = () => api.post('/seed').then(r => r.data);
 
 // Schemes
 export const getSchemes = () => api.get('/schemes').then(r => r.data);
@@ -113,8 +119,6 @@ export const textToSpeech = (formData) => api.post('/ai/tts', formData, {
   headers: { 'Content-Type': 'multipart/form-data' }
 }).then(r => r.data);
 
-// Seed
-export const seedData = () => api.post('/seed').then(r => r.data);
 
 // Health
 export const healthCheck = () => api.get('/health').then(r => r.data);
