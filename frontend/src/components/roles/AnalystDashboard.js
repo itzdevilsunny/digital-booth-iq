@@ -6,7 +6,7 @@ import {
   TrendingUp, TrendingDown, ShieldCheck, Activity,
   BrainCircuit, Target, Zap, Lightbulb, PieChart as PieIcon,
   BarChart as BarIcon, LineChart as LineIcon, Info,
-  Layers, Database, Network
+  Layers, Database, Network, ShieldAlert
 } from 'lucide-react';
 import { IntelligenceGraph } from '../intel/IntelligenceGraph';
 import { 
@@ -64,7 +64,18 @@ export default function AnalystDashboard({ currentUser, boothId }) {
             const res = await getAnalytics(boothId);
             setStats(res);
         } catch (e) { 
-            console.error(e); 
+            console.error('Analytics Fetch Error:', e);
+            // Fallback empty stats to avoid blank screen if API fails
+            setStats({
+                total_voters: 0,
+                sentiment_distribution: { positive: 0, neutral: 0, negative: 0 },
+                total_issues: 0,
+                resolved_issues: 0,
+                pending_issues: 0,
+                category_breakdown: {},
+                trends: [],
+                error: true
+            });
         } finally {
             if (showLoading) setLoading(false);
         }
@@ -107,7 +118,25 @@ export default function AnalystDashboard({ currentUser, boothId }) {
         );
     }
 
-    if (!stats) return null;
+    if (!stats || stats.error) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center animate-fade-in p-8">
+                <div className="size-24 rounded-full bg-destructive/10 flex items-center justify-center border border-destructive/20 text-destructive shadow-2xl shadow-destructive/20">
+                    <ShieldAlert size={48} />
+                </div>
+                <div>
+                    <h3 className="text-2xl font-display font-black text-foreground uppercase tracking-tight">Intelligence Stream Interrupted</h3>
+                    <p className="text-muted-foreground mt-2 max-w-md mx-auto text-sm font-medium">We encountered a 500 status error while fetching real-time analytics. The system will attempt to reconnect automatically.</p>
+                </div>
+                <button 
+                    onClick={() => loadData(true)}
+                    className="px-8 py-3 rounded-2xl bg-foreground text-background font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl"
+                >
+                    Manual Recon
+                </button>
+            </div>
+        );
+    }
 
     const sentTotal = Object.values(stats.sentiment_distribution || {}).reduce((a, b) => a + b, 0);
     const sentPcts = Object.entries(stats.sentiment_distribution || {}).map(([k, v]) => ({

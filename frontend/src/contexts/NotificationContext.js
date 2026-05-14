@@ -66,9 +66,14 @@ export const NotificationProvider = ({ children, userId }) => {
     };
 
     socket.onclose = (event) => {
+      // On Vercel (1006 usually means WebSocket not supported), don't spam retries
+      if (event.code === 1006) {
+        console.warn('⚠️ Notification Matrix Unsupported in this environment (Vercel). Falling back to periodic sync.');
+        return;
+      }
       console.warn('⚠️ Notification Matrix Disconnected:', event.code, event.reason);
-      // Attempt to reconnect after a delay
-      setTimeout(fetchHistory, 5000);
+      // Attempt to reconnect after a delay for normal drops
+      setTimeout(fetchHistory, 10000);
     };
 
     return () => socket.close();

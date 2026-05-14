@@ -2268,6 +2268,11 @@ async def get_analytics(booth_id: Union[int, str], user: dict = Depends(get_curr
             "booth_id": f"eq.{real_id}"
         })
         
+        if (isinstance(voters, dict) and "error" in voters) or (isinstance(eci_voters, dict) and "error" in eci_voters):
+            logger.error(f"Supabase data fetch failed: voters={voters}, eci={eci_voters}")
+            voters = []
+            eci_voters = []
+        
         if not eci_voters:
             # Hybrid Fallback for analytics
             mongo_voters = await db.voters.find({"booth_id": real_id}, {"_id": 0}).to_list(100)
@@ -2336,6 +2341,10 @@ async def get_analytics(booth_id: Union[int, str], user: dict = Depends(get_curr
             "select": "id,status,category,booth_id",
             "booth_id": f"eq.{real_id}"
         })
+        
+        if isinstance(grievances, dict) and "error" in grievances:
+            logger.error(f"Supabase error in grievances fetch: {grievances}")
+            grievances = []
         
         total_issues = len(grievances or [])
         resolved_issues = sum(1 for g in (grievances or []) if g["status"] == "resolved")
