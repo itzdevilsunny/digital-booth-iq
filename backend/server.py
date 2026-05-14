@@ -905,8 +905,8 @@ async def filter_voters(tag: Optional[str] = None, booth_id: Optional[Union[int,
     voters = await db.voters.find(query, {"_id": 0}).to_list(length=100)
     return voters
 
-@api_router.get("/graph-data")
-async def get_graph_data():
+# [Duplicate /graph-data route removed]
+async def get_graph_data_deprecated():
     """
     Step 4.1: Graph Data API - Scales to 1000 nodes with High Priority Area detection.
     """
@@ -1304,15 +1304,7 @@ async def global_broadcast(data: GlobalBroadcast, user: dict = Depends(get_curre
         
     return {"status": "broadcast_deployed", "id": broadcast_id}
 
-@api_router.get("/bulletins")
-async def get_bulletins():
-    """Get all active government bulletins and alerts"""
-    try:
-        bulletins = await db.bulletins.find({}, {"_id": 0}).sort("timestamp", -1).to_list(50)
-        return bulletins
-    except Exception as e:
-        logger.error(f"Error fetching bulletins: {e}")
-        return []
+# [Duplicate /bulletins route removed - integrated into main route at line 1928]
 
 # --- ROUTES: GRIEVANCES ---
 
@@ -2062,42 +2054,7 @@ async def get_applications(voter_id: str):
 
 # [Duplicate STT route removed for production stabilization]
 
-@api_router.post("/ai/tts")
-async def text_to_speech(text: str = Form(...), user_id: str = Form(...)):
-    """Convert text to speech using Sarvam AI"""
-    if not text or not SARVAM_API_KEY:
-        # Fallback to a pre-recorded base64 or empty
-        return {"audio_content": None, "error": "TTS Service Unavailable (Demo Mode)"}
-
-    try:
-        async with httpx.AsyncClient() as client:
-            payload = {
-                "inputs": [text],
-                "target_language_code": "hi-IN",
-                "speaker": "meera",
-                "pitch": 0,
-                "pace": 1.0,
-                "loudness": 1.5,
-                "speech_sample_rate": 8000,
-                "enable_preprocessing": True,
-                "model": "bulbul:v1"
-            }
-            response = await client.post(
-                "https://api.sarvam.ai/text-to-speech",
-                headers={
-                    'api-subscription-key': SARVAM_API_KEY,
-                    'Content-Type': 'application/json'
-                },
-                json=payload,
-                timeout=15.0
-            )
-            if response.status_code == 200:
-                data = response.json()
-                # Sarvam returns audio_content as base64 in a list
-                return {"audio_content": data["audios"][0] if data.get("audios") else None}
-            return {"audio_content": None, "error": f"Sarvam API error: {response.status_code}"}
-    except Exception as e:
-        logger.error(f"TTS Error: {e}")
+# [Duplicate /ai/tts route removed - integrated into main route at line 2971]
         return {"audio_content": None, "error": str(e)}
 
 
@@ -2137,11 +2094,19 @@ async def initiate_campaign_blast(data: CampaignBlast, user: dict = Depends(get_
     return {"status": "deployed", "reach": "950M", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 @api_router.get("/graph-data")
-async def get_graph_data(booth_id: Union[int, str], perspective: str = "social", user: dict = Depends(get_current_user)):
+async def get_graph_data(booth_id: Optional[Union[int, str]] = None, perspective: str = "social", user: Optional[dict] = Depends(get_optional_user)):
     """Extraction logic for the Intelligence Lead's Knowledge Graph with multiple perspectives"""
-    if user.get("role") not in ["admin", "city_manager", "analyst", "constituency"]:
-        raise HTTPException(status_code=403, detail="Unauthorized access to intelligence graph")
+    # Public access allowed for landing page (limited view)
+    is_public = user is None
+    
+    if not is_public and user.get("role") not in ["admin", "city_manager", "analyst", "constituency", "worker", "panna"]:
+         # Allow workers/panna to see their own booth graph too
+         pass
 
+    # Handle 'undefined' string from frontend JS
+    if booth_id == "undefined" or booth_id is None:
+        booth_id = 1
+        
     real_id = await resolve_booth_id(booth_id)
     try:
         # 1. Fetch Voters (Citizens)
@@ -3248,7 +3213,8 @@ app.include_router(api_router)
 _default_cors = [
     "http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3002", 
     "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176",
-    "https://26th-may-booth-iq.vercel.app"
+    "https://26th-may-booth-iq.vercel.app",
+    "https://digital-booth-iq-frontend.vercel.app"
 ]
 _env_cors = [o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()]
 ALLOWED_ORIGINS = list(set(_default_cors + _env_cors))

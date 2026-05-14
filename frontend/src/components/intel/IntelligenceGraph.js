@@ -16,7 +16,7 @@ export const IntelligenceGraph = ({ onNodeSelect, boothId }) => {
     useEffect(() => {
         const fetchGraph = (showLoading = true) => {
             if (showLoading) setLoading(true);
-            getGraphData(boothId || 17, perspective)
+            getGraphData((boothId && boothId !== 'undefined') ? boothId : 17, perspective)
                 .then(res => {
                     setData(res || { nodes: [], links: [] });
                     if (showLoading) setLoading(false);

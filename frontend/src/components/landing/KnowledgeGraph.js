@@ -10,7 +10,7 @@ export const KnowledgeGraph = () => {
     const fgRef = useRef();
 
     useEffect(() => {
-        getGraphData()
+        getGraphData(17) // Default to Booth 17 for landing page visualization
             .then(res => {
                 setData(res || { nodes: [], links: [] });
                 setLoading(false);
