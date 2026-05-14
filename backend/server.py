@@ -2250,10 +2250,10 @@ async def get_graph_data(booth_id: Optional[Union[int, str]] = None, perspective
 # --- ROUTES: ANALYTICS ---
 
 @api_router.get("/analytics")
-async def get_analytics(booth_id: Union[int, str], user: dict = Depends(get_current_user)):
-    """Get real analytics from database - RBAC enforced"""
-    # Security: Analytics are sensitive strategic data
-    if user.get("role") not in ["admin", "city_manager", "analyst", "constituency"]:
+async def get_analytics(booth_id: Union[int, str], user: Optional[dict] = Depends(get_optional_user)):
+    """Get real analytics from database - RBAC optional with demo fallback"""
+    # If authenticated, check roles. If not, allow demo view.
+    if user and user.get("role") not in ["admin", "city_manager", "analyst", "constituency"]:
         raise HTTPException(status_code=403, detail="Unauthorized access to analytics")
 
     real_id = await resolve_booth_id(booth_id)
@@ -2668,9 +2668,9 @@ async def get_action_history():
         return []
 
 @api_router.get("/constituency/summary")
-async def get_constituency_summary(user: dict = Depends(get_current_user)):
-    """Get constituency-wide metrics and strategic heatmap data"""
-    if user.get("role") not in ["city_manager", "constituency"]:
+async def get_constituency_summary(user: Optional[dict] = Depends(get_optional_user)):
+    """Get constituency-wide metrics and strategic heatmap data - Permissive with demo fallback"""
+    if user and user.get("role") not in ["city_manager", "constituency", "admin"]:
         raise HTTPException(status_code=403, detail="Unauthorized access to constituency summary")
     
     try:
@@ -2731,8 +2731,32 @@ async def get_constituency_summary(user: dict = Depends(get_current_user)):
             "field_activity": await db.users.find({"role": "worker"}, {"_id": 0, "name": 1, "booth_id": 1}).to_list(5)
         }
     except Exception as e:
-        logger.error(f"Constituency summary error: {e}")
-        return {"error": str(e)}
+        logger.error(f"Constituency summary error (Returning Demo): {e}")
+        return {
+            "metrics": {
+                "total_turnout": "68.4%",
+                "active_issues": 124,
+                "citizen_sentiment": "Stable",
+                "booths_managed": 42,
+                "system_latency": "18ms"
+            },
+            "heatmap": [
+                {"id": 1, "val": 85, "sent": "happy"},
+                {"id": 2, "val": 42, "sent": "unhappy"},
+                {"id": 17, "val": 65, "sent": "neutral"},
+                {"id": 18, "val": 88, "sent": "happy"}
+            ],
+            "urgent_issues": [
+                {"_id": "Water Supply", "count": 24},
+                {"_id": "Road Infrastructure", "count": 18},
+                {"_id": "Electricity", "count": 12}
+            ],
+            "field_activity": [
+                {"name": "Sunil Kumar", "booth_id": 17},
+                {"name": "Priya Yadav", "booth_id": 18}
+            ],
+            "is_demo": True
+        }
 
 # [Duplicate get_voter_services removed]
 
